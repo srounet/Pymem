@@ -1,42 +1,40 @@
 import ctypes
-from ctypes import c_byte, c_char, c_long, c_uint, wintypes
-from ctypes import POINTER, Structure
 
 
-class ModuleEntry32(Structure):
+class ModuleEntry32(ctypes.Structure):
     """Describes an entry from a list of the modules belonging to the specified process.
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms684225%28v=vs.85%29.aspx
     """
     _fields_ = [
-        ( 'dwSize' , wintypes.DWORD ) ,
-        ( 'th32ModuleID' , wintypes.DWORD ),
-        ( 'th32ProcessID' , wintypes.DWORD ),
-        ( 'GlblcntUsage' , wintypes.DWORD ),
-        ( 'ProccntUsage' , wintypes.DWORD ) ,
-        ( 'modBaseAddr' , POINTER(wintypes.BYTE) ) ,
-        ( 'modBaseSize' , wintypes.DWORD ) ,
-        ( 'hModule' , wintypes.HMODULE ) ,
-        ( 'szModule' , c_char * 256 ),
-        ( 'szExePath' , c_char * 260 )
+        ( 'dwSize' , ctypes.c_ulong ) ,
+        ( 'th32ModuleID' , ctypes.c_ulong ),
+        ( 'th32ProcessID' , ctypes.c_ulong ),
+        ( 'GlblcntUsage' , ctypes.c_ulong ),
+        ( 'ProccntUsage' , ctypes.c_ulong ) ,
+        ( 'modBaseAddr' , ctypes.POINTER(ctypes.ctypes.c_byte) ) ,
+        ( 'modBaseSize' , ctypes.c_ulong ) ,
+        ( 'hModule' , ctypes.c_ulong ) ,
+        ( 'szModule' , ctypes.c_char * 256 ),
+        ( 'szExePath' , ctypes.c_char * 260 )
     ]
 
-class ProcessEntry32(Structure):
+class ProcessEntry32(ctypes.Structure):
     """Describes an entry from a list of the processes residing in the system address space when a snapshot was taken.
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms684839(v=vs.85).aspx
     """
     _fields_ = [
-        ( 'dwSize' , wintypes.DWORD ) ,
-        ( 'cntUsage' , wintypes.DWORD) ,
-        ( 'th32ProcessID' , wintypes.DWORD) ,
-        ( 'th32DefaultHeapID' , POINTER(ctypes.c_ulong)) ,
-        ( 'th32ModuleID' , wintypes.DWORD) ,
-        ( 'cntThreads' , wintypes.DWORD) ,
-        ( 'th32ParentProcessID' , wintypes.DWORD) ,
-        ( 'pcPriClassBase' , wintypes.LONG) ,
-        ( 'dwFlags' , wintypes.DWORD) ,
-        ( 'szExeFile' , c_char * 260 )
+        ( 'dwSize' , ctypes.c_ulong ) ,
+        ( 'cntUsage' , ctypes.c_ulong) ,
+        ( 'th32ProcessID' , ctypes.c_ulong) ,
+        ( 'th32DefaultHeapID' , ctypes.POINTER(ctypes.c_ulong)) ,
+        ( 'th32ModuleID' , ctypes.c_ulong) ,
+        ( 'cntThreads' , ctypes.c_ulong) ,
+        ( 'th32ParentProcessID' , ctypes.c_ulong) ,
+        ( 'pcPriClassBase' , ctypes.c_long) ,
+        ( 'dwFlags' , ctypes.c_ulong) ,
+        ( 'szExeFile' , ctypes.c_char * 260 )
     ]
 
     @property
@@ -44,20 +42,20 @@ class ProcessEntry32(Structure):
         return self.szExeFile.decode('utf-8')
 
 
-class ThreadEntry32(ctypes.Structure):
+class ThreadEntry32(ctypes.ctypes.Structure):
     """Describes an entry from a list of the threads executing in the system when a snapshot was taken.
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms686735(v=vs.85).aspx
     """
 
     _fields_ = [
-        ('dwSize', wintypes.DWORD),
-        ("cntUsage", wintypes.DWORD),
-        ("th32ThreadID", wintypes.DWORD),
-        ("th32OwnerProcessID", wintypes.DWORD),
-        ("tpBasePri", wintypes.DWORD),
-        ("tpDeltaPri", wintypes.DWORD),
-        ("dwFlags", wintypes.DWORD)
+        ('dwSize', ctypes.c_ulong),
+        ("cntUsage", ctypes.c_ulong),
+        ("th32ThreadID", ctypes.c_ulong),
+        ("th32OwnerProcessID", ctypes.c_ulong),
+        ("tpBasePri", ctypes.c_ulong),
+        ("tpDeltaPri", ctypes.c_ulong),
+        ("dwFlags", ctypes.c_ulong)
     ]
 
 
@@ -153,48 +151,48 @@ class MemoryProtection(object):
 
 
 SIZE_OF_80387_REGISTERS = 80
-class FLOATING_SAVE_AREA(ctypes.Structure):
-    """Undocumented structure used for ThreadContext."""
+class FLOATING_SAVE_AREA(ctypes.ctypes.Structure):
+    """Undocumented ctypes.Structure used for ThreadContext."""
     _fields_ = [
-        ('ControlWord', c_uint),
-        ('StatusWord', c_uint),
-        ('TagWord', c_uint),
-        ('ErrorOffset', c_uint),
-        ('ErrorSelector', c_uint),
-        ('DataOffset', c_uint),
-        ('DataSelector', c_uint),
-        ('RegisterArea', c_byte * SIZE_OF_80387_REGISTERS),
-        ('Cr0NpxState', c_uint)
+        ('ControlWord', ctypes.c_uint),
+        ('StatusWord', ctypes.c_uint),
+        ('TagWord', ctypes.c_uint),
+        ('ErrorOffset', ctypes.c_uint),
+        ('ErrorSelector', ctypes.c_uint),
+        ('DataOffset', ctypes.c_uint),
+        ('DataSelector', ctypes.c_uint),
+        ('RegisterArea', ctypes.c_byte * SIZE_OF_80387_REGISTERS),
+        ('Cr0NpxState', ctypes.c_uint)
     ]
 
 MAXIMUM_SUPPORTED_EXTENSION = 512
-class ThreadContext(ctypes.Structure):
+class ThreadContext(ctypes.ctypes.Structure):
     """Represents a thread context"""
 
     _fields_ = [
-        ('ContextFlags', c_uint),
-        ('Dr0', c_uint),
-        ('Dr1', c_uint),
-        ('Dr2', c_uint),
-        ('Dr3', c_uint),
-        ('Dr6', c_uint),
-        ('Dr7', c_uint),
+        ('ContextFlags', ctypes.c_uint),
+        ('Dr0', ctypes.c_uint),
+        ('Dr1', ctypes.c_uint),
+        ('Dr2', ctypes.c_uint),
+        ('Dr3', ctypes.c_uint),
+        ('Dr6', ctypes.c_uint),
+        ('Dr7', ctypes.c_uint),
         ('FloatSave', FLOATING_SAVE_AREA),
-        ('SegGs', c_uint),
-        ('SegFs', c_uint),
-        ('SegEs', c_uint),
-        ('SegDs', c_uint),
-        ('Edi', c_uint),
-        ('Esi', c_uint),
-        ('Ebx', c_uint),
-        ('Edx', c_uint),
-        ('Ecx', c_uint),
-        ('Eax', c_uint),
-        ('Ebp', c_uint),
-        ('Eip', c_uint),
-        ('SegCs', c_uint),
-        ('EFlags', c_uint),
-        ('Esp', c_uint),
-        ('SegSs', c_uint),
-        ('ExtendedRegisters', c_byte * MAXIMUM_SUPPORTED_EXTENSION)
+        ('SegGs', ctypes.c_uint),
+        ('SegFs', ctypes.c_uint),
+        ('SegEs', ctypes.c_uint),
+        ('SegDs', ctypes.c_uint),
+        ('Edi', ctypes.c_uint),
+        ('Esi', ctypes.c_uint),
+        ('Ebx', ctypes.c_uint),
+        ('Edx', ctypes.c_uint),
+        ('Ecx', ctypes.c_uint),
+        ('Eax', ctypes.c_uint),
+        ('Ebp', ctypes.c_uint),
+        ('Eip', ctypes.c_uint),
+        ('SegCs', ctypes.c_uint),
+        ('EFlags', ctypes.c_uint),
+        ('Esp', ctypes.c_uint),
+        ('SegSs', ctypes.c_uint),
+        ('ExtendedRegisters', ctypes.c_byte * MAXIMUM_SUPPORTED_EXTENSION)
     ]

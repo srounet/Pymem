@@ -12,7 +12,7 @@ class ModuleEntry32(ctypes.Structure):
         ( 'th32ProcessID' , ctypes.c_ulong ),
         ( 'GlblcntUsage' , ctypes.c_ulong ),
         ( 'ProccntUsage' , ctypes.c_ulong ) ,
-        ( 'modBaseAddr' , ctypes.POINTER(ctypes.ctypes.c_byte) ) ,
+        ( 'modBaseAddr' , ctypes.POINTER(ctypes.c_byte)),
         ( 'modBaseSize' , ctypes.c_ulong ) ,
         ( 'hModule' , ctypes.c_ulong ) ,
         ( 'szModule' , ctypes.c_char * 256 ),
@@ -28,7 +28,7 @@ class ProcessEntry32(ctypes.Structure):
         ( 'dwSize' , ctypes.c_ulong ) ,
         ( 'cntUsage' , ctypes.c_ulong) ,
         ( 'th32ProcessID' , ctypes.c_ulong) ,
-        ( 'th32DefaultHeapID' , ctypes.POINTER(ctypes.c_ulong)) ,
+        ( 'th32DefaultHeapID' , ctypes.POINTER(ctypes.c_ulong) ) ,
         ( 'th32ModuleID' , ctypes.c_ulong) ,
         ( 'cntThreads' , ctypes.c_ulong) ,
         ( 'th32ParentProcessID' , ctypes.c_ulong) ,
@@ -42,7 +42,7 @@ class ProcessEntry32(ctypes.Structure):
         return self.szExeFile.decode('utf-8')
 
 
-class ThreadEntry32(ctypes.ctypes.Structure):
+class ThreadEntry32(ctypes.Structure):
     """Describes an entry from a list of the threads executing in the system when a snapshot was taken.
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms686735(v=vs.85).aspx
@@ -151,7 +151,7 @@ class MemoryProtection(object):
 
 
 SIZE_OF_80387_REGISTERS = 80
-class FLOATING_SAVE_AREA(ctypes.ctypes.Structure):
+class FLOATING_SAVE_AREA(ctypes.Structure):
     """Undocumented ctypes.Structure used for ThreadContext."""
     _fields_ = [
         ('ControlWord', ctypes.c_uint),
@@ -166,7 +166,7 @@ class FLOATING_SAVE_AREA(ctypes.ctypes.Structure):
     ]
 
 MAXIMUM_SUPPORTED_EXTENSION = 512
-class ThreadContext(ctypes.ctypes.Structure):
+class ThreadContext(ctypes.Structure):
     """Represents a thread context"""
 
     _fields_ = [

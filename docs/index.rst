@@ -15,13 +15,3 @@ Pymem depends on `pyfasm <http://github.com/srounet/pyfasm>`_ and in it's
 current version does not supports x64.
 
 .. include:: contents.rst.inc
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-

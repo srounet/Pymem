@@ -146,5 +146,5 @@ try:
     #: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366894%28v=vs.85%29.aspx
     VirtualFreeEx = dll.VirtualFreeEx
     VirtualFreeEx.restype = ctypes.c_long
-except AttributeError:
+except NameError:
     pass

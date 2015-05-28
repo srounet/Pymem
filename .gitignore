@@ -5,6 +5,12 @@ __pycache__/
 # C extensions
 *.so
 
+# C#
+*.cs
+
+# Pycharm
+*.idea
+
 # Distribution / packaging
 .Python
 env/

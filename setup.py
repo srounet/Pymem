@@ -1,12 +1,12 @@
 import re
-from setuptools import setup
+import setuptools
 
 
 def load_dependencies(filename):
     install_requires = []
     dependency_links = []
     for line in open(filename):
-        line = line.decode('utf-8').strip()
+        line = line.strip()
         m = re.match(r'http.+#egg=(?P<pkgname>.+)', line)
         if m:
             dependency_links.append(line)
@@ -18,7 +18,7 @@ def load_dependencies(filename):
 install_requires, dependency_links = load_dependencies('requirements.txt')
 
 
-setup(
+setuptools.setup(
     name='Pymem',
     version='0.1',
     description='pymem: python memory access made easy',
@@ -26,10 +26,10 @@ setup(
     author_email='srounet@gmail.com',
     maintainer='Fabien Reboia',
     maintainer_email='srounet@gmail.com',
-    url=' http://www.pymem.org/',
+    url='http://pymem.readthedocs.org/en/latest/',
     long_description="A python library for windows, providing the needed functions to start working on your own with memory editing",
     license="postcard license",
-    packages=['pymem'],
+    packages = setuptools.find_packages(),
     platforms=["windows"],
     keywords='memory win32 windows process',
     classifiers=[

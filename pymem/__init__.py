@@ -1,4 +1,8 @@
-import pyfasm
+try:
+    import pyfasm
+    pyfasm_enabled = True
+except RuntimeError:
+    pyfasm_enabled = False
 
 import pymem.exception
 import pymem.memory
@@ -146,6 +150,8 @@ class Pymem(object):
         :rtype: bytes
         """
         #XXX :raises:
+        if not pyfasm_enabled:
+            raise RuntimeError("Pyfasm could not be loaded")
         if "use32" not in mnemonics:
             mnemonics = "use32\n{}".format(mnemonics)
 

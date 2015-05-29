@@ -396,7 +396,7 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, int):
+        if value is None or not isinstance(value, int):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_int(self.process_handle, address, value)
 
@@ -412,7 +412,7 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, int):
+        if value is None or not isinstance(value, int):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_uint(self.process_handle, address, value)
 
@@ -428,7 +428,7 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, int):
+        if value is None or not isinstance(value, int):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_short(self.process_handle, address, value)
 
@@ -444,7 +444,7 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, int):
+        if value is None or not isinstance(value, int):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_ushort(self.process_handle, address, value)
 
@@ -460,7 +460,7 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, float):
+        if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_float(self.process_handle, address, value)
 
@@ -476,7 +476,7 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, float):
+        if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_long(self.process_handle, address, value)
 
@@ -492,7 +492,7 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, float):
+        if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_ulong(self.process_handle, address, value)
 
@@ -508,7 +508,7 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, float):
+        if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_longlong(self.process_handle, address, value)
 
@@ -524,7 +524,7 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, float):
+        if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_ulonglong(self.process_handle, address, value)
 
@@ -540,7 +540,7 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, float):
+        if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_double(self.process_handle, address, value)
 
@@ -572,6 +572,6 @@ class Pymem(object):
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, str):
+        if value is None or not isinstance(value, str):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_char(self.process_handle, address, value)

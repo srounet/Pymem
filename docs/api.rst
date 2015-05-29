@@ -1,7 +1,8 @@
 API
 ===
 
-bla bla
+This part of the documentation covers all the interfaces of Pymem. For parts where Pymem depends on external libraries,
+we document the most important right here.
 
 .. toctree::
     :maxdepth: 2

@@ -33,7 +33,10 @@ supports memory reads, write and even assembly injection (thanks to `pyfasm <htt
 Why and when using Pymem
 ------------------------
 
-bla bla
+Pymem has been built to reverse games such as `Worlf of Warcraft`, so if you plan to write a bot for this kind of game,
+you're in the right place. You can also use pymem to do injections, assembly, memory pattern search and a lot more.
+
+You should head over the tutorials and see what Pymem is capable of!
 
 
 

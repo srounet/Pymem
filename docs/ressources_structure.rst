@@ -46,6 +46,7 @@ Placeholder for windows structures and constants.
         ]
 
     .. py:attribute:: szExeFile
+
         :return: The szExeFile as a decoded utf-8 string
         :rtype: string
 

@@ -550,13 +550,13 @@ class Pymem(object):
         :param address: An address of the region of memory to be read.
         :param value: the value to be written
         :type address: int
-        :type value: float
+        :type value: bytes
         :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a string
+        :raises: TypeError if value is not bytes
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if not value or not isinstance(value, str):
+        if value is None or not isinstance(value, bytes):
             raise TypeError('Invalid argument: {}'.format(value))
         pymem.memory.write_string(self.process_handle, address, value)
 

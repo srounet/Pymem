@@ -401,9 +401,9 @@ Pymem
         :param address: An address of the region of memory to be read.
         :param value: the value to be written
         :type address: int
-        :type value: float
+        :type value: bytes
         :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a string
+        :raises: TypeError if value is not bytes
 
         
     .. py:method:: write_char(self, address, value)

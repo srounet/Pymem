@@ -224,9 +224,52 @@ def list_process_thread(process_id):
     threads = []
     if t32 and thread_entry.th32OwnerProcessID == process_id:
         threads.append(copy.copy(thread_entry))
-    while t32:
+    while not ctypes.windll.kernel32.GetLastError():
         t32 = pymem.ressources.kernel32.Thread32Next(hSnap, ctypes.byref(thread_entry))
         if t32 and thread_entry.th32OwnerProcessID == process_id:
             threads.append(copy.copy(thread_entry))
+    ctypes.windll.kernel32.SetLastError(0)
     pymem.ressources.kernel32.CloseHandle(hSnap)
     return threads
+
+
+def module_from_name(process_id, module_name):
+    """Retrieve a module loaded by given process id.
+
+    ex:
+        d3d9 = module_from_name(1234, 'd3d9')
+
+    :param process_id: The identifier of the process
+    :param module_name: The module name
+    :type process_id: ctypes.wintypes.HANDLE
+    :type module_name: str
+    :return: ModuleEntry32
+    """
+    module_name = module_name.lower()
+    modules = list_process_modules(process_id)
+    for module in modules:
+        if module.name.lower() == module_name:
+            return module
+
+
+def list_process_modules(process_id):
+    """List all modules of given processes_id
+
+    :param process_id: The identifier of the process
+    :type process_id: ctypes.wintypes.HANDLE
+
+    :return: a list of module entry 32.
+    :rtype: list(pymem.ressources.structure.ModuleEntry32)
+    """
+    SNAPTHREAD = 0x00000008
+    hSnap = pymem.ressources.kernel32.CreateToolhelp32Snapshot(SNAPTHREAD, process_id)
+    module_entry = pymem.ressources.structure.ModuleEntry32()
+    module_entry.dwSize = ctypes.sizeof(module_entry)
+    t32 = ctypes.windll.kernel32.Module32First(hSnap, ctypes.byref(module_entry))
+    if t32 and module_entry.th32ProcessID == process_id:
+        yield module_entry
+    while t32:
+        t32 = pymem.ressources.kernel32.Module32Next(hSnap, ctypes.byref(module_entry))
+        if t32 and module_entry.th32ProcessID == process_id:
+            yield module_entry
+    pymem.ressources.kernel32.CloseHandle(hSnap)

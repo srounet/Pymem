@@ -108,3 +108,29 @@ Process
 
     :return: a list of thread entry 32.
     :rtype: list(pymem.ressources.structure.ThreadEntry32)
+
+
+.. function:: module_from_name(process_id, module_name)
+
+    Retrieve a module loaded by given `process_id`.
+
+    .. code-block:: python
+
+        d3d9 = module_from_name(1234, 'd3d9')
+
+    :param process_id: The identifier of the process
+    :param module_name: The module name
+    :type process_id: ctypes.wintypes.HANDLE
+    :type module_name: str
+    :return: ModuleEntry32
+
+
+.. function:: list_process_modules(process_id)
+
+    List all modules of a given processes by its `process_id`
+
+    :param process_id: The identifier of the process
+    :type process_id: ctypes.wintypes.HANDLE
+
+    :return: a list of module entry 32.
+    :rtype: list(pymem.ressources.structure.ModuleEntry32)

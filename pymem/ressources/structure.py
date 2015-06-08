@@ -41,6 +41,15 @@ class ModuleEntry32(ctypes.Structure):
         ( 'szExePath' , ctypes.c_char * 260 )
     ]
 
+    @property
+    def base_address(self):
+        return ctypes.addressof(self.modBaseAddr.contents)
+
+    @property
+    def name(self):
+        return self.szModule.decode('utf-8')
+
+
 class ProcessEntry32(ctypes.Structure):
     """Describes an entry from a list of the processes residing in the system address space when a snapshot was taken.
 
@@ -79,6 +88,10 @@ class ThreadEntry32(ctypes.Structure):
         ("tpDeltaPri", ctypes.c_ulong),
         ("dwFlags", ctypes.c_ulong)
     ]
+
+    @property
+    def szExeFile(self):
+        return self.szExeFile.decode('utf-8')
 
 
 class PROCESS(object):

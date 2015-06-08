@@ -13,6 +13,20 @@ Pymem
         :type name: str
 
 
+    .. py:method:: set_debug_privilege(self, process_name)
+
+        Leverage current process privileges.
+
+        :param hToken: Current process handle
+        :param lpszPrivilege: privilege name
+        :param bEnablePrivilege: Enable privilege
+        :type hToken: HANDLE
+        :type lpszPrivilege: str
+        :type bEnablePrivilege: bool
+        :return: True if privileges have been leveraged.
+        :rtype: bool
+
+
     .. py:method:: open_process_from_name(self, process_name)
 
         Open process given it's name and stores the handle into `self.process_handle`.

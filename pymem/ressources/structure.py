@@ -1,6 +1,28 @@
 import ctypes
 
 
+class LUID(ctypes.Structure):
+
+    _fields_ = [
+        ("LowPart", ctypes.c_ulong),
+        ("HighPart", ctypes.c_long)
+    ]
+
+class LUID_AND_ATTRIBUTES(ctypes.Structure):
+
+    _fields_ = [
+        ("Luid", LUID),
+        ("Attributes", ctypes.c_ulong),
+    ]
+
+class TOKEN_PRIVILEGES(ctypes.Structure):
+
+    _fields_ = [
+        ("PrivilegeCount", ctypes.c_ulong),
+        ("Privileges", 1 * LUID_AND_ATTRIBUTES)
+    ]
+
+
 class ModuleEntry32(ctypes.Structure):
     """Describes an entry from a list of the modules belonging to the specified process.
 

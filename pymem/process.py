@@ -1,4 +1,5 @@
 import ctypes
+import ctypes.wintypes
 import copy
 
 from win32api import GetCurrentProcess
@@ -8,6 +9,43 @@ import win32security
 
 import pymem.ressources.kernel32
 import pymem.ressources.structure
+
+
+def set_debug_privilege(hToken, lpszPrivilege, bEnablePrivilege):
+    """Leverage current process privileges.
+
+    :param hToken: Current process handle
+    :param lpszPrivilege: privilege name
+    :param bEnablePrivilege: Enable privilege
+    :type hToken: HANDLE
+    :type lpszPrivilege: str
+    :type bEnablePrivilege: bool
+    :return: True if privileges have been leveraged.
+    :rtype: bool
+    """
+    tp = pymem.ressources.structure.TOKEN_PRIVILEGES()
+    luid = pymem.ressources.structure.LUID()
+
+    if not ctypes.windll.advapi32.LookupPrivilegeValueW( None, lpszPrivilege, ctypes.byref(luid)):
+        print("LookupPrivilegeValue error: 0x%08x\n" % ctypes.GetLastError())
+        return False
+
+    tp.PrivilegeCount = 1;
+    tp.Privileges[0].Luid = luid
+
+    if bEnablePrivilege:
+        tp.Privileges[0].Attributes = 0x00000002
+    else:
+        tp.Privileges[0].Attributes = 0
+
+    if not ctypes.windll.advapi32.AdjustTokenPrivileges( hToken, False, ctypes.byref(tp), ctypes.sizeof(pymem.ressources.structure.TOKEN_PRIVILEGES), None, None):
+        print("AdjustTokenPrivileges error: 0x%08x\n", ctypes.GetLastError())
+        return False
+
+    if ctypes.GetLastError() == 0x514:
+        print("The token does not have the specified privilege. \n")
+        return False
+    return True
 
 
 def base_address(process_id):
@@ -31,7 +69,6 @@ def base_address(process_id):
     base_address = ctypes.addressof(module_entry.modBaseAddr.contents)
     return base_address
 
-
 def open(process_id, debug=None, process_access=None):
     """Open a process given its process_id.
     By default the process is opened with full access and in debug mode.
@@ -54,20 +91,12 @@ def open(process_id, debug=None, process_access=None):
     if not process_access:
         process_access = pymem.ressources.structure.PROCESS.PROCESS_ALL_ACCESS
     if debug:
-        process_handle = pymem.ressources.kernel32.OpenProcess(
-            pymem.ressources.structure.PROCESS.WRITE_DAC,
-            0,
-            process_id
-        )
-        info = GetSecurityInfo(GetCurrentProcess(), 6, 0)
-        SetSecurityInfo(process_handle, 6,
-                    win32security.DACL_SECURITY_INFORMATION |
-                    win32security.UNPROTECTED_DACL_SECURITY_INFORMATION,
-                    None,
-                    None,
-                    info.GetSecurityDescriptorDacl(),
-                    info.GetSecurityDescriptorGroup())
-        pymem.ressources.kernel32.CloseHandle(process_handle)
+        hToken = ctypes.wintypes.HANDLE()
+        hCurrentProcess = ctypes.windll.kernel32.GetCurrentProcess()
+        TOKEN_ADJUST_PRIVILEGES = 0x0020
+        TOKEN_QUERY = 0x0008
+        ctypes.windll.advapi32.OpenProcessToken(hCurrentProcess, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, ctypes.byref(hToken))
+        set_debug_privilege(hToken, 'SeDebugPrivilege', True)
     process_handle = pymem.ressources.kernel32.OpenProcess(process_access, 0, process_id)
     return process_handle
 

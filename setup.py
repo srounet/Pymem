@@ -20,7 +20,7 @@ install_requires, dependency_links = load_dependencies('requirements.txt')
 
 setuptools.setup(
     name='Pymem',
-    version='0.1',
+    version='0.2',
     description='pymem: python memory access made easy',
     author='Fabien Reboia',
     author_email='srounet@gmail.com',

@@ -27,6 +27,7 @@ setuptools.setup(
     maintainer='Fabien Reboia',
     maintainer_email='srounet@gmail.com',
     url='http://pymem.readthedocs.org/en/latest/',
+    download_url = 'https://github.com/srounet/pymem/tarball/0.2',
     long_description="A python library for windows, providing the needed functions to start working on your own with memory editing",
     license="postcard license",
     packages = setuptools.find_packages(),

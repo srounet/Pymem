@@ -56,6 +56,7 @@ Memory
     :return: If the function succeeds, returns the raw value read
     :rtype: bytes
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_char(handle, address)
@@ -75,6 +76,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: string of length 1
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_uchar(handle, address)
@@ -94,6 +96,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_short(handle, address)
@@ -113,6 +116,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_ushort(handle, address)
@@ -132,6 +136,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_int(handle, address)
@@ -151,6 +156,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_uint(handle, address)
@@ -170,6 +176,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_float(handle, address)
@@ -189,6 +196,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: float
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_long(handle, address)
@@ -208,6 +216,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_ulong(handle, address)
@@ -227,6 +236,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_longlong(handle, address)
@@ -246,6 +256,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_ulonglong(handle, address)
@@ -265,6 +276,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     
     bytes = read_bytes(handle, address, struct.calcsize('Q'))
     bytes = struct.unpack('<Q', bytes)[0]
@@ -288,6 +300,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: float
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: read_string(handle, address, byte=50)
@@ -305,6 +318,7 @@ Memory
     :return: If the function succeeds, returns the value read
     :rtype: str
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
 
 
 .. function:: write_bytes(handle, address, src, length)
@@ -328,6 +342,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 .. function:: write_char(handle, address, value)
 
@@ -348,6 +363,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_short(handle, address, value)
@@ -369,6 +385,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_ushort(handle, address, value)
@@ -390,6 +407,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_int(handle, address, value)
@@ -411,6 +429,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_uint(handle, address, value)
@@ -432,6 +451,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_float(handle, address, value)
@@ -453,6 +473,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_long(handle, address, value)
@@ -474,6 +495,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_ulong(handle, address, value)
@@ -495,6 +517,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_longlong(handle, address, value)
@@ -516,6 +539,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_ulonglong(handle, address, value)
@@ -537,6 +561,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_double(handle, address, value)
@@ -558,6 +583,7 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
 
 
 .. function:: write_string(handle, address, bytecode)
@@ -579,3 +605,4 @@ Memory
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed

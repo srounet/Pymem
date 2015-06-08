@@ -127,6 +127,7 @@ Pymem
         :rtype: string
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_uchar(self, address)
@@ -139,6 +140,7 @@ Pymem
         :rtype: string
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_int(self, address)
@@ -151,6 +153,7 @@ Pymem
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_uint(self, address)
@@ -163,6 +166,7 @@ Pymem
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_short(self, address)
@@ -175,6 +179,7 @@ Pymem
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_ushort(self, address)
@@ -187,6 +192,7 @@ Pymem
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_float(self, address)
@@ -199,6 +205,7 @@ Pymem
         :rtype: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_long(self, address)
@@ -211,6 +218,7 @@ Pymem
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_ulong(self, address)
@@ -223,6 +231,7 @@ Pymem
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_longlong(self, address)
@@ -235,6 +244,7 @@ Pymem
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
 
     .. py:method:: read_ulonglong(self, address)
@@ -247,6 +257,7 @@ Pymem
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_double(self, address)
@@ -259,6 +270,7 @@ Pymem
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
 
         
     .. py:method:: read_string(self, address, byte=50)
@@ -273,6 +285,7 @@ Pymem
         :rtype: str
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if byte is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         
     .. py:method:: write_int(self, address, value)
 
@@ -284,6 +297,7 @@ Pymem
         :type value: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid integer
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_uint(self, address, value)
@@ -296,6 +310,7 @@ Pymem
         :type value: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid integer
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_short(self, address, value)
@@ -308,6 +323,7 @@ Pymem
         :type value: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid integer
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_ushort(self, address, value)
@@ -320,6 +336,7 @@ Pymem
         :type value: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid integer
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_float(self, address, value)
@@ -332,6 +349,7 @@ Pymem
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid float
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_long(self, address, value)
@@ -344,6 +362,7 @@ Pymem
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid int
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_ulong(self, address, value)
@@ -356,6 +375,7 @@ Pymem
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid int
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_longlong(self, address, value)
@@ -368,6 +388,7 @@ Pymem
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid int
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_ulonglong(self, address, value)
@@ -380,6 +401,7 @@ Pymem
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid int
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_double(self, address, value)
@@ -392,6 +414,7 @@ Pymem
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid int
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_string(self, address, value)
@@ -404,6 +427,7 @@ Pymem
         :type value: bytes
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not bytes
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
 
         
     .. py:method:: write_char(self, address, value)
@@ -416,3 +440,4 @@ Pymem
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a string
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed

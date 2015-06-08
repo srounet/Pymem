@@ -1,6 +1,11 @@
 Exception's
 ===========
 
+.. py:exception:: WinAPIError
+
+    Global handler for win32api errors
+
+
 .. py:exception:: PymemError
 
     Custom Pymem exception class.
@@ -21,3 +26,18 @@ Exception's
 .. py:exception:: CouldNotOpenProcess(ProcessError)
 
     Raised when process could not be opened
+
+
+.. py:exception:: PymemMemoryError(PymemError)
+
+    Raised when a memory error occured
+
+
+.. py:exception:: MemoryReadError(PymemMemoryError)
+
+    Raised when a memory read error occured
+
+
+.. py:exception:: MemoryWriteError(PymemMemoryError)
+
+    Raised when a memory write error occured

@@ -1,3 +1,5 @@
+import struct
+
 import pyfasm
 
 import pymem.exception
@@ -179,10 +181,14 @@ class Pymem(object):
         :rtype: bytes
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_bytes(self.process_handle, address, length)
+        try:
+            value = pymem.memory.read_bytes(self.process_handle, address, length)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, length, e.error_code)
         return value
 
     def read_char(self, address):
@@ -194,10 +200,14 @@ class Pymem(object):
         :rtype: string
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_char(self.process_handle, address)
+        try:
+            value = pymem.memory.read_char(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('b'), e.error_code)
         return value
 
     def read_uchar(self, address):
@@ -209,10 +219,14 @@ class Pymem(object):
         :rtype: string
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise TypeError('You must open a process before calling this method')
-        value = pymem.memory.read_uchar(self.process_handle, address)
+        try:
+            value = pymem.memory.read_uchar(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('B'), e.error_code)
         return value
 
     def read_int(self, address):
@@ -224,10 +238,14 @@ class Pymem(object):
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_int(self.process_handle, address)
+        try:
+            value = pymem.memory.read_int(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('i'), e.error_code)
         return value
 
     def read_uint(self, address):
@@ -239,10 +257,14 @@ class Pymem(object):
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_uint(self.process_handle, address)
+        try:
+            value = pymem.memory.read_uint(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('I'), e.error_code)
         return value
 
     def read_short(self, address):
@@ -254,10 +276,14 @@ class Pymem(object):
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_short(self.process_handle, address)
+        try:
+            value = pymem.memory.read_short(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('h'), e.error_code)
         return value
 
     def read_ushort(self, address):
@@ -269,10 +295,14 @@ class Pymem(object):
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_ushort(self.process_handle, address)
+        try:
+            value = pymem.memory.read_ushort(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('H'), e.error_code)
         return value
 
     def read_float(self, address):
@@ -284,10 +314,14 @@ class Pymem(object):
         :rtype: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_float(self.process_handle, address)
+        try:
+            value = pymem.memory.read_float(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('f'), e.error_code)
         return value
 
     def read_long(self, address):
@@ -299,10 +333,14 @@ class Pymem(object):
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_long(self.process_handle, address)
+        try:
+            value = pymem.memory.read_long(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('l'), e.error_code)
         return value
 
     def read_ulong(self, address):
@@ -314,10 +352,14 @@ class Pymem(object):
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_ulong(self.process_handle, address)
+        try:
+            value = pymem.memory.read_ulong(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('L'), e.error_code)
         return value
 
     def read_longlong(self, address):
@@ -329,10 +371,14 @@ class Pymem(object):
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_longlong(self.process_handle, address)
+        try:
+            value = pymem.memory.read_longlong(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('q'), e.error_code)
         return value
 
     def read_ulonglong(self, address):
@@ -344,10 +390,14 @@ class Pymem(object):
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_ulonglong(self.process_handle, address)
+        try:
+            value = pymem.memory.read_ulonglong(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('Q'), e.error_code)
         return value
 
     def read_double(self, address):
@@ -359,10 +409,14 @@ class Pymem(object):
         :rtype: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raise: TypeError if address is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        value = pymem.memory.read_double(self.process_handle, address)
+        try:
+            value = pymem.memory.read_double(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('d'), e.error_code)
         return value
 
     def read_string(self, address, byte=50):
@@ -376,12 +430,16 @@ class Pymem(object):
         :rtype: str
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if byte is not a valid integer
+        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if not byte or not isinstance(byte, int):
             raise TypeError('Invalid argument: {}'.format(byte))
-        value = pymem.memory.read_string(self.process_handle, address, byte)
+        try:
+            value = pymem.memory.read_string(self.process_handle, address, byte)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, byte, e.error_code)
         return value
 
     def write_int(self, address, value):
@@ -393,12 +451,16 @@ class Pymem(object):
         :type value: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid integer
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, int):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_int(self.process_handle, address, value)
+        try:
+            pymem.memory.write_int(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_uint(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -409,12 +471,16 @@ class Pymem(object):
         :type value: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid integer
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, int):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_uint(self.process_handle, address, value)
+        try:
+            pymem.memory.write_uint(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_short(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -425,12 +491,16 @@ class Pymem(object):
         :type value: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid integer
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, int):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_short(self.process_handle, address, value)
+        try:
+            pymem.memory.write_short(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_ushort(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -441,12 +511,16 @@ class Pymem(object):
         :type value: int
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid integer
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, int):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_ushort(self.process_handle, address, value)
+        try:
+            pymem.memory.write_ushort(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_float(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -457,12 +531,16 @@ class Pymem(object):
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid float
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_float(self.process_handle, address, value)
+        try:
+            pymem.memory.write_float(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_long(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -473,12 +551,16 @@ class Pymem(object):
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid int
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_long(self.process_handle, address, value)
+        try:
+            pymem.memory.write_long(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_ulong(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -489,12 +571,16 @@ class Pymem(object):
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid int
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_ulong(self.process_handle, address, value)
+        try:
+            pymem.memory.write_ulong(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_longlong(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -505,12 +591,16 @@ class Pymem(object):
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid int
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_longlong(self.process_handle, address, value)
+        try:
+            pymem.memory.write_longlong(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_ulonglong(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -521,12 +611,16 @@ class Pymem(object):
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid int
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_ulonglong(self.process_handle, address, value)
+        try:
+            pymem.memory.write_ulonglong(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_double(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -537,12 +631,16 @@ class Pymem(object):
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a valid int
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, float):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_double(self.process_handle, address, value)
+        try:
+            pymem.memory.write_double(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_string(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -553,12 +651,16 @@ class Pymem(object):
         :type value: bytes
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not bytes
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, bytes):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_string(self.process_handle, address, value)
+        try:
+            pymem.memory.write_string(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_char(self, address, value):
         """Write `value` to the given `address` into the current opened process.
@@ -569,9 +671,13 @@ class Pymem(object):
         :type value: float
         :raises pymem.exception.ProcessError: if there id no opened process
         :raises: TypeError if value is not a string
+        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         if value is None or not isinstance(value, str):
             raise TypeError('Invalid argument: {}'.format(value))
-        pymem.memory.write_char(self.process_handle, address, value)
+        try:
+            pymem.memory.write_char(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)

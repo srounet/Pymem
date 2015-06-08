@@ -69,12 +69,17 @@ def read_bytes(handle, address, byte):
     :return: If the function succeeds, returns the raw value read
     :rtype: bytes
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     if not isinstance(address, int):
         raise TypeError('Address must be int: {}'.format(address))
     buff = ctypes.create_string_buffer(byte)
     bytes_read = ctypes.c_ulong(0)
     pymem.ressources.kernel32.ReadProcessMemory(handle, address, buff, byte, ctypes.byref(bytes_read))
+    error_code = ctypes.windll.kernel32.GetLastError()
+    if error_code:
+        ctypes.windll.kernel32.SetLastError(0)
+        raise pymem.exception.WinAPIError(error_code)
     bytes = buff.raw
     return bytes
 
@@ -95,6 +100,7 @@ def read_char(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: string of length 1
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('b'))
     bytes = struct.unpack('<b', bytes)[0]
@@ -117,6 +123,7 @@ def read_uchar(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('B'))
     bytes = struct.unpack('<B', bytes)[0]
@@ -139,6 +146,7 @@ def read_short(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('h'))
     bytes = struct.unpack('<h', bytes)[0]
@@ -161,6 +169,7 @@ def read_ushort(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('H'))
     bytes = struct.unpack('<H', bytes)[0]
@@ -183,6 +192,7 @@ def read_int(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('i'))
     bytes = struct.unpack('<i', bytes)[0]
@@ -205,6 +215,7 @@ def read_uint(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('I'))
     bytes = struct.unpack('<I', bytes)[0]
@@ -227,6 +238,7 @@ def read_float(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: float
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('f'))
     bytes = struct.unpack('<f', bytes)[0]
@@ -249,6 +261,7 @@ def read_long(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('l'))
     bytes = struct.unpack('<l', bytes)[0]
@@ -271,6 +284,7 @@ def read_ulong(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('L'))
     bytes = struct.unpack('<L', bytes)[0]
@@ -293,6 +307,7 @@ def read_longlong(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('q'))
     bytes = struct.unpack('<q', bytes)[0]
@@ -315,6 +330,7 @@ def read_ulonglong(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: int
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('Q'))
     bytes = struct.unpack('<Q', bytes)[0]
@@ -337,6 +353,7 @@ def read_double(handle, address):
     :return: If the function succeeds, returns the value read
     :rtype: float
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     bytes = read_bytes(handle, address, struct.calcsize('d'))
     bytes = struct.unpack('<d', bytes)[0]
@@ -357,6 +374,7 @@ def read_string(handle, address, byte=50):
     :return: If the function succeeds, returns the value read
     :rtype: str
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if ReadProcessMemory failed
     """
     buff = read_bytes(handle, address, byte)
     i = buff.find(b'\x00')
@@ -385,11 +403,17 @@ def write_bytes(handle, address, src, length):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     if not isinstance(address, int):
         raise TypeError('Address must be int: {}'.format(address))
     dst = ctypes.cast(address, ctypes.c_char_p)
+    ctypes.windll.kernel32.SetLastError(0)
     res = ctypes.windll.kernel32.WriteProcessMemory(handle, dst, src, length, 0x0)
+    error_code = ctypes.windll.kernel32.GetLastError()
+    if error_code:
+        ctypes.windll.kernel32.SetLastError(0)
+        raise pymem.exception.WinAPIError(error_code)
     return res
 
 def write_char(handle, address, value):
@@ -410,6 +434,7 @@ def write_char(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_char(value)
     length = struct.calcsize('c')
@@ -435,10 +460,11 @@ def write_short(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_short(value)
     length = struct.calcsize('h')
-    res = write_bytes(handle, address, src, length)
+    res = write_bytes(handle, address, ctypes.addressof(src), length)
     return res
 
 
@@ -460,10 +486,11 @@ def write_ushort(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_ushort(value)
     length = struct.calcsize('H')
-    res = write_bytes(handle, address, src, length)
+    res = write_bytes(handle, address, ctypes.addressof(src), length)
     return res
 
 
@@ -485,10 +512,11 @@ def write_int(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_int(value)
     length = struct.calcsize('i')
-    res = write_bytes(handle, address, src, length)
+    res = write_bytes(handle, address, ctypes.addressof(src), length)
     return res
 
 
@@ -510,10 +538,11 @@ def write_uint(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_uint(value)
     length = struct.calcsize('I')
-    res = write_bytes(handle, address, src, length)
+    res = write_bytes(handle, address, ctypes.addressof(src), length)
     return res
 
 
@@ -535,10 +564,11 @@ def write_float(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_float(value)
     length = struct.calcsize('f')
-    res = write_bytes(handle, address, src, length)
+    res = write_bytes(handle, address, ctypes.addressof(src), length)
     return res
 
 
@@ -560,10 +590,11 @@ def write_long(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_long(value)
     length = struct.calcsize('l')
-    res = write_bytes(handle, address, src, length)
+    res = write_bytes(handle, address, ctypes.addressof(src), length)
     return res
 
 
@@ -585,10 +616,11 @@ def write_ulong(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_ulong(value)
     length = struct.calcsize('L')
-    res = write_bytes(handle, address, src, length)
+    res = write_bytes(handle, address, ctypes.addressof(src), length)
     return res
 
 
@@ -610,10 +642,11 @@ def write_longlong(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_longlong(value)
     length = struct.calcsize('q')
-    res = write_bytes(handle, address, src, length)
+    res = write_bytes(handle, address, ctypes.addressof(src), length)
     return res
 
 
@@ -635,10 +668,11 @@ def write_ulonglong(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_ulonglong(value)
     length = struct.calcsize('Q')
-    res = write_bytes(handle, address, src, length)
+    res = write_bytes(handle, address, ctypes.addressof(src), length)
     return res
 
 
@@ -660,10 +694,11 @@ def write_double(handle, address, value):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_double(value)
     length = struct.calcsize('d')
-    res = write_bytes(handle, address, src, length)
+    res = write_bytes(handle, address, ctypes.addressof(src), length)
     return res
 
 
@@ -685,6 +720,7 @@ def write_string(handle, address, bytecode):
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
     :raise: TypeError if address is not a valid integer
+    :raise: WinAPIError if WriteProcessMemory failed
     """
     src = ctypes.c_char_p(bytecode)
     length = ctypes.c_int(len(bytecode))

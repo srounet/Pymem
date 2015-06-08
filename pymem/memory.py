@@ -28,7 +28,7 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
         allocation_type = pymem.ressources.structure.MemoryAllocation.MEM_COMMIT
     if not protection_type:
         protection_type = pymem.ressources.structure.MemoryProtection.PAGE_EXECUTE_READWRITE
-    address = pymem.ressources.kernel32.VirtualAllocEx(handle, 0, size, allocation_type, protection_type)
+    address = pymem.ressources.kernel32.VirtualAllocEx(handle, None, size, allocation_type, protection_type)
     return address
 
 

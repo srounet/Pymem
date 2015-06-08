@@ -203,7 +203,7 @@ def process_from_id(process_id):
     """
     processes = list_processes()
     for process in processes:
-        if process_id ==  process.th32ProcessID:
+        if process_id == process.th32ProcessID:
             return process
 
 

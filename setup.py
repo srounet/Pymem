@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name='Pymem',
-    version='0.2a',
+    version='0.2b',
     description='pymem: python memory access made easy',
     author='Fabien Reboia',
     author_email='srounet@gmail.com',

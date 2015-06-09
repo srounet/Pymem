@@ -1,22 +1,10 @@
-import re
 import setuptools
 
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
 
-def load_dependencies(filename):
-    install_requires = []
-    dependency_links = []
-    for line in open(filename):
-        line = line.strip()
-        m = re.match(r'http.+#egg=(?P<pkgname>.+)', line)
-        if m:
-            dependency_links.append(line)
-            install_requires.append(m.groupdict()['pkgname'])
-        else:
-            install_requires.append(line)
-    return install_requires, dependency_links
-
-install_requires, dependency_links = load_dependencies('requirements.txt')
-
+#install_reqs = parse_requirements('requirements.txt')
+#requirements = [str(ir.req) for ir in install_reqs]
 
 setuptools.setup(
     name='Pymem',
@@ -40,6 +28,5 @@ setuptools.setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
     ],
-    install_requires=install_requires,
-    dependency_links=dependency_links,
+    install_requires=requirements,
 )

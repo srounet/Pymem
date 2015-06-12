@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name='Pymem',
-    version='0.2c',
+    version='0.3',
     description='pymem: python memory access made easy',
     author='Fabien Reboia',
     author_email='srounet@gmail.com',

@@ -1,10 +1,15 @@
+import ctypes
+import ctypes.util
+import functools
 import struct
+import sys
 
 import pyfasm
 
 import pymem.exception
 import pymem.memory
 import pymem.process
+import pymem.thread
 
 
 class Pymem(object):
@@ -20,9 +25,123 @@ class Pymem(object):
         self.process_handle = None
         self.main_thread_id = None
         self.thread_handle = None
+        self.is_WoW64 = None
+        self.py_run_simple_string = None
+        self._python_injected = None
 
         if process_name:
             self.open_process_from_name(process_name)
+        self.check_WoW64()
+
+    def check_WoW64(self):
+        """Check if a process is running under WoW64.
+        """
+        self.is_WoW64 = pymem.process.is_64_bit(self.process_handle)
+
+    def list_modules(self):
+        """List a process loaded modules.
+        """
+        modules = pymem.process.enum_process_module(self.process_handle)
+        return modules
+
+    def inject_python_interpreter(self):
+        """Inject python interpreter into target process and call Py_InitializeEx.
+        """
+        def find_existing_interpreter(python_version):
+            local_handle = pymem.ressources.kernel32.GetModuleHandleW(python_version)
+            module = pymem.process.module_from_name(self.process_handle, python_version)
+            
+            self.py_run_simple_string = (
+                module.lpBaseOfDll + (
+                    pymem.ressources.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString')
+                    - local_handle
+                )
+            )
+            self._python_injected = True
+            print('[*] PyRun_SimpleString loc: 0x%08x' % self.py_run_simple_string)
+
+        if self._python_injected:
+            return
+
+        # find the python library
+        python_version = "python{0}{1}.dll".format(sys.version_info.major, sys.version_info.minor)
+        python_lib = ctypes.util.find_library(python_version)
+        if not python_lib:
+            raise
+
+        # Find or inject python module
+        python_module = pymem.process.module_from_name(self.process_handle, python_version)
+        if python_module:
+            return find_existing_interpreter(python_version)
+
+        python_lib_h = pymem.process.inject_dll(self.process_handle, bytes(python_lib, 'ascii'))
+        if not python_lib_h:
+            raise
+
+        local_handle = pymem.ressources.kernel32.GetModuleHandleW(python_version)
+        py_initialize_ex = (
+            python_lib_h + (
+                pymem.ressources.kernel32.GetProcAddress(local_handle, b'Py_InitializeEx')
+                - local_handle
+            )
+        )
+        self.py_run_simple_string = (
+            python_lib_h + (
+                pymem.ressources.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString')
+                - local_handle
+            )
+        )
+        if not py_initialize_ex or not self.py_run_simple_string:
+            raise
+
+        self.start_thread(py_initialize_ex)
+        self._python_injected = True
+
+        print('[*] Py_InitializeEx loc: 0x%08x' % py_initialize_ex)
+        print('[*] PyRun_SimpleString loc: 0x%08x' % self.py_run_simple_string)
+
+    def inject_python_shellcode(self, shellcode):
+        """Inject a pytrhon shellcode into memory and execute it.
+
+            :param shellcode: A string with python instructions.
+            :type shellcode: string
+        """
+        shellcode_addr = pymem.ressources.kernel32.VirtualAllocEx(
+            self.process_handle,
+            0,
+            len(shellcode),
+            pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT.value | pymem.ressources.structure.MEMORY_STATE.MEM_RESERVE.value,
+            pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READWRITE.value
+        )
+        print('[*] shellcode_addr loc: 0x%08x' % shellcode_addr)
+        written = ctypes.c_ulonglong(0)
+        pymem.ressources.kernel32.WriteProcessMemory(self.process_handle, shellcode_addr, shellcode, len(shellcode), ctypes.byref(written))
+        # check written
+        self.start_thread(self.py_run_simple_string, shellcode_addr)
+   
+    def start_thread(self, address, params=None):
+        """Start a new thread with address as starting location and params (also an address)
+        as address parameters.
+
+            :param address: An address from where the thread starts
+            :param params: An optional address with thread parameters
+            :type address: Integer (32/64)
+            :type params:  Integer (32/64)
+            :return: New thread id
+            :rtype: Integer (32/64)
+        """
+        thread_id = ctypes.c_ulong(0)
+        thread_h = pymem.ressources.kernel32.CreateRemoteThread(
+            self.process_handle,
+            None,
+            0,
+            address,
+            params,
+            0,
+            None
+        )
+        pymem.ressources.kernel32.WaitForSingleObject(thread_h, -1)
+        return thread_id
 
     def open_process_from_name(self, process_name):
         """Open process given it's name and stores the handle into `self.process_handle`.
@@ -57,41 +176,39 @@ class Pymem(object):
             raise pymem.exception.CouldNotOpenProcess(self.process_id)
 
     @property
-    def process_base_address(self):
-        """Lookup process base address.
+    def process_base(self):
+        """Lookup process base Module.
 
-        :return: The base address of the current process.
-        :rtype: ctypes.wintypes.HANDLE
+        :return: The base Module of the current process.
+        :rtype: pymem.ressources.structure.MODULEINFO
         :raises TypeError: if process_id is not an integer
         :raises pymem.exception.ProcessError: if could not find process first module address
         """
         if not self.process_id:
             raise TypeError('You must open a process before calling this property')
-        base_address = pymem.process.base_address(self.process_id)
-        if not base_address:
-            raise pymem.exception.ProcessError("Could not find process first module address")
-        base_address = hex(base_address)
-        return base_address
+        base_module = pymem.process.base_module(self.process_handle)
+        if not base_module:
+            raise pymem.exception.ProcessError("Could not find process first module")
+        return base_module
 
-    def open_main_thread(self):
-        """Open process main thread name and stores the handle into `self.thread_handle`
-        the thread_id is also stored into `self.main_thread_id`.
+    @property
+    @functools.lru_cache(maxsize=1)
+    def main_thread(self):
+        """Retrieve ThreadEntry32 of main thread given its creation time.
 
         :raises pymem.exception.ProcessError: if there is no process opened
         :raises pymem.exception.ProcessError: if could not list process thread
         """
+        print('memoize')
         if not self.process_id:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         threads = pymem.process.list_process_thread(self.process_id)
         if not threads:
             raise pymem.exception.ProcessError('Could not list process thread')
+        threads = sorted(threads, key=lambda k: k.creation_time)
         main_thread = threads[0]
-        self.main_thread_id = main_thread.th32ThreadID
-        self.thread_handle = pymem.process.open_thread(self.main_thread_id)
-        if not self.thread_handle:
-            raise pymem.exception.ProcessError('Could not open thread: {}'.format(
-                self.main_thread_id
-            ))
+        main_thread = pymem.thread.Thread(self.process_handle, main_thread)
+        return main_thread
 
     def close_process(self):
         """Close the current opened process

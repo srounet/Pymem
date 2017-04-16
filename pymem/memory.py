@@ -28,6 +28,7 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
         allocation_type = pymem.ressources.structure.MemoryAllocation.MEM_COMMIT
     if not protection_type:
         protection_type = pymem.ressources.structure.MemoryProtection.PAGE_EXECUTE_READWRITE
+    ctypes.windll.kernel32.SetLastError(0)
     address = pymem.ressources.kernel32.VirtualAllocEx(handle, None, size, allocation_type, protection_type)
     return address
 
@@ -49,6 +50,7 @@ def free_memory(handle, address, free_type=None):
     """
     if not free_type:
         free_type = pymem.ressources.structure.MemoryAllocation.MEM_RELEASE
+    ctypes.windll.kernel32.SetLastError(0)
     ret = pymem.ressources.kernel32.VirtualFreeEx(handle, address, 0, free_type)
     return ret
 
@@ -74,8 +76,9 @@ def read_bytes(handle, address, byte):
     if not isinstance(address, int):
         raise TypeError('Address must be int: {}'.format(address))
     buff = ctypes.create_string_buffer(byte)
-    bytes_read = ctypes.c_ulong(0)
-    pymem.ressources.kernel32.ReadProcessMemory(handle, address, buff, byte, ctypes.byref(bytes_read))
+    bytes_read = ctypes.c_size_t()
+    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.ReadProcessMemory(handle, ctypes.c_void_p(address), ctypes.byref(buff), byte, ctypes.byref(bytes_read))
     error_code = ctypes.windll.kernel32.GetLastError()
     if error_code:
         ctypes.windll.kernel32.SetLastError(0)
@@ -199,7 +202,7 @@ def read_int(handle, address):
     return bytes
 
 
-def read_uint(handle, address):
+def read_uint(handle, address, is_64=None):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -217,8 +220,12 @@ def read_uint(handle, address):
     :raise: TypeError if address is not a valid integer
     :raise: WinAPIError if ReadProcessMemory failed
     """
+    is_64 = is_64 or False
     bytes = read_bytes(handle, address, struct.calcsize('I'))
-    bytes = struct.unpack('<I', bytes)[0]
+    if not is_64:
+        bytes = struct.unpack('<I', bytes)[0]
+    else:
+        bytes = struct.unpack('>I', bytes)[0]
     return bytes
 
 
@@ -405,10 +412,10 @@ def write_bytes(handle, address, src, length):
     :raise: TypeError if address is not a valid integer
     :raise: WinAPIError if WriteProcessMemory failed
     """
+    ctypes.windll.kernel32.SetLastError(0)
     if not isinstance(address, int):
         raise TypeError('Address must be int: {}'.format(address))
     dst = ctypes.cast(address, ctypes.c_char_p)
-    ctypes.windll.kernel32.SetLastError(0)
     res = ctypes.windll.kernel32.WriteProcessMemory(handle, dst, src, length, 0x0)
     error_code = ctypes.windll.kernel32.GetLastError()
     if error_code:
@@ -726,3 +733,31 @@ def write_string(handle, address, bytecode):
     length = ctypes.c_int(len(bytecode))
     res = write_bytes(handle, address, src, length)
     return res
+
+
+def virtual_query(handle, address):
+    """Retrieves information about a range of pages within the virtual address space
+    of a specified process.
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/aa366775(v=vs.85).aspx
+    https://msdn.microsoft.com/en-us/library/windows/desktop/aa366907(v=vs.85).aspx
+
+        
+    :param handle: A valid handle to an open object.
+    :param address: An address of the region of to be read
+    :type handle: ctypes.wintypes.HANDLE
+    :type address: int
+
+    :return: A memory basic information object
+    :rtype: pymem.ressources.structure.MEMORY_BASIC_INFORMATION
+    """
+    mbi = pymem.ressources.structure.MEMORY_BASIC_INFORMATION()
+    mbi_pointer = ctypes.byref(mbi)
+    size = ctypes.sizeof(mbi)
+    result = pymem.ressources.kernel32.VirtualQueryEx(
+        handle,
+        address,
+        mbi_pointer,
+        size
+    )
+    return mbi

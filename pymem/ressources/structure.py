@@ -1,4 +1,11 @@
+import enum
+import struct
+
 import ctypes
+import ctypes.wintypes
+
+import pymem.ressources.psapi
+import pymem.ressources.ntdll
 
 
 class LUID(ctypes.Structure):
@@ -23,6 +30,7 @@ class TOKEN_PRIVILEGES(ctypes.Structure):
     ]
 
 
+MAX_MODULE_NAME32 = 255
 class ModuleEntry32(ctypes.Structure):
     """Describes an entry from a list of the modules belonging to the specified process.
 
@@ -34,12 +42,16 @@ class ModuleEntry32(ctypes.Structure):
         ( 'th32ProcessID' , ctypes.c_ulong ),
         ( 'GlblcntUsage' , ctypes.c_ulong ),
         ( 'ProccntUsage' , ctypes.c_ulong ) ,
-        ( 'modBaseAddr' , ctypes.POINTER(ctypes.c_byte)),
+        ( 'modBaseAddr' , ctypes.POINTER(ctypes.c_ulonglong)),
         ( 'modBaseSize' , ctypes.c_ulong ) ,
         ( 'hModule' , ctypes.c_ulong ) ,
-        ( 'szModule' , ctypes.c_char * 256 ),
-        ( 'szExePath' , ctypes.c_char * 260 )
+        ( 'szModule' , ctypes.c_char * (MAX_MODULE_NAME32 + 1)),
+        ( 'szExePath' , ctypes.c_char * ctypes.wintypes.MAX_PATH )
     ]
+
+    def __init__(self, *args, **kwds):
+        super(ModuleEntry32, self).__init__(*args, **kwds)
+        self.dwSize = ctypes.sizeof(self)
 
     @property
     def base_address(self):
@@ -48,6 +60,8 @@ class ModuleEntry32(ctypes.Structure):
     @property
     def name(self):
         return self.szModule.decode('utf-8')
+
+LPMODULEENTRY32 = ctypes.POINTER(ModuleEntry32)
 
 
 class ProcessEntry32(ctypes.Structure):
@@ -63,14 +77,32 @@ class ProcessEntry32(ctypes.Structure):
         ( 'th32ModuleID' , ctypes.c_ulong) ,
         ( 'cntThreads' , ctypes.c_ulong) ,
         ( 'th32ParentProcessID' , ctypes.c_ulong) ,
-        ( 'pcPriClassBase' , ctypes.c_long) ,
+        ( 'pcPriClassBase' , ctypes.c_ulong) ,
         ( 'dwFlags' , ctypes.c_ulong) ,
-        ( 'szExeFile' , ctypes.c_char * 260 )
+        ( 'szExeFile' , ctypes.c_char * ctypes.wintypes.MAX_PATH )
     ]
 
     @property
     def szExeFile(self):
         return self.szExeFile.decode('utf-8')
+
+    def __init__(self, *args, **kwds):
+        super(ProcessEntry32, self).__init__(*args, **kwds)
+        self.dwSize = ctypes.sizeof(self)
+
+
+class FILETIME(ctypes.Structure):
+
+    _fields_ = [
+        ("dwLowDateTime", ctypes.wintypes.DWORD),
+        ("dwHighDateTime", ctypes.wintypes.DWORD)
+    ]
+
+    @property
+    def value(self):
+        v = struct.unpack('>Q', struct.pack('>LL', self.dwHighDateTime, self.dwLowDateTime))
+        v = v[0]
+        return v
 
 
 class ThreadEntry32(ctypes.Structure):
@@ -80,21 +112,44 @@ class ThreadEntry32(ctypes.Structure):
     """
 
     _fields_ = [
-        ('dwSize', ctypes.c_ulong),
-        ("cntUsage", ctypes.c_ulong),
-        ("th32ThreadID", ctypes.c_ulong),
-        ("th32OwnerProcessID", ctypes.c_ulong),
-        ("tpBasePri", ctypes.c_ulong),
-        ("tpDeltaPri", ctypes.c_ulong),
-        ("dwFlags", ctypes.c_ulong)
+        ('dwSize', ctypes.wintypes.DWORD),
+        ("cntUsage", ctypes.wintypes.DWORD),
+        ("th32ThreadID", ctypes.wintypes.DWORD),
+        ("th32OwnerProcessID", ctypes.wintypes.DWORD),
+        ("tpBasePri", ctypes.wintypes.DWORD),
+        ("tpDeltaPri", ctypes.wintypes.DWORD),
+        ("dwFlags", ctypes.wintypes.DWORD)
     ]
 
     @property
     def szExeFile(self):
         return self.szExeFile.decode('utf-8')
 
+    # XXX: save it somehow
+    @property
+    def creation_time(self):
+        THREAD_QUERY_INFORMATION = 0x0040
+        handle = pymem.ressources.kernel32.OpenThread(
+            THREAD_QUERY_INFORMATION, False, self.th32ThreadID
+        )
 
-class PROCESS(object):
+        ctime = FILETIME()
+        etime = FILETIME()
+        ktime = FILETIME()
+        utime = FILETIME()
+
+        pymem.ressources.kernel32.GetThreadTimes(
+            handle, ctypes.pointer(ctime), ctypes.pointer(etime), ctypes.pointer(ktime), ctypes.pointer(utime)
+        )
+        pymem.ressources.kernel32.CloseHandle(handle)
+        return ctime.value
+
+    def __init__(self, *args, **kwds):
+        super(ThreadEntry32, self).__init__(*args, **kwds)
+        self.dwSize = ctypes.sizeof(self)
+
+
+class PROCESS(enum.Enum):
     """Process manipulation flags"""
 
     #: Required to create a process.
@@ -134,28 +189,43 @@ class PROCESS(object):
     #: Required to change the owner in the security descriptor for the object.
     WRITE_OWNER = 0x00080000
 
-class MemoryAllocation(object):
-    """The type of memory allocation
-    https://msdn.microsoft.com/en-us/library/windows/desktop/aa366890%28v=vs.85%29.aspx"""
 
+class SE_TOKEN_PRIVILEGE(enum.Enum):
+    """An access token contains the security information for a logon session.
+    The system creates an access token when a user logs on, and every process executed on behalf of the user has a copy of the token."""
+
+    SE_PRIVILEGE_ENABLED_BY_DEFAULT = 0x00000001
+    SE_PRIVILEGE_ENABLED = 0x00000002
+    SE_PRIVILEGE_REMOVED = 0x00000004
+    SE_PRIVILEGE_USED_FOR_ACCESS = 0x80000000
+
+
+class MEMORY_STATE(enum.Enum):
+    """The type of memory allocation"""
     #: Allocates memory charges (from the overall size of memory and the paging files on disk) for the specified reserved memory pages. The function also guarantees that when the caller later initially accesses the memory, the contents will be zero. Actual physical pages are not allocated unless/until the virtual addresses are actually accessed.
-    MEM_COMMIT = 0x00001000
-    #: Reserves a range of the process's virtual address space without allocating any actual physical storage in memory or in the paging file on disk.
-    MEM_RESERVE = 0x00002000
-    #: Indicates that data in the memory range specified by lpAddress and dwSize is no longer of interest. The pages should not be read from or written to the paging file. However, the memory block will be used again later, so it should not be decommitted. This value cannot be used with any other value.
-    MEM_RESET = 0x00080000
-    #: MEM_RESET_UNDO should only be called on an address range to which MEM_RESET was successfully applied earlier. It indicates that the data in the specified memory range specified by lpAddress and dwSize is of interest to the caller and attempts to reverse the effects of MEM_RESET. If the function succeeds, that means all data in the specified address range is intact. If the function fails, at least some of the data in the address range has been replaced with zeroes.
-    MEM_RESET_UNDO = 0x1000000
-    #: Allocates memory using large page support.
-    MEM_LARGE_PAGES = 0x20000000
-    #: Reserves an address range that can be used to map Address Windowing Extensions (AWE) pages.
-    MEM_PHYSICAL = 0x00400000
-    #: Allocates memory at the highest possible address. This can be slower than regular allocations, especially when there are many allocations.
-    MEM_TOP_DOWN = 0x00100000
+    MEM_COMMIT = 0x1000
+    #: XXX
+    MEM_FREE = 0x10000
+    #: XXX
+    MEM_RESERVE = 0x2000
+    #: Decommits the specified region of committed pages. After the operation, the pages are in the reserved state.
+    #: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366894(v=vs.85).aspx
     MEM_DECOMMIT = 0x4000
+    #: Releases the specified region of pages. After the operation, the pages are in the free state.
+    #: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366894(v=vs.85).aspx
     MEM_RELEASE = 0x8000
 
-class MemoryProtection(object):
+
+class MEMORY_TYPES(enum.Enum):
+    #: XXX
+    MEM_IMAGE = 0x1000000
+    #: XXX
+    MEM_MAPPED = 0x40000
+    #: XXX
+    MEM_PRIVATE = 0x20000
+
+
+class MEMORY_PROTECTION(enum.Enum):
     """The following are the memory-protection options;
     you must specify one of the following values when allocating or protecting a page in memory
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa366786(v=vs.85).aspx"""
@@ -230,4 +300,179 @@ class ThreadContext(ctypes.Structure):
         ('Esp', ctypes.c_uint),
         ('SegSs', ctypes.c_uint),
         ('ExtendedRegisters', ctypes.c_byte * MAXIMUM_SUPPORTED_EXTENSION)
+    ]
+
+
+class MODULEINFO(ctypes.Structure):
+    """Contains the module load address, size, and entry point.
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms684229(v=vs.85).aspx
+    """
+
+    _fields_ = [
+        ("lpBaseOfDll", ctypes.wintypes.LPVOID), # remote pointer
+        ("SizeOfImage", ctypes.c_ulong),
+        ("EntryPoint", ctypes.wintypes.LPVOID), # remote pointer
+    ]
+
+    def __init__(self, handle):
+        self.process_handle = handle
+
+    @property
+    def name(self):
+        modname = ctypes.c_buffer(ctypes.wintypes.MAX_PATH)
+        pymem.ressources.psapi.GetModuleBaseNameA(
+            self.process_handle,
+            ctypes.c_void_p(self.lpBaseOfDll),
+            modname,
+            ctypes.sizeof(modname)
+        )
+        return modname.value.decode('utf-8')
+
+    @property
+    def filename(self):
+        _filename = ctypes.c_buffer(ctypes.wintypes.MAX_PATH)
+        pymem.ressources.psapi.GetModuleFileNameExA(
+            self.process_handle,
+            ctypes.c_void_p(self.lpBaseOfDll),
+            _filename,
+            ctypes.sizeof(_filename)
+        )
+        return _filename.value
+
+
+class SYSTEM_INFO(ctypes.Structure):
+    """Contains information about the current computer system.
+    This includes the architecture and type of the processor, the number
+    of processors in the system, the page size, and other such information.
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms724958(v=vs.85).aspx
+    """
+ 
+    _fields_ = [
+        ("wProcessorArchitecture", ctypes.wintypes.WORD),
+        ("wReserved", ctypes.wintypes.WORD),
+        ("dwPageSize", ctypes.wintypes.DWORD),
+        ("lpMinimumApplicationAddress", ctypes.wintypes.DWORD),
+        ("lpMaximumApplicationAddress", ctypes.c_ulonglong),
+        ("dwActiveProcessorMask", ctypes.wintypes.DWORD),
+        ("dwNumberOfProcessors", ctypes.wintypes.DWORD),
+        ("dwProcessorType", ctypes.wintypes.DWORD),
+        ("dwAllocationGranularity", ctypes.wintypes.DWORD),
+        ("wProcessorLevel", ctypes.wintypes.WORD),
+        ("wProcessorRevision", ctypes.wintypes.WORD)
+    ]
+
+
+class MEMORY_BASIC_INFORMATION(ctypes.Structure):
+    """Contains information about a range of pages in the virtual address space of a process.
+    The VirtualQuery and VirtualQueryEx functions use this structure.
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/aa366775(v=vs.85).aspx
+    """
+    _fields_ = [
+        ("BaseAddress", ctypes.c_ulonglong),
+        ("AllocationBase", ctypes.c_ulonglong),
+        ("AllocationProtect", ctypes.c_ulong),
+        ("RegionSize", ctypes.c_ulonglong),
+        ("State", ctypes.c_ulong),
+        ("Protect", ctypes.c_ulong),
+        ("Type", ctypes.c_ulong)
+    ]
+
+    @property
+    def type(self):
+        enum_type = [e for e in MEMORY_TYPES if e.value == self.Type] or None
+        enum_type = enum_type[0] if enum_type else None
+        return enum_type
+
+    @property
+    def state(self):
+        enum_type = [e for e in MEMORY_STATE if e.value == self.State] or None
+        enum_type = enum_type[0] if enum_type else None
+        return enum_type
+
+    @property
+    def protect(self):
+        enum_type = [e for e in MEMORY_PROTECTION if e.value == self.Protect]
+        enum_type = enum_type[0] if enum_type else None
+        return enum_type
+
+
+class EnumProcessModuleEX(object):
+    """The following are the EnumProcessModuleEX flags
+
+    https://msdn.microsoft.com/ru-ru/library/windows/desktop/ms682633(v=vs.85).aspx
+    """
+    #: List the 32-bit modules
+    LIST_MODULES_32BIT = 0x01
+    #: List the 64-bit modules.
+    LIST_MODULES_64BIT = 0x02
+    #: List all modules.
+    LIST_MODULES_ALL = 0x03
+    #: Use the default behavior.
+    LIST_MODULES_DEFAULT = 0x00
+
+
+class SECURITY_ATTRIBUTES(ctypes.Structure):
+    """The SECURITY_ATTRIBUTES structure contains the security descriptor for an
+    object and specifies whether the handle retrieved by specifying this structure
+    is inheritable.
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/aa379560(v=vs.85).aspx
+    """
+    _fields_ = [('nLength', ctypes.wintypes.DWORD),
+                ('lpSecurityDescriptor', ctypes.wintypes.LPVOID),
+                ('bInheritHandle', ctypes.wintypes.BOOL)
+    ]
+LPSECURITY_ATTRIBUTES = ctypes.POINTER(SECURITY_ATTRIBUTES)
+
+
+class CLIENT_ID(ctypes.Structure):
+    #: http://terminus.rewolf.pl/terminus/structures/ntdll/_CLIENT_ID64_x64.html
+    _fields_ = [
+        ("UniqueProcess", ctypes.wintypes.LPVOID),
+        ("UniqueThread", ctypes.wintypes.LPVOID),
+    ]
+
+
+class THREAD_BASIC_INFORMATION(ctypes.Structure):
+    _fields_ = [
+        ("ExitStatus", pymem.ressources.ntdll.NTSTATUS),
+        ("TebBaseAddress", ctypes.wintypes.LPVOID),
+        ("ClientId", CLIENT_ID),
+        ("AffinityMask", ctypes.c_long),
+        ("Priority", ctypes.c_long),
+        ("BasePriority", ctypes.c_long)
+    ]
+
+# TEB
+class TIB_UNION(ctypes.Union):
+
+    _fields_ = [
+        ("FiberData", ctypes.wintypes.LPVOID),
+        ("Version", ctypes.wintypes.ULONG),
+    ]
+
+class NT_TIB(ctypes.Structure):
+    _fields_ = [
+        ("ExceptionList", ctypes.wintypes.LPVOID), # PEXCEPTION_REGISTRATION_RECORD
+        ("StackBase", ctypes.wintypes.LPVOID),
+        ("StackLimit", ctypes.wintypes.LPVOID),
+        ("SubSystemTib", ctypes.wintypes.LPVOID),
+        ("u", TIB_UNION),
+        ("ArbitraryUserPointer", ctypes.wintypes.LPVOID),
+        ("Self", ctypes.wintypes.LPVOID), # PNTTIB
+    ]
+
+
+class SMALL_TEB(ctypes.Structure):
+    _pack_ = 1
+
+    _fields_ = [
+        ("NtTib",                           NT_TIB),
+        ("EnvironmentPointer",              ctypes.wintypes.LPVOID),
+        ("ClientId",                        CLIENT_ID),
+        ("ActiveRpcHandle",                 ctypes.wintypes.LPVOID),
+        ("ThreadLocalStoragePointer",       ctypes.wintypes.LPVOID)
     ]

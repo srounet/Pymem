@@ -39,7 +39,7 @@ def set_debug_privilege(hToken, lpszPrivilege, bEnablePrivilege):
         tp.Privileges[0].Attributes = 0
 
     if not ctypes.windll.advapi32.AdjustTokenPrivileges( hToken, False, ctypes.byref(tp), ctypes.sizeof(pymem.ressources.structure.TOKEN_PRIVILEGES), None, None):
-        print("AdjustTokenPrivileges error: 0x%08x\n", ctypes.GetLastError())
+        print("AdjustTokenPrivileges error: 0x%08x\n" % ctypes.GetLastError())
         return False
 
     if ctypes.GetLastError() == 0x514:

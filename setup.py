@@ -11,7 +11,7 @@ setuptools.setup(
     maintainer_email='srounet@gmail.com',
     url='http://pymem.readthedocs.org/en/latest/',
     long_description="A python library for windows, providing the needed functions to start working on your own with memory editing",
-    license="postcard license",
+    license="mit",
     packages=setuptools.find_packages(),
     platforms=["windows"],
     keywords='memory win32 windows process',
@@ -20,7 +20,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3.6',
         'Environment :: Win32 (MS Windows)',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
     ],
     install_requires=[
         'sphinx_rtd_theme'

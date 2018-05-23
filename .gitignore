@@ -10,6 +10,7 @@ __pycache__/
 
 # Pycharm
 *.idea
+.pytest_cache
 
 # Distribution / packaging
 .Python

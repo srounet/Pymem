@@ -23,7 +23,6 @@ setuptools.setup(
         'License :: OSI Approved :: BSD License',
     ],
     install_requires=[
-        'pyfasm',
         'sphinx_rtd_theme'
     ],
 )

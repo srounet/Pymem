@@ -4,8 +4,6 @@ import functools
 import struct
 import sys
 
-import pyfasm
-
 import pymem.exception
 import pymem.memory
 import pymem.process
@@ -251,32 +249,6 @@ class Pymem(object):
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         pymem.memory.free_memory(self.process_handle, address)
-
-    def assemble(self, address=None, mnemonics=None):
-        """Assemble mnemonics to bytes using `pyfasm`.
-
-        If `address` is given then the origin `org` will be set to the address.
-
-        :param address: An address of the region of memory to be freed.
-        :param mnemonics: fasm syntax mnemonics
-        :type address: int
-        :type mnemonics: str
-        :return: The assembled mnemonics
-        :rtype: bytes
-        """
-        #XXX :raises:
-        if "use32" not in mnemonics:
-            mnemonics = "use32\n{}".format(mnemonics)
-
-        if address:
-            mnemonics = "org {}\n{}".format(hex(address), mnemonics)
-
-        if type(mnemonics) == str:
-            mnemonics = mnemonics.encode('ascii')
-
-        self.mnemonics = mnemonics
-        data = pyfasm.assemble(mnemonics)
-        return bytes(data)
 
     def close_main_thread(self):
         """Close the opened main thread

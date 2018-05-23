@@ -1,3 +1,2 @@
-pyfasm
 sphinx_rtd_theme
 pypiwin32

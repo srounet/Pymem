@@ -6,7 +6,7 @@ import pytest
 
 
 def test_existing_process():
-    pm = pymem.Pymem('explorer.exe')
+    pm = pymem.Pymem('python.exe')
     assert pm.process_handle
 
 
@@ -16,7 +16,7 @@ def test_missing_process():
 
 
 def test_process_modules():
-    pm = pymem.Pymem('explorer.exe')
+    pm = pymem.Pymem('python.exe')
     modules = pymem.process.enum_process_module(
         pm.process_handle
     )

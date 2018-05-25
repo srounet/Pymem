@@ -51,4 +51,4 @@ after_test:
   - "cd docs/source && make.bat html"
 
 artifacts:
-  - path: 'docs/_build/html'
+  - path: 'docs/source/_build/html'

@@ -48,7 +48,7 @@ after_test:
   - "codecov -t %COV_TOKEN%"
   - "python -m pip install -r requirements-doc.txt"
   - "sphinx-apidoc -f -o docs/source pymem"
-  - "cd docs && make.bat html"
+  - "cd docs/source && make.bat html"
 
 artifacts:
   - path: 'docs/_build/html'

@@ -44,3 +44,5 @@ test_script:
 
 after_test:
   - "codecov -t %COV_TOKEN%"
+  - "python -m pip install -r requirements-doc.txt"
+  - "sphinx-apidoc -f -o docs/source pymem"

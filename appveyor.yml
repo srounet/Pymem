@@ -49,5 +49,5 @@ after_test:
   - "python -m pip install -r requirements-doc.txt"
   - "sphinx-apidoc -f -o docs/source pymem"
 
-artifact:
+artifacts:
   - path: 'docs/build'

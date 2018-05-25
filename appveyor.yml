@@ -1,7 +1,7 @@
 environment:
 
   matrix:
-
+    fast_finish: true
     # For Python versions available on Appveyor, see
     # http://www.appveyor.com/docs/installed-software#python
     # The list here is complete (excluding Python 2.6, which
@@ -46,3 +46,6 @@ after_test:
   - "codecov -t %COV_TOKEN%"
   - "python -m pip install -r requirements-doc.txt"
   - "sphinx-apidoc -f -o docs/source pymem"
+
+artifact:
+  - path: 'docs/build'

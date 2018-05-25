@@ -14,8 +14,10 @@ class Pymem(object):
     """Initialize the Pymem class.
     If process_name is given, will open the process and retrieve a handle over it.
 
-    :param name: The name of the process to be opened
-    :type name: str
+    Parameters
+    ----------
+    process_name: str
+        The name of the process to be opened
     """
 
     def __init__(self, process_name=None):
@@ -99,10 +101,12 @@ class Pymem(object):
         print('[*] PyRun_SimpleString loc: 0x%08x' % self.py_run_simple_string)
 
     def inject_python_shellcode(self, shellcode):
-        """Inject a pytrhon shellcode into memory and execute it.
+        """Inject a python shellcode into memory and execute it.
 
-            :param shellcode: A string with python instructions.
-            :type shellcode: string
+        Parameters
+        ----------
+        shellcode: str
+            A string with python instructions.
         """
         shellcode_addr = pymem.ressources.kernel32.VirtualAllocEx(
             self.process_handle,
@@ -118,15 +122,19 @@ class Pymem(object):
         self.start_thread(self.py_run_simple_string, shellcode_addr)
    
     def start_thread(self, address, params=None):
-        """Start a new thread with address as starting location and params (also an address)
-        as address parameters.
+        """Create a new thread within the current debugged process.
 
-            :param address: An address from where the thread starts
-            :param params: An optional address with thread parameters
-            :type address: Integer (32/64)
-            :type params:  Integer (32/64)
-            :return: New thread id
-            :rtype: Integer (32/64)
+        Parameters
+        ----------
+        address: int
+            An address from where the thread starts
+        params: int
+            An optional address with thread parameters
+
+        Returns
+        -------
+        int
+            The new thread identifier
         """
         thread_id = ctypes.c_ulong(0)
         thread_h = pymem.ressources.kernel32.CreateRemoteThread(
@@ -142,13 +150,21 @@ class Pymem(object):
         return thread_id
 
     def open_process_from_name(self, process_name):
-        """Open process given it's name and stores the handle into `self.process_handle`.
+        """Open process given it's name and stores the handle into process_handle
 
-        :param process_name: The name of the process to be opened
-        :type process_name: str
-        :raises TypeError: if process_name is not valid
-        :raises pymem.exception.ProcessNotFound: if process is not found
-        :raises pymem.exception.CouldNotOpenProcess: if process cannot be opened
+        Parameters
+        ----------
+        process_name: str
+            The name of the process to be opened
+
+        Raises
+        ------
+        TypeError
+            If process name is not valid
+        ProcessNotFound
+            If process name is not found
+        CouldNotOpenProcess
+            If process cannot be opened
         """
         if not process_name or not isinstance(process_name, str):
             raise TypeError('Invalid argument: {}'.format(process_name))
@@ -161,10 +177,17 @@ class Pymem(object):
     def open_process_from_id(self, process_id):
         """Open process given it's name and stores the handle into `self.process_handle`.
 
-        :param process_id: The name of the process to be opened
-        :type process_id: int
-        :raises TypeError: if process_id is not an integer
-        :raises pymem.exception.CouldNotOpenProcess: if process cannot be opened
+        Parameters
+        ----------
+        process_id: int
+            The unique process identifier
+
+        Raises
+        ------
+        TypeError
+            If process identifier is not an integer
+        CouldNotOpenProcess
+            If process cannot be opened
         """
         if not process_id or not isinstance(process_id, int):
             raise TypeError('Invalid argument: {}'.format(process_id))
@@ -177,10 +200,12 @@ class Pymem(object):
     def process_base(self):
         """Lookup process base Module.
 
-        :return: The base Module of the current process.
-        :rtype: pymem.ressources.structure.MODULEINFO
-        :raises TypeError: if process_id is not an integer
-        :raises pymem.exception.ProcessError: if could not find process first module address
+        Raises
+        ------
+        TypeError
+            If process_id is not an integer
+        ProcessError
+            If could not find process first module address
         """
         if not self.process_id:
             raise TypeError('You must open a process before calling this property')
@@ -194,10 +219,11 @@ class Pymem(object):
     def main_thread(self):
         """Retrieve ThreadEntry32 of main thread given its creation time.
 
-        :raises pymem.exception.ProcessError: if there is no process opened
-        :raises pymem.exception.ProcessError: if could not list process thread
+        Raises
+        ------
+        ProcessError
+            If there is no process opened or could not list process thread
         """
-        print('memoize')
         if not self.process_id:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         threads = pymem.process.list_process_thread(self.process_id)
@@ -211,7 +237,10 @@ class Pymem(object):
     def close_process(self):
         """Close the current opened process
 
-        :raises pymem.exception.ProcessError: if there is no process opened
+        Raises
+        ------
+        ProcessError
+            If there is no process opened
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -222,12 +251,22 @@ class Pymem(object):
     def allocate(self, size):
         """Allocate memory into the current opened process.
 
-        :param size: The size of the region of memory to allocate, in bytes.
-        :type size: int
-        :return: The base address of the current process.
-        :rtype: ctypes.wintypes.HANDLE
-        :raises pymem.exception.ProcessError: if there is no process opened
-        :raises TypeError: if size is not an integer
+        Parameters
+        ----------
+        size: int
+            The size of the region of memory to allocate, in bytes.
+
+        Raises
+        ------
+        ProcessError
+            If there is no process opened
+        TypeError
+            If size is not an integer
+
+        Returns
+        -------
+        HANDLE
+            The base address of the current process.
         """
         if not size or not isinstance(size, int):
             raise TypeError('Invalid argument: {}'.format(size))
@@ -239,10 +278,17 @@ class Pymem(object):
     def free(self, address):
         """Free memory from the current opened process given an address.
 
-        :param address: An address of the region of memory to be freed.
-        :type address: int
-        :raises pymem.exception.ProcessError: if there is no process opened
-        :raises TypeError: if address is not an integer
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be freed.
+
+        Raises
+        ------
+        ProcessError
+            If there is no process opened
+        TypeError
+            If address is not an integer
         """
         if not address or not isinstance(address, int):
             raise TypeError('Invalid argument: {}'.format(address))
@@ -253,7 +299,10 @@ class Pymem(object):
     def close_main_thread(self):
         """Close the opened main thread
 
-        :raises pymem.exception.ProcessError: if main thread is not opened
+        Raises
+        ------
+        ProcessError
+            If main thread is not opened
         """
         if not self.thread_handle:
             raise pymem.exception.ProcessError('You must open main thread before calling this method')
@@ -262,15 +311,24 @@ class Pymem(object):
     def read_bytes(self, address, length):
         """Reads bytes from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :param length: number of bytes to be read
-        :type address: int
-        :type length: int
-        :return: returns the raw value read
-        :rtype: bytes
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+        length: int
+            Number of bytes to be read
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+
+        Returns
+        -------
+        bytes
+            the raw value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')

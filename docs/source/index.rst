@@ -6,8 +6,12 @@
 Welcome to pymem's documentation!
 =================================
 
+Welcome to Pymem's documentation. This documentation is divided into different
+parts. You should start by reading :ref:`installation`, and then head over to
+the :ref:`tutorial` section that shows different usage of Pymem.
+
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Contents:
 
    pymem

@@ -1,27 +1,31 @@
-import ctypes
 import struct
 
 import pymem.memory
 import pymem.ressources.kernel32
+import pymem.ressources.structure
 
 
 def scan_pattern_page(handle, address, pattern, mask):
     """Search a byte pattern given a memory location.
-    Will query memory location informations and search over until it reaches the
+    Will query memory location information and search over until it reaches the
     length of the memory page. If nothing is found the function returns the
     next page location.
 
-        :param handle: A valid handle to an open object.
-        :param address: An address to search from
-        :param pattern: A byte pattern to search for
-        :param mask: A mask corresponding to a given pattern of the form: xxx???xxx
-        :type handle: ctypes.wintypes.HANDLE
-        :type address: Integer
-        :type pattern: string
-        :type mask: string
+    Parameters
+    ----------
+    handle: HANDLE
+        Handle to an open object
+    address: int
+        An address to search from
+    pattern: str
+        A byte pattern to search for
+    mask: str
+        A mask corresponding to a given pattern of the form: xxx???xxx
 
-        :return: A tuple of next_region, found address
-        :rtype: tuple(Integer, Integer)
+    Returns
+    -------
+    tuple
+        next_region, found address
     """
     mbi = pymem.memory.virtual_query(handle, address)
     next_region = mbi.BaseAddress + mbi.RegionSize
@@ -39,7 +43,7 @@ def scan_pattern_page(handle, address, pattern, mask):
 
     found = None
     for offset in range(0, (mbi.RegionSize - len(pattern)), 1):
-        partial = page_bytes [offset:offset + len(pattern)]
+        partial = page_bytes[offset:offset + len(pattern)]
         for x in range(len(pattern)):
             if mask[x] == '?':
                 continue
@@ -54,19 +58,23 @@ def scan_pattern_page(handle, address, pattern, mask):
 
 def scan_string_page(handle, address, search):
     """Search a string given a memory location.
-    Will query memory location informations and search over until it reaches the
+    Will query memory location information and search over until it reaches the
     length of the memory page. If nothing is found the function returns the
     next page location.
 
-        :param handle: A valid handle to an open object.
-        :param address: An address to search from
-        :param search: A string to search for
-        :type handle: ctypes.wintypes.HANDLE
-        :type address: Integer (32/64)
-        :type search: string
+    Parameters
+    ----------
+    handle: HANDLE
+        Handle to an open object
+    address: int
+        An address to search from
+    search: str
+        A string to search for
 
-        :return: A tuple of next_region, found address
-        :rtype: tuple(Integer, Integer)
+    Returns
+    -------
+    tuple
+        next_region, found address
     """
     mbi = pymem.memory.virtual_query(handle, address)
     next_region = mbi.BaseAddress + mbi.RegionSize
@@ -123,27 +131,32 @@ def search_real_address(handle, address, found_address):
     return next_region, found
 
 
+# todo: rewrite example
 def string_scan_module(handle, module, search):
     """Given a handle over an opened process and a module will scan memory after
     a string and return its corresponding address
 
-        :param handle: A valid handle to an open object.
-        :param module: An instance of a given module
-        :param search: A string to search for
-        :type handle: ctypes.wintypes.HANDLE
-        :type module: pymem.ressources.structure.MODULEINFO
-        :type search: string
+    Parameters
+    ----------
+    handle: HANDLE
+        Handle to an open object
+    module: MODULEINFO
+        An instance of a given module
+    search: str
+        A string to search for
 
-        :return: The memory address of given pattern
-        :rtype: Integer
+    Returns
+    -------
+    int
+        Memory address of given pattern
 
-        ex:
-            p = pymem.Pymem()
-            p.open_process_from_name("Gw2-64.exe")
-            module = pymem.process.module_from_name(p.process_handle, "Gw2-64.exe")
-            GetContext_address = pymem.pattern.pattern_scan_module(
-                p.process_handle, module, GetContext_pattern, GetContext_mask
-            )
+    Examples
+    --------
+
+    >>> p = pymem.Pymem()
+    >>> p.open_process_from_name("Gw2-64.exe")
+    >>> module = pymem.process.module_from_name(p.process_handle, "Gw2-64.exe")
+    >>> GetContext_address = pymem.pattern.pattern_scan_module(p.process_handle, module, GetContext_pattern, GetContext_mask)
     """
     base_address = module.lpBaseOfDll
     max_address = module.lpBaseOfDll + module.SizeOfImage
@@ -151,7 +164,6 @@ def string_scan_module(handle, module, search):
 
     # map search string to a sequence of bytes
     search = bytes(search, 'ascii')
-    found = None
     while page_address < max_address:
         next_page, strings_address = scan_string_page(handle, page_address, search)
         if strings_address:
@@ -176,32 +188,36 @@ def pattern_scan_module(handle, module, pattern, mask):
     """Given a handle over an opened process and a module will scan memory after
     a byte pattern and return its corresponding memory address.
 
-        :param handle: A valid handle to an open object.
-        :param module: An instance of a given module
-        :param pattern: A byte pattern to search for
-        :param mask: A mask corresponding to a given pattern of the form: xxx???xxx
-        :type handle: ctypes.wintypes.HANDLE
-        :type module: pymem.ressources.structure.MODULEINFO
-        :type pattern: string
-        :type mask: string
+    Parameters
+    ----------
+    handle: HANDLE
+        Handle to an open object
+    module: MODULEINFO
+        An instance of a given module
+    pattern: str
+        A byte pattern to search for
+    mask: str
+        A mask corresponding to a given pattern of the form: xxx???xxx
 
-        :return: The memory address of given pattern
-        :rtype: Integer
+    Returns
+    -------
+    int
+        Memory address of given pattern
 
-        ex:
-            p = pymem.Pymem()
-            p.open_process_from_name("Gw2-64.exe")
-            GetContext_pattern = b"\x65\x48\x8B\x04\x25\x58\x00\x00\x00\xBA\x08\x00\x00\x00"
-            GetContext_mask = "x" * 14
-            module = pymem.process.module_from_name(p.process_handle, "Gw2-64.exe")
-            GetContext_address = pymem.pattern.pattern_scan_module(
-                p.process_handle, module, GetContext_pattern, GetContext_mask
-            )
+    Examples
+    --------
+    >>> p = pymem.Pymem()
+    >>> p.open_process_from_name("Gw2-64.exe")
+    >>> GetContext_pattern = b"\\x65\\x48\\x8B\\x04\\x25\\x58\\x00\\x00\\x00\\xBA\\x08\\x00\\x00\\x00"
+    >>> GetContext_mask = "x" * 14
+    >>> module = pymem.process.module_from_name(p.process_handle, "Gw2-64.exe")
+    >>> GetContext_address = pymem.pattern.pattern_scan_module(p.process_handle, module, GetContext_pattern, GetContext_mask    )
     """
     base_address = module.lpBaseOfDll
     max_address = module.lpBaseOfDll + module.SizeOfImage
     page_address = base_address
 
+    found = None
     while page_address < max_address:
         next_page, found = scan_pattern_page(handle, page_address, pattern, mask)
         if found:

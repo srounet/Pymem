@@ -8,6 +8,9 @@ import pytest
 def test_existing_process():
     pm = pymem.Pymem('python.exe')
     assert pm.process_handle
+    assert pm.process_id
+    assert pm.process_base
+    assert pm.main_thread
 
 
 def test_missing_process():
@@ -25,8 +28,3 @@ def test_list_process_modules():
     assert 'python3.dll' in [
         m.name for m in modules
     ]
-
-
-def test_process_base():
-    pm = pymem.Pymem('python.exe')
-    assert pm.process_base.name == 'python.exe'

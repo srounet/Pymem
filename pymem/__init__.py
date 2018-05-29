@@ -1,13 +1,25 @@
 import ctypes
 import ctypes.util
 import functools
+import logging
 import struct
 import sys
 
 import pymem.exception
 import pymem.memory
 import pymem.process
+import pymem.ressources.kernel32
+import pymem.ressources.structure
 import pymem.thread
+
+
+logger = logging.getLogger('pymem')
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 
 class Pymem(object):
@@ -31,15 +43,20 @@ class Pymem(object):
 
         if process_name:
             self.open_process_from_name(process_name)
-        self.check_WoW64()
+        self.check_wow64()
 
-    def check_WoW64(self):
+    def check_wow64(self):
         """Check if a process is running under WoW64.
         """
         self.is_WoW64 = pymem.process.is_64_bit(self.process_handle)
 
     def list_modules(self):
         """List a process loaded modules.
+
+        Returns
+        -------
+        list(MODULEINFO)
+            List of process loaded modules
         """
         modules = pymem.process.enum_process_module(self.process_handle)
         return modules
@@ -47,18 +64,18 @@ class Pymem(object):
     def inject_python_interpreter(self):
         """Inject python interpreter into target process and call Py_InitializeEx.
         """
-        def find_existing_interpreter(python_version):
-            local_handle = pymem.ressources.kernel32.GetModuleHandleW(python_version)
-            module = pymem.process.module_from_name(self.process_handle, python_version)
+        def find_existing_interpreter(_python_version):
+            _local_handle = pymem.ressources.kernel32.GetModuleHandleW(_python_version)
+            module = pymem.process.module_from_name(self.process_handle, _python_version)
             
             self.py_run_simple_string = (
                 module.lpBaseOfDll + (
-                    pymem.ressources.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString')
-                    - local_handle
+                    pymem.ressources.kernel32.GetProcAddress(_local_handle, b'PyRun_SimpleString')
+                    - _local_handle
                 )
             )
             self._python_injected = True
-            print('[*] PyRun_SimpleString loc: 0x%08x' % self.py_run_simple_string)
+            pymem.logger.debug('PyRun_SimpleString loc: 0x%08x' % self.py_run_simple_string)
 
         if self._python_injected:
             return
@@ -67,7 +84,7 @@ class Pymem(object):
         python_version = "python{0}{1}.dll".format(sys.version_info.major, sys.version_info.minor)
         python_lib = ctypes.util.find_library(python_version)
         if not python_lib:
-            raise
+            raise pymem.exception.PymemError('Could not find python library')
 
         # Find or inject python module
         python_module = pymem.process.module_from_name(self.process_handle, python_version)
@@ -76,7 +93,7 @@ class Pymem(object):
 
         python_lib_h = pymem.process.inject_dll(self.process_handle, bytes(python_lib, 'ascii'))
         if not python_lib_h:
-            raise
+            raise pymem.exception.PymemError('Inject dll failed')
 
         local_handle = pymem.ressources.kernel32.GetModuleHandleW(python_version)
         py_initialize_ex = (
@@ -91,14 +108,16 @@ class Pymem(object):
                 - local_handle
             )
         )
-        if not py_initialize_ex or not self.py_run_simple_string:
-            raise
+        if not py_initialize_ex:
+            raise pymem.exception.PymemError('Empty py_initialize_ex')
+        if not self.py_run_simple_string:
+            raise pymem.exception.PymemError('Empty py_run_simple_string')
 
         self.start_thread(py_initialize_ex)
         self._python_injected = True
 
-        print('[*] Py_InitializeEx loc: 0x%08x' % py_initialize_ex)
-        print('[*] PyRun_SimpleString loc: 0x%08x' % self.py_run_simple_string)
+        pymem.logger.debug('Py_InitializeEx loc: 0x%08x' % py_initialize_ex)
+        pymem.logger.debug('PyRun_SimpleString loc: 0x%08x' % self.py_run_simple_string)
 
     def inject_python_shellcode(self, shellcode):
         """Inject a python shellcode into memory and execute it.
@@ -115,7 +134,7 @@ class Pymem(object):
             pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT.value | pymem.ressources.structure.MEMORY_STATE.MEM_RESERVE.value,
             pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READWRITE.value
         )
-        print('[*] shellcode_addr loc: 0x%08x' % shellcode_addr)
+        pymem.logger.debug('shellcode_addr loc: 0x%08x' % shellcode_addr)
         written = ctypes.c_ulonglong(0)
         pymem.ressources.kernel32.WriteProcessMemory(self.process_handle, shellcode_addr, shellcode, len(shellcode), ctypes.byref(written))
         # check written
@@ -195,6 +214,9 @@ class Pymem(object):
         self.process_handle = pymem.process.open(self.process_id)
         if not self.process_handle:
             raise pymem.exception.CouldNotOpenProcess(self.process_id)
+        pymem.logger.debug('Process {} is being debugged'.format(
+            process_id
+        ))
 
     @property
     def process_base(self):
@@ -206,6 +228,11 @@ class Pymem(object):
             If process_id is not an integer
         ProcessError
             If could not find process first module address
+
+        Returns
+        -------
+        MODULEINFO
+            Base module information
         """
         if not self.process_id:
             raise TypeError('You must open a process before calling this property')
@@ -341,13 +368,24 @@ class Pymem(object):
     def read_char(self, address):
         """Reads 1 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: string
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        str
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -360,13 +398,24 @@ class Pymem(object):
     def read_uchar(self, address):
         """Reads 1 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: string
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        str
+            returns the value read
         """
         if not self.process_handle:
             raise TypeError('You must open a process before calling this method')
@@ -379,13 +428,24 @@ class Pymem(object):
     def read_int(self, address):
         """Reads 4 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        int
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -398,13 +458,24 @@ class Pymem(object):
     def read_uint(self, address):
         """Reads 4 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        int
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -417,13 +488,24 @@ class Pymem(object):
     def read_short(self, address):
         """Reads 2 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        int
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -436,13 +518,24 @@ class Pymem(object):
     def read_ushort(self, address):
         """Reads 2 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        int
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -455,13 +548,24 @@ class Pymem(object):
     def read_float(self, address):
         """Reads 4 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: float
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        float
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -474,13 +578,24 @@ class Pymem(object):
     def read_long(self, address):
         """Reads 4 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        int
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -493,13 +608,24 @@ class Pymem(object):
     def read_ulong(self, address):
         """Reads 4 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        int
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -512,13 +638,24 @@ class Pymem(object):
     def read_longlong(self, address):
         """Reads 8 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        int
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -531,13 +668,24 @@ class Pymem(object):
     def read_ulonglong(self, address):
         """Reads 8 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        int
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -550,13 +698,24 @@ class Pymem(object):
     def read_double(self, address):
         """Reads 8 byte from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :type address: int
-        :return: returns the value read
-        :rtype: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raise: TypeError if address is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        int
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -569,15 +728,26 @@ class Pymem(object):
     def read_string(self, address, byte=50):
         """Reads n `byte` from an area of memory in a specified process.
 
-        :param address: An address of the region of memory to be read.
-        :param byte: number of bytes to read
-        :type address: int
-        :type byte: int
-        :return: returns the value read
-        :rtype: str
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if byte is not a valid integer
-        :raise: pymem.exception.MemoryReadError if ReadProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+        byte: int
+            Amount of bytes to be read
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        str
+            returns the value read
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -592,13 +762,21 @@ class Pymem(object):
     def write_int(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a valid integer
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: int
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -612,13 +790,21 @@ class Pymem(object):
     def write_uint(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a valid integer
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: int
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -632,13 +818,21 @@ class Pymem(object):
     def write_short(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a valid integer
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: int
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -652,13 +846,21 @@ class Pymem(object):
     def write_ushort(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: int
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a valid integer
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: int
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -672,13 +874,21 @@ class Pymem(object):
     def write_float(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: float
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a valid float
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: float
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -692,13 +902,21 @@ class Pymem(object):
     def write_long(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: float
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a valid int
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: int
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -712,13 +930,21 @@ class Pymem(object):
     def write_ulong(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: float
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a valid int
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: int
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -732,13 +958,21 @@ class Pymem(object):
     def write_longlong(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: float
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a valid int
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: int
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -752,13 +986,21 @@ class Pymem(object):
     def write_ulonglong(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: float
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a valid int
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: int
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -772,13 +1014,21 @@ class Pymem(object):
     def write_double(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: float
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a valid int
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: float
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -792,13 +1042,21 @@ class Pymem(object):
     def write_string(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: bytes
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not bytes
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: bytes
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
@@ -812,13 +1070,21 @@ class Pymem(object):
     def write_char(self, address, value):
         """Write `value` to the given `address` into the current opened process.
 
-        :param address: An address of the region of memory to be read.
-        :param value: the value to be written
-        :type address: int
-        :type value: float
-        :raises pymem.exception.ProcessError: if there id no opened process
-        :raises: TypeError if value is not a string
-        :raise: pymem.exception.MemoryWriteError if WriteProcessMemory failed
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: str
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')

@@ -16,12 +16,17 @@ import pymem.ressources.structure
 def inject_dll(handle, filepath):
     """Inject a dll into opened process.
 
-    :param handle: A valid handle to an open object.
-    :param filepath: Dll to be injected filepath
-    :type handle: ctypes.wintypes.HANDLE
-    :type filepath: str
-    :return: The address of injected dll
-    :rtype: ctypes.wintypes.DWORD
+        Parameters
+        ----------
+        handle: HANDLE
+            Handle to an open object
+        filepath: bytes
+            Dll to be injected filepath
+
+        Returns
+        -------
+        DWORD
+            The address of injected dll
     """
     filepath_address = pymem.ressources.kernel32.VirtualAllocEx(
         handle,
@@ -32,9 +37,9 @@ def inject_dll(handle, filepath):
     )
     pymem.ressources.kernel32.WriteProcessMemory(handle, filepath_address, filepath, len(filepath), None)
     kernel32_handle = pymem.ressources.kernel32.GetModuleHandleW("kernel32.dll")
-    LoadLibraryA_address  = pymem.ressources.kernel32.GetProcAddress(kernel32_handle, b"LoadLibraryA")
+    load_library_a_address = pymem.ressources.kernel32.GetProcAddress(kernel32_handle, b"LoadLibraryA")
     thread_h = pymem.ressources.kernel32.CreateRemoteThread(
-        handle, None, 0, LoadLibraryA_address, filepath_address, 0, None
+        handle, None, 0, load_library_a_address, filepath_address, 0, None
     )
     pymem.ressources.kernel32.WaitForSingleObject(thread_h, -1)
 

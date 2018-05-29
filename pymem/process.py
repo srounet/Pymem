@@ -269,7 +269,7 @@ def list_process_thread(process_id):
     TH32CS_SNAPTHREAD = 0x00000004
     hSnap = pymem.ressources.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0)
     thread_entry = pymem.ressources.structure.ThreadEntry32()
-    ret = pymem.ressources.kernel32.Thread32First(hSnap, ctypes.pointer(thread_entry))
+    ret = pymem.ressources.kernel32.Thread32First(hSnap, ctypes.byref(thread_entry))
 
     if not ret:
         raise pymem.exception.PymemError('Could not get Thread32First')

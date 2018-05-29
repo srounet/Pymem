@@ -269,18 +269,18 @@ def list_process_thread(process_id):
     TH32CS_SNAPTHREAD = 0x00000004
     hSnap = pymem.ressources.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0)
     thread_entry = pymem.ressources.structure.ThreadEntry32()
-    t32 = ctypes.windll.kernel32.Thread32First(hSnap, ctypes.byref(thread_entry))
-    # XXXX
+    ret = pymem.ressources.kernel32.Thread32First(hSnap, ctypes.pointer(thread_entry))
+
+    if not ret:
+        raise pymem.exception.PymemError('Could not get Thread32First')
+
     threads = []
-    if t32 and thread_entry.th32OwnerProcessID == process_id:
-        threads.append(copy.copy(thread_entry))
-    
-    while not ctypes.windll.kernel32.GetLastError():
-        t32 = pymem.ressources.kernel32.Thread32Next(hSnap, ctypes.byref(thread_entry))
-        if t32 and thread_entry.th32OwnerProcessID == process_id:
+    while ret:
+        if thread_entry.th32OwnerProcessID == process_id:
             threads.append(copy.copy(thread_entry))
-    ctypes.windll.kernel32.SetLastError(0)
+        ret = pymem.ressources.kernel32.Thread32Next(hSnap, ctypes.byref(thread_entry))
     pymem.ressources.kernel32.CloseHandle(hSnap)
+    ctypes.windll.kernel32.SetLastError(0)
     return threads
 
 

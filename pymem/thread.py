@@ -17,6 +17,7 @@ class Thread(object):
             :type th_entry_32: pymem.ressources.structure.ThreadEntry32
         """
         self.process_handle = process_handle
+        self.thread_id = th_entry_32.th32ThreadID
         self.th_entry_32 = th_entry_32
         self.teb_address = None
         self.teb = self._query_teb()

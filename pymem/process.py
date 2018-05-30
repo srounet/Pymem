@@ -217,7 +217,6 @@ def list_processes():
     process_entry = pymem.ressources.structure.ProcessEntry32()
     process_entry.dwSize = ctypes.sizeof(process_entry)
     p32 = pymem.ressources.kernel32.Process32First(hSnap, ctypes.byref(process_entry))
-    processes = []
     if p32:
         yield process_entry
     while p32:
@@ -257,33 +256,6 @@ def process_from_id(process_id):
             return process
 
 
-def list_process_thread(process_id):
-    """List all threads of given processes_id
-
-    :param process_id: The identifier of the process
-    :type process_id: ctypes.wintypes.HANDLE
-
-    :return: a list of thread entry 32.
-    :rtype: list(pymem.ressources.structure.ThreadEntry32)
-    """
-    TH32CS_SNAPTHREAD = 0x00000004
-    hSnap = pymem.ressources.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0)
-    thread_entry = pymem.ressources.structure.ThreadEntry32()
-    ret = pymem.ressources.kernel32.Thread32First(hSnap, ctypes.byref(thread_entry))
-
-    if not ret:
-        raise pymem.exception.PymemError('Could not get Thread32First')
-
-    threads = []
-    while ret:
-        if thread_entry.th32OwnerProcessID == process_id:
-            threads.append(copy.copy(thread_entry))
-        ret = pymem.ressources.kernel32.Thread32Next(hSnap, ctypes.byref(thread_entry))
-    pymem.ressources.kernel32.CloseHandle(hSnap)
-    ctypes.windll.kernel32.SetLastError(0)
-    return threads
-
-
 def module_from_name(process_handle, module_name):
     """Retrieve a module loaded by given process.
 
@@ -301,6 +273,30 @@ def module_from_name(process_handle, module_name):
     for module in modules:
         if module.name.lower() == module_name:
             return module
+
+
+def enum_process_thread(process_id):
+    """List all threads of given processes_id
+
+    :param process_id: The identifier of the process
+    :type process_id: ctypes.wintypes.HANDLE
+
+    :return: a list of thread entry 32.
+    :rtype: list(pymem.ressources.structure.ThreadEntry32)
+    """
+    TH32CS_SNAPTHREAD = 0x00000004
+    hSnap = pymem.ressources.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0)
+    thread_entry = pymem.ressources.structure.ThreadEntry32()
+    ret = pymem.ressources.kernel32.Thread32First(hSnap, ctypes.byref(thread_entry))
+
+    if not ret:
+        raise pymem.exception.PymemError('Could not get Thread32First')
+
+    while ret:
+        if thread_entry.th32OwnerProcessID == process_id:
+            yield thread_entry
+        ret = pymem.ressources.kernel32.Thread32Next(hSnap, ctypes.byref(thread_entry))
+    pymem.ressources.kernel32.CloseHandle(hSnap)
 
 
 def enum_process_module(handle):
@@ -334,35 +330,6 @@ def enum_process_module(handle):
                 ctypes.sizeof(module_info)
             )
             yield module_info
-
-
-@DeprecationWarning
-def list_process_modules(process_id):
-    """List all modules of given processes_id
-
-    :param process_id: The identifier of the process
-    :type process_id: ctypes.wintypes.HANDLE
-
-    :return: a list of module entry 32.
-    :rtype: list(pymem.ressources.structure.ModuleEntry32)
-    """
-    TH32CS_SNAPMODULE = 0x00000008
-    TH32CS_SNAPMODULE32 = 0x00000010
-    ERROR_NO_MORE_FILES = 0x12
-    hSnap = pymem.ressources.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, process_id)
-    module_entry = pymem.ressources.structure.ModuleEntry32()
-    t32 = pymem.ressources.kernel32.Module32First(hSnap, ctypes.byref(module_entry))
-    if t32 and module_entry.th32ProcessID == process_id:
-        yield module_entry
-    while t32: 
-        t32 = pymem.ressources.kernel32.Module32Next(hSnap, ctypes.byref(module_entry))
-        last_error = win32api.GetLastError()
-        print(last_error)
-        if last_error == ERROR_NO_MORE_FILES:
-            break
-        if t32 and module_entry.th32ProcessID == process_id:
-            yield module_entry
-    pymem.ressources.kernel32.CloseHandle(hSnap)
 
 
 def is_64_bit(handle):

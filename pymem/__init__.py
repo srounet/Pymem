@@ -35,7 +35,6 @@ class Pymem(object):
     def __init__(self, process_name=None):
         self.process_id = None
         self.process_handle = None
-        self.main_thread_id = None
         self.thread_handle = None
         self.is_WoW64 = None
         self.py_run_simple_string = None
@@ -218,49 +217,6 @@ class Pymem(object):
             process_id
         ))
 
-    @property
-    def process_base(self):
-        """Lookup process base Module.
-
-        Raises
-        ------
-        TypeError
-            If process_id is not an integer
-        ProcessError
-            If could not find process first module address
-
-        Returns
-        -------
-        MODULEINFO
-            Base module information
-        """
-        if not self.process_id:
-            raise TypeError('You must open a process before calling this property')
-        base_module = pymem.process.base_module(self.process_handle)
-        if not base_module:
-            raise pymem.exception.ProcessError("Could not find process first module")
-        return base_module
-
-    @property
-    @functools.lru_cache(maxsize=1)
-    def main_thread(self):
-        """Retrieve ThreadEntry32 of main thread given its creation time.
-
-        Raises
-        ------
-        ProcessError
-            If there is no process opened or could not list process thread
-        """
-        if not self.process_id:
-            raise pymem.exception.ProcessError('You must open a process before calling this method')
-        threads = pymem.process.list_process_thread(self.process_id)
-        if not threads:
-            raise pymem.exception.ProcessError('Could not list process thread')
-        threads = sorted(threads, key=lambda k: k.creation_time)
-        main_thread = threads[0]
-        main_thread = pymem.thread.Thread(self.process_handle, main_thread)
-        return main_thread
-
     def close_process(self):
         """Close the current opened process
 
@@ -334,6 +290,75 @@ class Pymem(object):
         if not self.thread_handle:
             raise pymem.exception.ProcessError('You must open main thread before calling this method')
         pymem.process.close_handle(self.thread_handle)
+
+    @property
+    def process_base(self):
+        """Lookup process base Module.
+
+        Raises
+        ------
+        TypeError
+            If process_id is not an integer
+        ProcessError
+            If could not find process first module address
+
+        Returns
+        -------
+        MODULEINFO
+            Base module information
+        """
+        if not self.process_id:
+            raise TypeError('You must open a process before calling this property')
+        base_module = pymem.process.base_module(self.process_handle)
+        if not base_module:
+            raise pymem.exception.ProcessError("Could not find process first module")
+        return base_module
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def main_thread(self):
+        """Retrieve ThreadEntry32 of main thread given its creation time.
+
+        Raises
+        ------
+        ProcessError
+            If there is no process opened or could not list process thread
+
+        Returns
+        -------
+        Thread
+            Process main thread
+        """
+        if not self.process_id:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        threads = pymem.process.enum_process_thread(self.process_id)
+        threads = sorted(threads, key=lambda k: k.creation_time)
+
+        if not threads:
+            raise pymem.exception.ProcessError('Could not list process thread')
+
+        main_thread = threads[0]
+        main_thread = pymem.thread.Thread(self.process_handle, main_thread)
+        return main_thread
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def main_thread_id(self):
+        """Retrieve th32ThreadID from main thread
+
+        Raises
+        ------
+        ProcessError
+            If there is no process opened or could not list process thread
+
+        Returns
+        -------
+        int
+            Main thread identifier
+        """
+        if not self.process_id:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        return self.main_thread.thread_id
 
     def read_bytes(self, address, length):
         """Reads bytes from an area of memory in a specified process.

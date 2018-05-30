@@ -11,6 +11,7 @@ def test_existing_process():
     assert pm.process_id
     assert pm.process_base
     assert pm.main_thread
+    assert pm.main_thread_id
 
 
 def test_missing_process():

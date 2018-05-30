@@ -49,6 +49,11 @@ after_test:
   - "python -m pip install -r requirements-doc.txt"
   - "sphinx-apidoc -f -o docs/source pymem"
   - "cd docs/source && make.bat html"
+  - "python -m pip install wheel"
+  - "python setup.py sdist bdist_wheel"
 
 artifacts:
   - path: 'docs/source/_build/html'
+    name: doc
+  - path: 'dist'
+    name: package

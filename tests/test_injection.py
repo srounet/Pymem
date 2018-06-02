@@ -1,4 +1,6 @@
+import os
 import os.path
+import subprocess
 import pymem
 
 
@@ -10,15 +12,26 @@ def test_inject_python_interpreter():
 
 
 def test_inject_python_shellcode():
-    pm = pymem.Pymem('python.exe')
+    notepad = subprocess.Popen(['notepad.exe'])
+
+    pm = pymem.Pymem('notepad.exe')
     pm.inject_python_interpreter()
 
     assert pm.py_run_simple_string
-    pm.inject_python_shellcode("""
-f = open("C:\\\\pymem_injection.txt", "w+")
+
+    filepath = os.path.join(os.path.abspath('.'), 'pymem_injection.txt')
+    filepath = filepath.replace("\\", "\\\\")
+
+    shellcode = """
+f = open("{}", "w+")
 f.write("pymem_injection")
 f.close()
-    """)
-    assert os.path.exists("C:\pymem_injection.txt")
+    """.format(filepath)
+    pm.inject_python_shellcode(shellcode)
+
+    assert os.path.exists(filepath)
+
+    os.remove(filepath)
+    notepad.kill()
 
 

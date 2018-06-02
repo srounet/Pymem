@@ -160,10 +160,12 @@ def open_main_thread(process_id):
     :return: A handle to the first thread of the given process_id
     :rtype: ctypes.wintypes.HANDLE
     """
-    threads = list_process_thread(process_id)
+    threads = enum_process_thread(process_id)
+    threads = sorted(threads, key=lambda t32: t32.creation_time)
+
     if not threads:
-        return
-    threads = sorted(threads, key=lambda k: k.creation_time)
+        return  # todo: raise exception
+
     main_thread = threads[0]
     thread_handle = open_thread(main_thread.th32ThreadID)
     return thread_handle

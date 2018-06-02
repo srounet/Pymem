@@ -1,5 +1,6 @@
 import ctypes
 import ctypes.wintypes
+import platform
 import copy
 
 from win32api import GetCurrentProcess

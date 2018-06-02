@@ -47,7 +47,8 @@ class Pymem(object):
     def check_wow64(self):
         """Check if a process is running under WoW64.
         """
-        self.is_WoW64 = pymem.process.is_64_bit(self.process_handle)
+        verdict = pymem.process.is_64_bit(self.process_handle)
+        self.is_WoW64 = bool(verdict)
 
     def list_modules(self):
         """List a process loaded modules.

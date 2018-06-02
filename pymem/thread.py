@@ -20,7 +20,8 @@ class Thread(object):
         self.thread_id = th_entry_32.th32ThreadID
         self.th_entry_32 = th_entry_32
         self.teb_address = None
-        self.teb = self._query_teb()
+        # teb should be tested, not working on x64
+        # self.teb = self._query_teb()
 
     def _query_teb(self):
         """Query current thread informations to extract the TEB structure.

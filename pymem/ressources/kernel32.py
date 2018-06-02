@@ -53,11 +53,18 @@ ReadProcessMemory.argtypes = (
 )
 ReadProcessMemory.restype = ctypes.wintypes.BOOL
 
-#: Writes data to an area of memory in a specified process. The entire area to be written to must be accessible or the operation fails.
+#: Writes data to an area of memory in a specified process.
+#: The entire area to be written to must be accessible or the operation fails.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms684320%28v=vs.85%29.aspx
 WriteProcessMemory = dll.WriteProcessMemory
-WriteProcessMemory.argtypes = [ctypes.wintypes.HANDLE,ctypes.wintypes.LPVOID,ctypes.wintypes.LPCVOID,ctypes.c_size_t,ctypes.POINTER(ctypes.c_size_t)]
+WriteProcessMemory.argtypes = [
+    ctypes.wintypes.HANDLE,
+    ctypes.wintypes.LPVOID,
+    ctypes.wintypes.LPCVOID,
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_size_t)
+]
 WriteProcessMemory.restype = ctypes.wintypes.BOOL
 
 #: Enables a debugger to attach to an active process and debug it.

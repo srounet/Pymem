@@ -2,6 +2,7 @@ import ctypes
 import ctypes.util
 import functools
 import logging
+import platform
 import struct
 import sys
 
@@ -76,6 +77,7 @@ class Pymem(object):
             )
             self._python_injected = True
             pymem.logger.debug('PyRun_SimpleString loc: 0x%08x' % self.py_run_simple_string)
+            return module.lpBaseOfDll
 
         if self._python_injected:
             return
@@ -89,11 +91,11 @@ class Pymem(object):
         # Find or inject python module
         python_module = pymem.process.module_from_name(self.process_handle, python_version)
         if python_module:
-            return find_existing_interpreter(python_version)
-
-        python_lib_h = pymem.process.inject_dll(self.process_handle, bytes(python_lib, 'ascii'))
-        if not python_lib_h:
-            raise pymem.exception.PymemError('Inject dll failed')
+            python_lib_h = find_existing_interpreter(python_version)
+        else:
+            python_lib_h = pymem.process.inject_dll(self.process_handle, bytes(python_lib, 'ascii'))
+            if not python_lib_h:
+                raise pymem.exception.PymemError('Inject dll failed')
 
         local_handle = pymem.ressources.kernel32.GetModuleHandleW(python_version)
         py_initialize_ex = (
@@ -127,6 +129,7 @@ class Pymem(object):
         shellcode: str
             A string with python instructions.
         """
+        shellcode = shellcode.encode('ascii')
         shellcode_addr = pymem.ressources.kernel32.VirtualAllocEx(
             self.process_handle,
             0,
@@ -135,7 +138,7 @@ class Pymem(object):
             pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READWRITE.value
         )
         pymem.logger.debug('shellcode_addr loc: 0x%08x' % shellcode_addr)
-        written = ctypes.c_ulonglong(0)
+        written = ctypes.c_ulonglong(0) if '64bit' in platform.architecture() else ctypes.c_ulong(0)
         pymem.ressources.kernel32.WriteProcessMemory(self.process_handle, shellcode_addr, shellcode, len(shellcode), ctypes.byref(written))
         # check written
         self.start_thread(self.py_run_simple_string, shellcode_addr)
@@ -166,7 +169,8 @@ class Pymem(object):
             None
         )
         pymem.ressources.kernel32.WaitForSingleObject(thread_h, -1)
-        return thread_id
+        pymem.logger.debug('New thread_id: 0x%08x' % thread_h)
+        return thread_h
 
     def open_process_from_name(self, process_name):
         """Open process given it's name and stores the handle into process_handle

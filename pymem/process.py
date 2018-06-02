@@ -71,7 +71,7 @@ def set_debug_privilege(hToken, lpszPrivilege, bEnablePrivilege):
         print("LookupPrivilegeValue error: 0x%08x\n" % ctypes.GetLastError())
         return False
 
-    tp.PrivilegeCount = 1;
+    tp.PrivilegeCount = 1
     tp.Privileges[0].Luid = luid
 
     if bEnablePrivilege:

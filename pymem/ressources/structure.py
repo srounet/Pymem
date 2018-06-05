@@ -149,7 +149,7 @@ class ThreadEntry32(ctypes.Structure):
         self.dwSize = ctypes.sizeof(self)
 
 
-class PROCESS(enum.Enum):
+class PROCESS(enum.IntEnum):
     """Process manipulation flags"""
 
     #: Required to create a process.
@@ -190,7 +190,7 @@ class PROCESS(enum.Enum):
     WRITE_OWNER = 0x00080000
 
 
-class SE_TOKEN_PRIVILEGE(enum.Enum):
+class SE_TOKEN_PRIVILEGE(enum.IntEnum):
     """An access token contains the security information for a logon session.
     The system creates an access token when a user logs on, and every process executed on behalf of the user has a copy of the token."""
 
@@ -200,7 +200,7 @@ class SE_TOKEN_PRIVILEGE(enum.Enum):
     SE_PRIVILEGE_USED_FOR_ACCESS = 0x80000000
 
 
-class MEMORY_STATE(enum.Enum):
+class MEMORY_STATE(enum.IntEnum):
     """The type of memory allocation"""
     #: Allocates memory charges (from the overall size of memory and the paging files on disk) for the specified reserved memory pages. The function also guarantees that when the caller later initially accesses the memory, the contents will be zero. Actual physical pages are not allocated unless/until the virtual addresses are actually accessed.
     MEM_COMMIT = 0x1000
@@ -216,7 +216,7 @@ class MEMORY_STATE(enum.Enum):
     MEM_RELEASE = 0x8000
 
 
-class MEMORY_TYPES(enum.Enum):
+class MEMORY_TYPES(enum.IntEnum):
     #: XXX
     MEM_IMAGE = 0x1000000
     #: XXX
@@ -225,7 +225,7 @@ class MEMORY_TYPES(enum.Enum):
     MEM_PRIVATE = 0x20000
 
 
-class MEMORY_PROTECTION(enum.Enum):
+class MEMORY_PROTECTION(enum.IntEnum):
     """The following are the memory-protection options;
     you must specify one of the following values when allocating or protecting a page in memory
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa366786(v=vs.85).aspx"""

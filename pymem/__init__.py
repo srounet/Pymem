@@ -282,7 +282,7 @@ class Pymem(object):
             raise TypeError('Invalid argument: {}'.format(address))
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        pymem.memory.free_memory(self.process_handle, address)
+        return pymem.memory.free_memory(self.process_handle, address)
 
     def close_main_thread(self):
         """Close the opened main thread

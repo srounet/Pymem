@@ -7,6 +7,7 @@ def test_allocate():
     address = pm.allocate(10)
 
     assert address
+    assert pm.free(address)
 
 
 def test_write_int():
@@ -15,6 +16,7 @@ def test_write_int():
 
     pm.write_int(address, 1337)
     assert pm.read_int(address) == 1337
+    pm.free(address)
 
 
 def test_write_uint():
@@ -23,6 +25,7 @@ def test_write_uint():
 
     pm.write_uint(address, 1337)
     assert pm.read_uint(address) == 1337
+    pm.free(address)
 
 
 def test_write_short():
@@ -31,6 +34,7 @@ def test_write_short():
 
     pm.write_short(address, 1)
     assert pm.read_short(address) == 1
+    pm.free(address)
 
 
 def test_write_ushort():
@@ -39,6 +43,7 @@ def test_write_ushort():
 
     pm.write_ushort(address, 1)
     assert pm.read_ushort(address) == 1
+    pm.free(address)
 
 
 def test_write_float():
@@ -63,6 +68,7 @@ def test_write_float():
         )
     )
     assert result == expected
+    pm.free(address)
 
 
 def test_write_long():
@@ -71,6 +77,7 @@ def test_write_long():
 
     pm.write_long(address, 1337)
     assert pm.read_long(address) == 1337
+    pm.free(address)
 
 
 def test_write_ulong():
@@ -79,6 +86,7 @@ def test_write_ulong():
 
     pm.write_ulong(address, 1337)
     assert pm.read_ulong(address) == 1337
+    pm.free(address)
 
 
 def test_write_longlong():
@@ -87,6 +95,7 @@ def test_write_longlong():
 
     pm.write_longlong(address, 1337)
     assert pm.read_longlong(address) == 1337
+    pm.free(address)
 
 
 def test_write_ulonglong():
@@ -95,6 +104,7 @@ def test_write_ulonglong():
 
     pm.write_ulonglong(address, 1337)
     assert pm.read_ulonglong(address) == 1337
+    pm.free(address)
 
 
 def test_write_double():
@@ -103,6 +113,7 @@ def test_write_double():
 
     pm.write_double(address, 13.37)
     assert pm.read_double(address) == 13.37
+    pm.free(address)
 
 
 def test_write_string():
@@ -111,6 +122,7 @@ def test_write_string():
 
     pm.write_string(address, "pymem")
     assert pm.read_string(address) == "pymem"
+    pm.free(address)
 
 
 def test_write_char():
@@ -119,6 +131,7 @@ def test_write_char():
 
     pm.write_char(address, "s")
     assert pm.read_char(address) == "s"
+    pm.free(address)
 
 
 def test_write_uchar():
@@ -127,4 +140,5 @@ def test_write_uchar():
 
     pm.write_uchar(address, 114)
     assert pm.read_uchar(address) == 114
+    pm.free(address)
 

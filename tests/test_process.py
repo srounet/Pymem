@@ -26,6 +26,6 @@ def test_list_process_modules():
     )
     modules = list(modules)
     assert len(modules)
-    assert 'python3.dll' in [
+    assert 'python.exe' in [
         m.name for m in modules
     ]

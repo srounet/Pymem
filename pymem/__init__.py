@@ -233,6 +233,11 @@ class Pymem(object):
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         pymem.process.close_handle(self.process_handle)
+        self.process_handle = None
+        self.process_id = None
+        self.is_WoW64 = None
+        self.py_run_simple_string = None
+        self._python_injected = None
         if self.thread_handle:
             pymem.process.close_handle(self.thread_handle)
 
@@ -283,18 +288,6 @@ class Pymem(object):
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         return pymem.memory.free_memory(self.process_handle, address)
-
-    def close_main_thread(self):
-        """Close the opened main thread
-
-        Raises
-        ------
-        ProcessError
-            If main thread is not opened
-        """
-        if not self.thread_handle:
-            raise pymem.exception.ProcessError('You must open main thread before calling this method')
-        pymem.process.close_handle(self.thread_handle)
 
     @property
     def process_base(self):

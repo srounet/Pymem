@@ -1,5 +1,6 @@
 import decimal
 import logging
+import struct
 
 import pymem
 import pymem.exception
@@ -40,6 +41,21 @@ def test_free_no_handle():
     pm = pymem.Pymem()
     with pytest.raises(pymem.exception.ProcessError):
         pm.free(0x111111)
+
+
+def test_read_bytes():
+    pm = pymem.Pymem('python.exe')
+    address = pm.allocate(10)
+
+    data = struct.pack('c', "s".encode())
+    length = struct.calcsize('c')
+    pymem.memory.write_bytes(
+        pm.process_handle, address, data, length
+    )
+
+    assert pm.read_bytes(address, 1) == b's'
+
+    pm.free(address)
 
 
 def test_read_bytes_bad_parameter():

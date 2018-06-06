@@ -22,6 +22,9 @@ def test_inject_python_shellcode():
     pm = pymem.Pymem('notepad.exe')
     pm.inject_python_interpreter()
 
+    # test already injected
+    pm.inject_python_interpreter()
+
     assert pm.py_run_simple_string
 
     filepath = os.path.join(os.path.abspath('.'), 'pymem_injection.txt')

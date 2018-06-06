@@ -448,7 +448,7 @@ class Pymem(object):
             returns the value read
         """
         if not self.process_handle:
-            raise TypeError('You must open a process before calling this method')
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
         try:
             value = pymem.memory.read_uchar(self.process_handle, address)
         except pymem.exception.WinAPIError as e:
@@ -1088,11 +1088,11 @@ class Pymem(object):
         TypeError
             If address is not a valid integer
         """
-        value = value.encode()
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if value is None or not isinstance(value, bytes):
+        if value is None or not isinstance(value, str):
             raise TypeError('Invalid argument: {}'.format(value))
+        value = value.encode()
         try:
             pymem.memory.write_string(self.process_handle, address, value)
         except pymem.exception.WinAPIError as e:
@@ -1117,11 +1117,11 @@ class Pymem(object):
         TypeError
             If address is not a valid integer
         """
-        value = value.encode()
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        if value is None or not isinstance(value, bytes):
+        if value is None or not isinstance(value, str):
             raise TypeError('Invalid argument: {}'.format(value))
+        value = value.encode()
         try:
             pymem.memory.write_char(self.process_handle, address, value)
         except pymem.exception.WinAPIError as e:

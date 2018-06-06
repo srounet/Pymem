@@ -1,5 +1,9 @@
 import decimal
 import pymem
+import pymem.exception
+import pymem.memory
+
+import pytest
 
 
 def test_allocate():
@@ -10,6 +14,92 @@ def test_allocate():
     assert pm.free(address)
 
 
+def test_allocate_bad_type_parameter():
+    pm = pymem.Pymem('python.exe')
+    with pytest.raises(TypeError):
+        pm.allocate("100")
+
+
+def test_allocate_no_handle():
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.allocate(100)
+
+
+def test_free_bad_type_parameter():
+    pm = pymem.Pymem('python.exe')
+    with pytest.raises(TypeError):
+        pm.free("0x111111")
+
+
+def test_free_no_handle():
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.free(0x111111)
+
+
+def test_read_bytes_bad_parameter():
+    pm = pymem.Pymem('python.exe')
+    with pytest.raises(TypeError):
+        pymem.memory.read_bytes(
+            pm.process_handle,
+            "0x111111",
+            1
+        )
+
+
+def test_read_no_handle():
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_char(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_uchar(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_int(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_uint(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_short(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_ushort(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_float(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_long(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_ulong(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_longlong(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_ulonglong(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_double(0x111111)
+
+
+def test_read_string_no_handle():
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.read_string(0x111111)
+
+
+def test_read_string_bad_type():
+    pm = pymem.Pymem("python.exe")
+    with pytest.raises(TypeError):
+        pm.read_string(0x111111, "1")
+
+
+def test_write_bytes_bad_parameter():
+    pm = pymem.Pymem('python.exe')
+
+    with pytest.raises(TypeError):
+        pymem.memory.write_bytes(
+            pm.process_handle,
+            "0x111111",
+            "0x00",
+            1
+        )
+
+
 def test_write_int():
     pm = pymem.Pymem('python.exe')
     address = pm.allocate(10)
@@ -17,6 +107,13 @@ def test_write_int():
     pm.write_int(address, 1337)
     assert pm.read_int(address) == 1337
     pm.free(address)
+
+    with pytest.raises(TypeError):
+        pm.write_int(0x111111, "1337")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_int(0x111111, 1)
 
 
 def test_write_uint():
@@ -27,6 +124,13 @@ def test_write_uint():
     assert pm.read_uint(address) == 1337
     pm.free(address)
 
+    with pytest.raises(TypeError):
+        pm.write_uint(0x111111, "1337")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_uint(0x111111, 1)
+
 
 def test_write_short():
     pm = pymem.Pymem('python.exe')
@@ -36,6 +140,13 @@ def test_write_short():
     assert pm.read_short(address) == 1
     pm.free(address)
 
+    with pytest.raises(TypeError):
+        pm.write_short(0x111111, "1337")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_short(0x111111, 1)
+
 
 def test_write_ushort():
     pm = pymem.Pymem('python.exe')
@@ -44,6 +155,13 @@ def test_write_ushort():
     pm.write_ushort(address, 1)
     assert pm.read_ushort(address) == 1
     pm.free(address)
+
+    with pytest.raises(TypeError):
+        pm.write_ushort(0x111111, "1337")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_ushort(0x111111, 1)
 
 
 def test_write_float():
@@ -70,6 +188,13 @@ def test_write_float():
     assert result == expected
     pm.free(address)
 
+    with pytest.raises(TypeError):
+        pm.write_float(0x111111, "1337")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_float(0x111111, 13.30)
+
 
 def test_write_long():
     pm = pymem.Pymem('python.exe')
@@ -78,6 +203,13 @@ def test_write_long():
     pm.write_long(address, 1337)
     assert pm.read_long(address) == 1337
     pm.free(address)
+
+    with pytest.raises(TypeError):
+        pm.write_long(0x111111, "1337")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_long(0x111111, 1337)
 
 
 def test_write_ulong():
@@ -88,6 +220,13 @@ def test_write_ulong():
     assert pm.read_ulong(address) == 1337
     pm.free(address)
 
+    with pytest.raises(TypeError):
+        pm.write_ulong(0x111111, "1337")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_ulong(0x111111, 1337)
+
 
 def test_write_longlong():
     pm = pymem.Pymem('python.exe')
@@ -96,6 +235,13 @@ def test_write_longlong():
     pm.write_longlong(address, 1337)
     assert pm.read_longlong(address) == 1337
     pm.free(address)
+
+    with pytest.raises(TypeError):
+        pm.write_longlong(0x111111, "1337")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_longlong(0x111111, 1)
 
 
 def test_write_ulonglong():
@@ -106,6 +252,13 @@ def test_write_ulonglong():
     assert pm.read_ulonglong(address) == 1337
     pm.free(address)
 
+    with pytest.raises(TypeError):
+        pm.write_ulonglong(0x111111, "1337")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_ulonglong(0x111111, 1)
+
 
 def test_write_double():
     pm = pymem.Pymem('python.exe')
@@ -114,6 +267,13 @@ def test_write_double():
     pm.write_double(address, 13.37)
     assert pm.read_double(address) == 13.37
     pm.free(address)
+
+    with pytest.raises(TypeError):
+        pm.write_double(0x111111, "1337")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_double(0x111111, 13.37)
 
 
 def test_write_string():
@@ -124,6 +284,13 @@ def test_write_string():
     assert pm.read_string(address) == "pymem"
     pm.free(address)
 
+    with pytest.raises(TypeError):
+        pm.write_string(0x111111, 1)
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_string(0x111111, 1)
+
 
 def test_write_char():
     pm = pymem.Pymem('python.exe')
@@ -132,6 +299,13 @@ def test_write_char():
     pm.write_char(address, "s")
     assert pm.read_char(address) == "s"
     pm.free(address)
+
+    with pytest.raises(TypeError):
+        pm.write_char(0x111111, 1)
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_char(0x111111, 1)
 
 
 def test_write_uchar():

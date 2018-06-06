@@ -316,3 +316,10 @@ def test_write_uchar():
     assert pm.read_uchar(address) == 114
     pm.free(address)
 
+    with pytest.raises(TypeError):
+        pm.write_uchar(0x111111, "114")
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_uchar(0x111111, 114)
+

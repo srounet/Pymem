@@ -1128,7 +1128,23 @@ class Pymem(object):
             raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 
     def write_uchar(self, address, value):
-        """xxx
+        """Write `value` to the given `address` into the current opened process.
+
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: int
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
         """
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')

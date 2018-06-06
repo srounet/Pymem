@@ -1,8 +1,12 @@
+import logging
+
 import pymem
 import pymem.exception
 import pymem.process
 
 import pytest
+
+logging.getLogger('pymem').setLevel(logging.WARNING)
 
 
 def test_existing_process():

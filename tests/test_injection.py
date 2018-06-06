@@ -1,7 +1,12 @@
+import logging
 import os
 import os.path
 import subprocess
+
 import pymem
+
+
+logging.getLogger('pymem').setLevel(logging.WARNING)
 
 
 def test_inject_python_interpreter():

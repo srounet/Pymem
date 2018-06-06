@@ -1,9 +1,13 @@
 import decimal
+import logging
+
 import pymem
 import pymem.exception
 import pymem.memory
 
 import pytest
+
+logging.getLogger('pymem').setLevel(logging.WARNING)
 
 
 def test_allocate():

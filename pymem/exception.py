@@ -46,3 +46,13 @@ class MemoryWriteError(PymemMemoryError):
         if error_code:
             message += ' - GetLastError: {}'.format(error_code)
         super(MemoryWriteError, self).__init__(message)
+
+
+class PymemAlignmentError(PymemError):
+    def __init__(self, message):
+        super(PymemAlignmentError, self).__init__(message)
+
+
+class PymemTypeError(PymemError):
+    def __init__(self, message):
+        super(PymemTypeError, self).__init__(message)

@@ -1,14 +1,55 @@
 import ctypes
 import ctypes.wintypes
+import platform
 import copy
 
 from win32api import GetCurrentProcess
 from win32security import GetSecurityInfo
 from win32security import SetSecurityInfo
 import win32security
+import win32api
 
 import pymem.ressources.kernel32
+import pymem.ressources.psapi
 import pymem.ressources.structure
+
+
+def inject_dll(handle, filepath):
+    """Inject a dll into opened process.
+
+        Parameters
+        ----------
+        handle: HANDLE
+            Handle to an open object
+        filepath: bytes
+            Dll to be injected filepath
+
+        Returns
+        -------
+        DWORD
+            The address of injected dll
+    """
+    filepath_address = pymem.ressources.kernel32.VirtualAllocEx(
+        handle,
+        0,
+        len(filepath),
+        pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT.value | pymem.ressources.structure.MEMORY_STATE.MEM_RESERVE.value,
+        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE.value
+    )
+    pymem.ressources.kernel32.WriteProcessMemory(handle, filepath_address, filepath, len(filepath), None)
+    kernel32_handle = pymem.ressources.kernel32.GetModuleHandleW("kernel32.dll")
+    load_library_a_address = pymem.ressources.kernel32.GetProcAddress(kernel32_handle, b"LoadLibraryA")
+    thread_h = pymem.ressources.kernel32.CreateRemoteThread(
+        handle, None, 0, load_library_a_address, filepath_address, 0, None
+    )
+    pymem.ressources.kernel32.WaitForSingleObject(thread_h, -1)
+
+    exitcode = ctypes.wintypes.DWORD(0)
+    pymem.ressources.kernel32.GetExitCodeThread(thread_h, ctypes.byref(exitcode))
+    pymem.ressources.kernel32.VirtualFreeEx(
+        handle, filepath_address, len(filepath), pymem.ressources.structure.MEMORY_STATE.MEM_RELEASE.value
+    )
+    return exitcode.value
 
 
 def set_debug_privilege(hToken, lpszPrivilege, bEnablePrivilege):
@@ -30,13 +71,13 @@ def set_debug_privilege(hToken, lpszPrivilege, bEnablePrivilege):
         print("LookupPrivilegeValue error: 0x%08x\n" % ctypes.GetLastError())
         return False
 
-    tp.PrivilegeCount = 1;
+    tp.PrivilegeCount = 1
     tp.Privileges[0].Luid = luid
 
     if bEnablePrivilege:
-        tp.Privileges[0].Attributes = 0x00000002
+        tp.Privileges[0].Attributes = pymem.ressources.structure.SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_ENABLED.value
     else:
-        tp.Privileges[0].Attributes = 0
+        tp.Privileges[0].Attributes = pymem.ressources.structure.SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_USED_FOR_ACCESS.value
 
     if not ctypes.windll.advapi32.AdjustTokenPrivileges( hToken, False, ctypes.byref(tp), ctypes.sizeof(pymem.ressources.structure.TOKEN_PRIVILEGES), None, None):
         print("AdjustTokenPrivileges error: 0x%08x\n" % ctypes.GetLastError())
@@ -48,26 +89,35 @@ def set_debug_privilege(hToken, lpszPrivilege, bEnablePrivilege):
     return True
 
 
-def base_address(process_id):
+def base_module(handle):
     """Returns process base address, looking at its modules.
 
+    :param handle: A valid handle to an open object.
+    :type handle: ctypes.wintypes.HANDLE
     :param process_id: The identifier of the process.
     :type process_id: ctypes.wintypes.HANDLE
     :return: The base address of the current process.
     :rtype: ctypes.wintypes.HANDLE
     """
-    SNAPMODULE = 0x00000008
-    hSnap = pymem.ressources.kernel32.CreateToolhelp32Snapshot(SNAPMODULE, process_id)
-    if not hSnap:
-        return #xxx
-    module_entry = pymem.ressources.structure.ModuleEntry32()
-    module_entry.dwSize = ctypes.sizeof(module_entry)
-    success = pymem.ressources.kernel32.Module32First(hSnap, ctypes.byref(module_entry))
-    pymem.ressources.kernel32.CloseHandle(hSnap)
-    if not success:
-        return #xxx
-    base_address = ctypes.addressof(module_entry.modBaseAddr.contents)
-    return base_address
+    hModules  = (ctypes.wintypes.HMODULE * 1024)()
+    process_module_success = pymem.ressources.psapi.EnumProcessModulesEx(
+        handle,
+        ctypes.byref(hModules),
+        ctypes.sizeof(hModules),
+        ctypes.byref(ctypes.c_ulong()),
+        pymem.ressources.structure.EnumProcessModuleEX.LIST_MODULES_ALL
+    )
+    if not process_module_success:
+        return # xxx
+    module_info = pymem.ressources.structure.MODULEINFO(handle)
+    pymem.ressources.psapi.GetModuleInformation(
+        handle,
+        ctypes.c_void_p(hModules[0]),
+        ctypes.byref(module_info),
+        ctypes.sizeof(module_info)
+    )
+    return module_info
+
 
 def open(process_id, debug=None, process_access=None):
     """Open a process given its process_id.
@@ -89,7 +139,7 @@ def open(process_id, debug=None, process_access=None):
     if not debug:
         debug = True
     if not process_access:
-        process_access = pymem.ressources.structure.PROCESS.PROCESS_ALL_ACCESS
+        process_access = pymem.ressources.structure.PROCESS.PROCESS_ALL_ACCESS.value
     if debug:
         hToken = ctypes.wintypes.HANDLE()
         hCurrentProcess = ctypes.windll.kernel32.GetCurrentProcess()
@@ -110,9 +160,12 @@ def open_main_thread(process_id):
     :return: A handle to the first thread of the given process_id
     :rtype: ctypes.wintypes.HANDLE
     """
-    threads = list_process_thread(process_id)
+    threads = enum_process_thread(process_id)
+    threads = sorted(threads, key=lambda t32: t32.creation_time)
+
     if not threads:
-        return
+        return  # todo: raise exception
+
     main_thread = threads[0]
     thread_handle = open_thread(main_thread.th32ThreadID)
     return thread_handle
@@ -167,7 +220,6 @@ def list_processes():
     process_entry = pymem.ressources.structure.ProcessEntry32()
     process_entry.dwSize = ctypes.sizeof(process_entry)
     p32 = pymem.ressources.kernel32.Process32First(hSnap, ctypes.byref(process_entry))
-    processes = []
     if p32:
         yield process_entry
     while p32:
@@ -207,7 +259,26 @@ def process_from_id(process_id):
             return process
 
 
-def list_process_thread(process_id):
+def module_from_name(process_handle, module_name):
+    """Retrieve a module loaded by given process.
+
+    ex:
+        d3d9 = module_from_name(process_handle, 'd3d9')
+
+    :param process_handle: A process handle
+    :param module_name: The module name
+    :type process_handle: ctypes.wintypes.HANDLE
+    :type module_name: str
+    :return: MODULEINFO
+    """
+    module_name = module_name.lower()
+    modules = enum_process_module(process_handle)
+    for module in modules:
+        if module.name.lower() == module_name:
+            return module
+
+
+def enum_process_thread(process_id):
     """List all threads of given processes_id
 
     :param process_id: The identifier of the process
@@ -216,60 +287,63 @@ def list_process_thread(process_id):
     :return: a list of thread entry 32.
     :rtype: list(pymem.ressources.structure.ThreadEntry32)
     """
-    SNAPTHREAD = 0x00000004
-    hSnap = pymem.ressources.kernel32.CreateToolhelp32Snapshot(SNAPTHREAD, 0)
+    TH32CS_SNAPTHREAD = 0x00000004
+    hSnap = pymem.ressources.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0)
     thread_entry = pymem.ressources.structure.ThreadEntry32()
-    thread_entry.dwSize = ctypes.sizeof(thread_entry)
-    t32 = ctypes.windll.kernel32.Thread32First(hSnap, ctypes.byref(thread_entry))
-    threads = []
-    if t32 and thread_entry.th32OwnerProcessID == process_id:
-        threads.append(copy.copy(thread_entry))
-    while not ctypes.windll.kernel32.GetLastError():
-        t32 = pymem.ressources.kernel32.Thread32Next(hSnap, ctypes.byref(thread_entry))
-        if t32 and thread_entry.th32OwnerProcessID == process_id:
-            threads.append(copy.copy(thread_entry))
-    ctypes.windll.kernel32.SetLastError(0)
+    ret = pymem.ressources.kernel32.Thread32First(hSnap, ctypes.byref(thread_entry))
+
+    if not ret:
+        raise pymem.exception.PymemError('Could not get Thread32First')
+
+    while ret:
+        if thread_entry.th32OwnerProcessID == process_id:
+            yield thread_entry
+        ret = pymem.ressources.kernel32.Thread32Next(hSnap, ctypes.byref(thread_entry))
     pymem.ressources.kernel32.CloseHandle(hSnap)
-    return threads
 
 
-def module_from_name(process_id, module_name):
-    """Retrieve a module loaded by given process id.
+def enum_process_module(handle):
+    """List and retrieves the base names of the specified loaded module within a process
 
-    ex:
-        d3d9 = module_from_name(1234, 'd3d9')
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms682633(v=vs.85).aspx
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms683196(v=vs.85).aspx
 
-    :param process_id: The identifier of the process
-    :param module_name: The module name
-    :type process_id: ctypes.wintypes.HANDLE
-    :type module_name: str
-    :return: ModuleEntry32
+    :param handle: A valid handle to an open object.
+    :type handle: ctypes.wintypes.HANDLE
+
+    :return: a list of loaded modules
+    :rtype: list(pymem.ressources.structure.MODULEINFO)
     """
-    module_name = module_name.lower()
-    modules = list_process_modules(process_id)
-    for module in modules:
-        if module.name.lower() == module_name:
-            return module
+    hModules  = (ctypes.wintypes.HMODULE * 1024)()
+    process_module_success = pymem.ressources.psapi.EnumProcessModulesEx(
+        handle,
+        ctypes.byref(hModules),
+        ctypes.sizeof(hModules),
+        ctypes.byref(ctypes.c_ulong()),
+        pymem.ressources.structure.EnumProcessModuleEX.LIST_MODULES_ALL
+    )
+    if process_module_success:
+        hModules = iter(m for m in hModules if m)
+        for hModule in hModules:
+            module_info = pymem.ressources.structure.MODULEINFO(handle)
+            pymem.ressources.psapi.GetModuleInformation(
+                handle,
+                ctypes.c_void_p(hModule),
+                ctypes.byref(module_info),
+                ctypes.sizeof(module_info)
+            )
+            yield module_info
 
 
-def list_process_modules(process_id):
-    """List all modules of given processes_id
+def is_64_bit(handle):
+    """Determines whether the specified process is running under WOW64 (emulation).
 
-    :param process_id: The identifier of the process
-    :type process_id: ctypes.wintypes.HANDLE
+    :param handle: A valid handle to an open object.
+    :type handle: ctypes.wintypes.HANDLE
 
-    :return: a list of module entry 32.
-    :rtype: list(pymem.ressources.structure.ModuleEntry32)
+    :return: True if the 32 bit process is running under WOW64.
+    :rtype: bool
     """
-    SNAPTHREAD = 0x00000008
-    hSnap = pymem.ressources.kernel32.CreateToolhelp32Snapshot(SNAPTHREAD, process_id)
-    module_entry = pymem.ressources.structure.ModuleEntry32()
-    module_entry.dwSize = ctypes.sizeof(module_entry)
-    t32 = ctypes.windll.kernel32.Module32First(hSnap, ctypes.byref(module_entry))
-    if t32 and module_entry.th32ProcessID == process_id:
-        yield module_entry
-    while t32:
-        t32 = pymem.ressources.kernel32.Module32Next(hSnap, ctypes.byref(module_entry))
-        if t32 and module_entry.th32ProcessID == process_id:
-            yield module_entry
-    pymem.ressources.kernel32.CloseHandle(hSnap)
+    Wow64Process = ctypes.wintypes.BOOL()
+    response = pymem.ressources.kernel32.IsWow64Process(handle, ctypes.byref(Wow64Process))
+    return Wow64Process

@@ -10,6 +10,7 @@ __pycache__/
 
 # Pycharm
 *.idea
+.pytest_cache
 
 # Distribution / packaging
 .Python
@@ -24,6 +25,7 @@ lib64/
 parts/
 sdist/
 var/
+venv/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -55,6 +57,9 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+docs/source/_build
+docs/source/modules.rst
+docs/source/pymem*
 
 # PyBuilder
 target/

@@ -3,12 +3,6 @@ import ctypes.wintypes
 import platform
 import copy
 
-from win32api import GetCurrentProcess
-from win32security import GetSecurityInfo
-from win32security import SetSecurityInfo
-import win32security
-import win32api
-
 import pymem.ressources.kernel32
 import pymem.ressources.psapi
 import pymem.ressources.structure

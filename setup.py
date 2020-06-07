@@ -1,4 +1,15 @@
+import pathlib
 import setuptools
+
+ROOT = pathlib.Path(__file__).parent
+
+extras = {}
+
+with open(ROOT / 'requirements-doc.txt', encoding='utf-8') as fp:
+    extras['doc'] = fp.read().splitlines()
+
+with open(ROOT / 'requirements-test.txt', encoding='utf-8') as fp:
+    extras['test'] = fp.read().splitlines()
 
 
 setuptools.setup(
@@ -22,7 +33,5 @@ setuptools.setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
     ],
-    install_requires=[
-        'sphinx_rtd_theme'
-    ],
+    extras_require=extras,
 )

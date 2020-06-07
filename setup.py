@@ -14,7 +14,7 @@ with open(ROOT / 'requirements-test.txt', encoding='utf-8') as fp:
 
 setuptools.setup(
     name='Pymem',
-    version='1.0',
+    version='1.1',
     description='pymem: python memory access made easy',
     author='Fabien Reboia',
     author_email='srounet@gmail.com',

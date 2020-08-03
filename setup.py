@@ -1,14 +1,14 @@
 import pathlib
 import setuptools
 
-ROOT = pathlib.Path(__file__).parent
+ROOT = str(pathlib.Path(__file__).parent)
 
 extras = {}
 
-with open(ROOT / 'requirements-doc.txt', encoding='utf-8') as fp:
+with open(ROOT + '/requirements-doc.txt', encoding='utf-8') as fp:
     extras['doc'] = fp.read().splitlines()
 
-with open(ROOT / 'requirements-test.txt', encoding='utf-8') as fp:
+with open(ROOT + '/requirements-test.txt', encoding='utf-8') as fp:
     extras['test'] = fp.read().splitlines()
 
 

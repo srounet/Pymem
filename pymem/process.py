@@ -1,11 +1,13 @@
 import ctypes
 import ctypes.wintypes
-import platform
-import copy
+import logging
 
 import pymem.ressources.kernel32
 import pymem.ressources.psapi
 import pymem.ressources.structure
+
+
+logger = logging.getLogger(__name__)
 
 
 def inject_dll(handle, filepath):
@@ -62,7 +64,7 @@ def set_debug_privilege(hToken, lpszPrivilege, bEnablePrivilege):
     luid = pymem.ressources.structure.LUID()
 
     if not ctypes.windll.advapi32.LookupPrivilegeValueW( None, lpszPrivilege, ctypes.byref(luid)):
-        print("LookupPrivilegeValue error: 0x%08x\n" % ctypes.GetLastError())
+        logger.error("LookupPrivilegeValue error: 0x%08x\n" % ctypes.GetLastError())
         return False
 
     tp.PrivilegeCount = 1
@@ -74,11 +76,11 @@ def set_debug_privilege(hToken, lpszPrivilege, bEnablePrivilege):
         tp.Privileges[0].Attributes = pymem.ressources.structure.SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_USED_FOR_ACCESS.value
 
     if not ctypes.windll.advapi32.AdjustTokenPrivileges( hToken, False, ctypes.byref(tp), ctypes.sizeof(pymem.ressources.structure.TOKEN_PRIVILEGES), None, None):
-        print("AdjustTokenPrivileges error: 0x%08x\n" % ctypes.GetLastError())
+        logger.error("AdjustTokenPrivileges error: 0x%08x\n" % ctypes.GetLastError())
         return False
 
     if ctypes.GetLastError() == 0x514:
-        print("The token does not have the specified privilege. \n")
+        logger.error("The token does not have the specified privilege. \n")
         return False
     return True
 

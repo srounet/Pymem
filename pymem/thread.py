@@ -13,7 +13,7 @@ class Thread(object):
 
             :param process_handle: A handle to an opened process
             :param th_entry_32: A ThreadEntry32 structure
-            :type process_handle: ctypes.wintypes.HANDLE
+            :type process_handle: ctypes.c_void_p
             :type th_entry_32: pymem.ressources.structure.ThreadEntry32
         """
         self.process_handle = process_handle

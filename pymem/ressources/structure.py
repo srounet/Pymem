@@ -2,7 +2,6 @@ import enum
 import struct
 
 import ctypes
-import ctypes.wintypes
 
 import pymem.ressources.psapi
 import pymem.ressources.ntdll
@@ -15,12 +14,14 @@ class LUID(ctypes.Structure):
         ("HighPart", ctypes.c_long)
     ]
 
+
 class LUID_AND_ATTRIBUTES(ctypes.Structure):
 
     _fields_ = [
         ("Luid", LUID),
         ("Attributes", ctypes.c_ulong),
     ]
+
 
 class TOKEN_PRIVILEGES(ctypes.Structure):
 
@@ -46,7 +47,7 @@ class ModuleEntry32(ctypes.Structure):
         ( 'modBaseSize' , ctypes.c_ulong ) ,
         ( 'hModule' , ctypes.c_ulong ) ,
         ( 'szModule' , ctypes.c_char * (MAX_MODULE_NAME32 + 1)),
-        ( 'szExePath' , ctypes.c_char * ctypes.wintypes.MAX_PATH )
+        ( 'szExePath' , ctypes.c_char * ctypes.wintypes.MAX_PATH)
     ]
 
     def __init__(self, *args, **kwds):
@@ -79,7 +80,7 @@ class ProcessEntry32(ctypes.Structure):
         ( 'th32ParentProcessID' , ctypes.c_ulong) ,
         ( 'pcPriClassBase' , ctypes.c_ulong) ,
         ( 'dwFlags' , ctypes.c_ulong) ,
-        ( 'szExeFile' , ctypes.c_char * ctypes.wintypes.MAX_PATH )
+        ( 'szExeFile' , ctypes.c_char * ctypes.wintypes.MAX_PATH)
     ]
 
     @property
@@ -94,8 +95,8 @@ class ProcessEntry32(ctypes.Structure):
 class FILETIME(ctypes.Structure):
 
     _fields_ = [
-        ("dwLowDateTime", ctypes.wintypes.DWORD),
-        ("dwHighDateTime", ctypes.wintypes.DWORD)
+        ("dwLowDateTime", ctypes.c_ulong),
+        ("dwHighDateTime", ctypes.c_ulong)
     ]
 
     @property
@@ -112,13 +113,13 @@ class ThreadEntry32(ctypes.Structure):
     """
 
     _fields_ = [
-        ('dwSize', ctypes.wintypes.DWORD),
-        ("cntUsage", ctypes.wintypes.DWORD),
-        ("th32ThreadID", ctypes.wintypes.DWORD),
-        ("th32OwnerProcessID", ctypes.wintypes.DWORD),
-        ("tpBasePri", ctypes.wintypes.DWORD),
-        ("tpDeltaPri", ctypes.wintypes.DWORD),
-        ("dwFlags", ctypes.wintypes.DWORD)
+        ('dwSize', ctypes.c_ulong),
+        ("cntUsage", ctypes.c_ulong),
+        ("th32ThreadID", ctypes.c_ulong),
+        ("th32OwnerProcessID", ctypes.c_ulong),
+        ("tpBasePri", ctypes.c_ulong),
+        ("tpDeltaPri", ctypes.c_ulong),
+        ("dwFlags", ctypes.c_ulong)
     ]
 
     @property
@@ -310,9 +311,9 @@ class MODULEINFO(ctypes.Structure):
     """
 
     _fields_ = [
-        ("lpBaseOfDll", ctypes.wintypes.LPVOID), # remote pointer
+        ("lpBaseOfDll", ctypes.c_void_p), # remote pointer
         ("SizeOfImage", ctypes.c_ulong),
-        ("EntryPoint", ctypes.wintypes.LPVOID), # remote pointer
+        ("EntryPoint", ctypes.c_void_p), # remote pointer
     ]
 
     def __init__(self, handle):
@@ -348,19 +349,19 @@ class SYSTEM_INFO(ctypes.Structure):
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms724958(v=vs.85).aspx
     """
- 
+
     _fields_ = [
-        ("wProcessorArchitecture", ctypes.wintypes.WORD),
-        ("wReserved", ctypes.wintypes.WORD),
-        ("dwPageSize", ctypes.wintypes.DWORD),
-        ("lpMinimumApplicationAddress", ctypes.wintypes.DWORD),
+        ("wProcessorArchitecture", ctypes.c_ushort),
+        ("wReserved", ctypes.c_ushort),
+        ("dwPageSize", ctypes.c_ulong),
+        ("lpMinimumApplicationAddress", ctypes.c_ulong),
         ("lpMaximumApplicationAddress", ctypes.c_ulonglong),
-        ("dwActiveProcessorMask", ctypes.wintypes.DWORD),
-        ("dwNumberOfProcessors", ctypes.wintypes.DWORD),
-        ("dwProcessorType", ctypes.wintypes.DWORD),
-        ("dwAllocationGranularity", ctypes.wintypes.DWORD),
-        ("wProcessorLevel", ctypes.wintypes.WORD),
-        ("wProcessorRevision", ctypes.wintypes.WORD)
+        ("dwActiveProcessorMask", ctypes.c_ulong),
+        ("dwNumberOfProcessors", ctypes.c_ulong),
+        ("dwProcessorType", ctypes.c_ulong),
+        ("dwAllocationGranularity", ctypes.c_ulong),
+        ("wProcessorLevel", ctypes.c_ushort),
+        ("wProcessorRevision", ctypes.c_ushort)
     ]
 
 
@@ -421,9 +422,9 @@ class SECURITY_ATTRIBUTES(ctypes.Structure):
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa379560(v=vs.85).aspx
     """
-    _fields_ = [('nLength', ctypes.wintypes.DWORD),
-                ('lpSecurityDescriptor', ctypes.wintypes.LPVOID),
-                ('bInheritHandle', ctypes.wintypes.BOOL)
+    _fields_ = [('nLength', ctypes.c_ulong),
+                ('lpSecurityDescriptor', ctypes.c_void_p),
+                ('bInheritHandle', ctypes.c_long)
     ]
 LPSECURITY_ATTRIBUTES = ctypes.POINTER(SECURITY_ATTRIBUTES)
 
@@ -431,15 +432,15 @@ LPSECURITY_ATTRIBUTES = ctypes.POINTER(SECURITY_ATTRIBUTES)
 class CLIENT_ID(ctypes.Structure):
     #: http://terminus.rewolf.pl/terminus/structures/ntdll/_CLIENT_ID64_x64.html
     _fields_ = [
-        ("UniqueProcess", ctypes.wintypes.LPVOID),
-        ("UniqueThread", ctypes.wintypes.LPVOID),
+        ("UniqueProcess", ctypes.c_void_p),
+        ("UniqueThread", ctypes.c_void_p),
     ]
 
 
 class THREAD_BASIC_INFORMATION(ctypes.Structure):
     _fields_ = [
         ("ExitStatus", pymem.ressources.ntdll.NTSTATUS),
-        ("TebBaseAddress", ctypes.wintypes.LPVOID),
+        ("TebBaseAddress", ctypes.c_void_p),
         ("ClientId", CLIENT_ID),
         ("AffinityMask", ctypes.c_long),
         ("Priority", ctypes.c_long),
@@ -450,19 +451,19 @@ class THREAD_BASIC_INFORMATION(ctypes.Structure):
 class TIB_UNION(ctypes.Union):
 
     _fields_ = [
-        ("FiberData", ctypes.wintypes.LPVOID),
-        ("Version", ctypes.wintypes.ULONG),
+        ("FiberData", ctypes.c_void_p),
+        ("Version", ctypes.c_ulong),
     ]
 
 class NT_TIB(ctypes.Structure):
     _fields_ = [
-        ("ExceptionList", ctypes.wintypes.LPVOID), # PEXCEPTION_REGISTRATION_RECORD
-        ("StackBase", ctypes.wintypes.LPVOID),
-        ("StackLimit", ctypes.wintypes.LPVOID),
-        ("SubSystemTib", ctypes.wintypes.LPVOID),
+        ("ExceptionList", ctypes.c_void_p), # PEXCEPTION_REGISTRATION_RECORD
+        ("StackBase", ctypes.c_void_p),
+        ("StackLimit", ctypes.c_void_p),
+        ("SubSystemTib", ctypes.c_void_p),
         ("u", TIB_UNION),
-        ("ArbitraryUserPointer", ctypes.wintypes.LPVOID),
-        ("Self", ctypes.wintypes.LPVOID), # PNTTIB
+        ("ArbitraryUserPointer", ctypes.c_void_p),
+        ("Self", ctypes.c_void_p), # PNTTIB
     ]
 
 
@@ -471,8 +472,8 @@ class SMALL_TEB(ctypes.Structure):
 
     _fields_ = [
         ("NtTib",                           NT_TIB),
-        ("EnvironmentPointer",              ctypes.wintypes.LPVOID),
+        ("EnvironmentPointer",              ctypes.c_void_p),
         ("ClientId",                        CLIENT_ID),
-        ("ActiveRpcHandle",                 ctypes.wintypes.LPVOID),
-        ("ThreadLocalStoragePointer",       ctypes.wintypes.LPVOID)
+        ("ActiveRpcHandle",                 ctypes.c_void_p),
+        ("ThreadLocalStoragePointer",       ctypes.c_void_p)
     ]

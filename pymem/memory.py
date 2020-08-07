@@ -14,7 +14,7 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     size: int
@@ -26,7 +26,7 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
 
     Returns
     -------
-    ctypes.wintypes.HANDLE
+    ctypes.c_void_p
         The address of the allocated region of pages.
     """
     if not allocation_type:
@@ -45,7 +45,7 @@ def free_memory(handle, address, free_type=None):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -55,7 +55,7 @@ def free_memory(handle, address, free_type=None):
 
     Returns
     -------
-    ctypes.wintypes.BOOL
+    ctypes.c_long
         A boolean indicating if the call was a success.
     """
     if not free_type:
@@ -73,7 +73,7 @@ def read_bytes(handle, address, byte):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -117,7 +117,7 @@ def read_char(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -151,7 +151,7 @@ def read_uchar(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -184,7 +184,7 @@ def read_short(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -217,7 +217,7 @@ def read_ushort(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -250,7 +250,7 @@ def read_int(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -283,7 +283,7 @@ def read_uint(handle, address, is_64=None):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -323,7 +323,7 @@ def read_float(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -356,7 +356,7 @@ def read_long(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -389,7 +389,7 @@ def read_ulong(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -422,7 +422,7 @@ def read_longlong(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -455,7 +455,7 @@ def read_ulonglong(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -488,7 +488,7 @@ def read_double(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -519,7 +519,7 @@ def read_string(handle, address, byte=50):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -555,7 +555,7 @@ def write_bytes(handle, address, data, length):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -597,7 +597,7 @@ def write_char(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -631,7 +631,7 @@ def write_uchar(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -665,7 +665,7 @@ def write_short(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -699,7 +699,7 @@ def write_ushort(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -733,7 +733,7 @@ def write_int(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -767,7 +767,7 @@ def write_uint(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -801,7 +801,7 @@ def write_float(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -835,7 +835,7 @@ def write_long(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -869,7 +869,7 @@ def write_ulong(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -903,7 +903,7 @@ def write_longlong(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -937,7 +937,7 @@ def write_ulonglong(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -971,7 +971,7 @@ def write_double(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -1005,7 +1005,7 @@ def write_string(handle, address, bytecode):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -1040,7 +1040,7 @@ def virtual_query(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.wintypes.HANDLE
+    handle: ctypes.c_void_p
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int

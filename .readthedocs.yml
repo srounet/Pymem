@@ -8,7 +8,7 @@ formats:
   - epub
 
 python:
-  setup_py_install: true
+  system_packages: true
   version: 3.6
   install:
     - requirements: requirements-doc.txt

@@ -104,7 +104,7 @@ html_theme_options = {
     'display_version': True,
     'prev_next_buttons_location': 'both',
     # Toc options
-    'collapse_navigation': True,
+    'collapse_navigation': False,
     'sticky_navigation': True,
     'navigation_depth': 1,
     'includehidden': True,

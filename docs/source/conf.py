@@ -19,12 +19,12 @@ sys.path.insert(0, os.path.abspath('../../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'pymem'
-copyright = '2018, Fabien Reboia'
+project = 'Pymem'
+copyright = '2020, Fabien Reboia'
 author = 'Fabien Reboia'
 
 # The short X.Y version
-version = '1.0'
+version = '1.3'
 # The full version, including alpha/beta/rc tags
 release = 'alpha'
 
@@ -99,7 +99,18 @@ html_theme_path = ['_themes', ]
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'logo_only': False,
+    'display_version': True,
+    'prev_next_buttons_location': 'both',
+    # Toc options
+    'collapse_navigation': True,
+    'sticky_navigation': True,
+    'navigation_depth': 1,
+    'includehidden': True,
+    'titles_only': False,
+    'nosidebar': True,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

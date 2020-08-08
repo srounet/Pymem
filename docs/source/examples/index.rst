@@ -9,6 +9,8 @@ Here is a list of programs / scripts made by the community:
    :maxdepth: 1
 
    csgo_glow_esp
+   assaultcube_external_esp
+   csgo_esp
    csgo_no_flash
    csgo_bunny
    csgo_trigger_bot

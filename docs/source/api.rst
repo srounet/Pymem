@@ -17,6 +17,13 @@ Pymem
    :members:
    :inherited-members:
 
+Structures
+----------
+
+.. automodule:: pymem.ressources.structure
+   :members:
+   :inherited-members:
+
 Exceptions
 ----------
 

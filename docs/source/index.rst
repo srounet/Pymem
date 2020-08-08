@@ -37,6 +37,8 @@ instructions for reversing with Pymem.
    installation
    quickstart
    tutorials/index
+   examples/index
+   issues
 
 API Reference
 -------------

@@ -307,6 +307,11 @@ class ThreadContext(ctypes.Structure):
 class MODULEINFO(ctypes.Structure):
     """Contains the module load address, size, and entry point.
 
+    attributes:
+      lpBaseOfDll
+      SizeOfImage
+      EntryPoint
+
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms684229(v=vs.85).aspx
     """
 

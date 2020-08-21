@@ -1,6 +1,5 @@
 """It handles memory management, input/output operations, and interrupts"""
 import ctypes
-import ctypes.wintypes
 
 import pymem.ressources.structure
 
@@ -22,9 +21,9 @@ TerminateProcess.restype = ctypes.c_ulong
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms724211%28v=vs.85%29.aspx
 CloseHandle = dll.CloseHandle
-CloseHandle.restype = ctypes.wintypes.BOOL
+CloseHandle.restype = ctypes.c_long
 CloseHandle.argtypes = [
-    ctypes.wintypes.HANDLE
+    ctypes.c_void_p
 ]
 
 #: Retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis.
@@ -45,13 +44,13 @@ GetCurrentProcess.restype = ctypes.c_ulong
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 ReadProcessMemory = dll.ReadProcessMemory
 ReadProcessMemory.argtypes = (
-    ctypes.wintypes.HANDLE,
-    ctypes.wintypes.LPCVOID,
-    ctypes.wintypes.LPVOID,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
     ctypes.c_size_t,
     ctypes.POINTER(ctypes.c_size_t)
 )
-ReadProcessMemory.restype = ctypes.wintypes.BOOL
+ReadProcessMemory.restype = ctypes.c_long
 
 #: Writes data to an area of memory in a specified process.
 #: The entire area to be written to must be accessible or the operation fails.
@@ -59,13 +58,13 @@ ReadProcessMemory.restype = ctypes.wintypes.BOOL
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms684320%28v=vs.85%29.aspx
 WriteProcessMemory = dll.WriteProcessMemory
 WriteProcessMemory.argtypes = [
-    ctypes.wintypes.HANDLE,
-    ctypes.wintypes.LPVOID,
-    ctypes.wintypes.LPCVOID,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
     ctypes.c_size_t,
     ctypes.POINTER(ctypes.c_size_t)
 ]
-WriteProcessMemory.restype = ctypes.wintypes.BOOL
+WriteProcessMemory.restype = ctypes.c_long
 
 #: Enables a debugger to attach to an active process and debug it.
 #:
@@ -78,13 +77,13 @@ DebugActiveProcess.restype = ctypes.c_long
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366890%28v=vs.85%29.aspx
 VirtualAllocEx  = dll.VirtualAllocEx
-VirtualAllocEx.restype = ctypes.wintypes.LPVOID
+VirtualAllocEx.restype = ctypes.c_void_p
 VirtualAllocEx.argtypes = (
-    ctypes.wintypes.HANDLE,
-    ctypes.wintypes.LPVOID,
-    ctypes.wintypes.DWORD,
-    ctypes.wintypes.DWORD,
-    ctypes.wintypes.DWORD
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    ctypes.c_ulong,
+    ctypes.c_ulong,
+    ctypes.c_ulong
 )
 
 #: Changes the protection on a region of committed pages in the virtual address space of a specified process.
@@ -97,22 +96,22 @@ VirtualProtectEx.restype = ctypes.c_long
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms682489%28v=vs.85%29.aspx
 CreateToolhelp32Snapshot = dll.CreateToolhelp32Snapshot
-CreateToolhelp32Snapshot.restype = ctypes.wintypes.HANDLE
-CreateToolhelp32Snapshot.argtypes = (ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)
+CreateToolhelp32Snapshot.restype = ctypes.c_void_p
+CreateToolhelp32Snapshot.argtypes = (ctypes.c_ulong, ctypes.c_ulong)
 
 #: Retrieves information about the first module associated with a process.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms684218%28v=vs.85%29.aspx
 Module32First = dll.Module32First
 Module32First.restype = ctypes.c_ulonglong
-Module32First.argtypes = (ctypes.wintypes.HANDLE, pymem.ressources.structure.LPMODULEENTRY32)
+Module32First.argtypes = (ctypes.c_void_p, pymem.ressources.structure.LPMODULEENTRY32)
 
 #: Retrieves information about the next module associated with a process or thread.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms684221%28v=vs.85%29.aspx
 Module32Next = dll.Module32Next
 Module32Next.restype = ctypes.c_ulonglong
-Module32Next.argtypes = (ctypes.wintypes.HANDLE, pymem.ressources.structure.LPMODULEENTRY32)
+Module32Next.argtypes = (ctypes.c_void_p, pymem.ressources.structure.LPMODULEENTRY32)
 
 #: Retrieves information about the first process encountered in a system snapshot.
 #:
@@ -130,9 +129,9 @@ Process32Next.restype = ctypes.c_long
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms686728%28v=vs.85%29.aspx
 Thread32First = dll.Thread32First
-Thread32First.restype = ctypes.wintypes.BOOL
+Thread32First.restype = ctypes.c_long
 Thread32First.argtypes = [
-    ctypes.wintypes.HANDLE,
+    ctypes.c_void_p,
     ctypes.POINTER(pymem.ressources.structure.ThreadEntry32)
 ]
 
@@ -140,9 +139,9 @@ Thread32First.argtypes = [
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms686731%28v=vs.85%29.aspx
 Thread32Next = dll.Thread32Next
-Thread32Next.restype = ctypes.wintypes.BOOL
+Thread32Next.restype = ctypes.c_long
 Thread32Next.argtypes = [
-    ctypes.wintypes.HANDLE,
+    ctypes.c_void_p,
     ctypes.POINTER(pymem.ressources.structure.ThreadEntry32)
 ]
 
@@ -150,11 +149,11 @@ Thread32Next.argtypes = [
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms684335%28v=vs.85%29.aspx
 OpenThread = dll.OpenThread
-OpenThread.restype = ctypes.wintypes.HANDLE
+OpenThread.restype = ctypes.c_void_p
 OpenThread.argtypes = [
-    ctypes.wintypes.DWORD,
-    ctypes.wintypes.BOOL,
-    ctypes.wintypes.DWORD
+    ctypes.c_ulong,
+    ctypes.c_long,
+    ctypes.c_ulong
 ]
 
 #: Suspends the specified thread.
@@ -192,8 +191,8 @@ VirtualFreeEx.restype = ctypes.c_long
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366907(v=vs.85).aspx
 VirtualQueryEx = dll.VirtualQueryEx
 VirtualQueryEx.argtypes = [
-    ctypes.wintypes.HANDLE,
-    ctypes.wintypes.LPCVOID,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
     ctypes.POINTER(pymem.ressources.structure.MEMORY_BASIC_INFORMATION),
     ctypes.c_size_t
 ]
@@ -212,60 +211,60 @@ GetSystemInfo = dll.GetSystemInfo
 GetSystemInfo.restype = ctypes.c_void_p
 
 GetModuleHandleW = dll.GetModuleHandleW
-GetModuleHandleW.restype = ctypes.wintypes.HMODULE
-GetModuleHandleW.argtypes = [ctypes.wintypes.LPCWSTR]
+GetModuleHandleW.restype = ctypes.c_void_p
+GetModuleHandleW.argtypes = [ctypes.c_wchar_p]
 
 GetProcAddress = dll.GetProcAddress
 #GetProcAddress.restype = ctypes.c_void_p
-GetProcAddress.restype = ctypes.wintypes.LPVOID
-GetProcAddress.argtypes = (ctypes.wintypes.HMODULE, ctypes.wintypes.LPCSTR)
+GetProcAddress.restype = ctypes.c_void_p
+GetProcAddress.argtypes = (ctypes.c_void_p, ctypes.c_char_p)
 
 CreateRemoteThread = dll.CreateRemoteThread
-CreateRemoteThread.restype = ctypes.wintypes.HANDLE
+CreateRemoteThread.restype = ctypes.c_void_p
 CreateRemoteThread.argtypes = (
-    ctypes.wintypes.HANDLE,
+    ctypes.c_void_p,
     pymem.ressources.structure.LPSECURITY_ATTRIBUTES,
-    ctypes.wintypes.DWORD,
-    ctypes.wintypes.LPVOID,
-    ctypes.wintypes.LPVOID,
-    ctypes.wintypes.DWORD,
-    ctypes.wintypes.LPDWORD
+    ctypes.c_ulong,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    ctypes.c_ulong,
+    ctypes.POINTER(ctypes.c_ulong)
 )
 
 GetFullPathNameA = dll.GetFullPathNameA
-GetFullPathNameA.restype = ctypes.wintypes.DWORD
+GetFullPathNameA.restype = ctypes.c_ulong
 GetFullPathNameA.argtypes = [
-    ctypes.wintypes.LPSTR, ctypes.wintypes.DWORD, ctypes.wintypes.LPSTR, ctypes.POINTER(ctypes.wintypes.LPSTR)
+    ctypes.c_char_p, ctypes.c_ulong, ctypes.c_char_p, ctypes.POINTER(ctypes.c_char_p)
 ]
 
 WaitForSingleObject = dll.WaitForSingleObject
-WaitForSingleObject.restype = ctypes.wintypes.DWORD
+WaitForSingleObject.restype = ctypes.c_ulong
 WaitForSingleObject.argtypes = [
-    ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD
+    ctypes.c_void_p, ctypes.c_ulong
 ]
 
 GetExitCodeThread = dll.GetExitCodeThread
-GetExitCodeThread.restype = ctypes.wintypes.BOOL
+GetExitCodeThread.restype = ctypes.c_long
 GetExitCodeThread.argtypes = [
-    ctypes.wintypes.HANDLE,
-    ctypes.POINTER(ctypes.wintypes.DWORD)
+    ctypes.c_void_p,
+    ctypes.POINTER(ctypes.c_ulong)
 ]
 
 VirtualFreeEx = dll.VirtualFreeEx
-VirtualFreeEx.restype = ctypes.wintypes.BOOL
+VirtualFreeEx.restype = ctypes.c_long
 VirtualFreeEx.argtypes = [
-    ctypes.wintypes.HANDLE,
-    ctypes.wintypes.LPVOID,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
     ctypes.c_size_t,
-    ctypes.wintypes.DWORD
+    ctypes.c_ulong
 ]
 
 GetThreadTimes = dll.GetThreadTimes
-GetThreadTimes.restype = ctypes.wintypes.BOOL
+GetThreadTimes.restype = ctypes.c_long
 GetThreadTimes.artypes = [
-    ctypes.wintypes.HANDLE,
-    ctypes.wintypes.LPFILETIME,
-    ctypes.wintypes.LPFILETIME,
-    ctypes.wintypes.LPFILETIME,
-    ctypes.wintypes.LPFILETIME
+    ctypes.c_void_p,
+    ctypes.POINTER(pymem.ressources.structure.FILETIME),
+    ctypes.POINTER(pymem.ressources.structure.FILETIME),
+    ctypes.POINTER(pymem.ressources.structure.FILETIME),
+    ctypes.POINTER(pymem.ressources.structure.FILETIME)
 ]

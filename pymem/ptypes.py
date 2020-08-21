@@ -21,7 +21,7 @@ class RemotePointer(object):
             :param handle: A handle to an opened process
             :param v: The address value
             :param endianess: The endianess of the remote process, default to little-endian
-            :type handle: ctypes.wintypes.HANDLE
+            :type handle: ctypes.c_void_p
             :type v: [int, RemotePointer, ctypes]
             :type endianess: str
             :raise: PymemAlignmentError if endianess is not correct

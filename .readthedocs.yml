@@ -1,0 +1,16 @@
+version: 2
+
+sphinx:
+  configuration: docs/source/conf.py
+
+formats:
+  - pdf
+  - epub
+
+python:
+  system_packages: true
+  version: 3.6
+  install:
+    - requirements: requirements-doc.txt
+    - method: pip
+      path: .

@@ -1,13 +1,10 @@
 """It handles memory management, input/output operations, and interrupts"""
 import ctypes
-import ctypes.wintypes
-
-import pymem.ressources.structure
 
 dll = ctypes.WinDLL('ntdll.dll')
 
 NTSTATUS = ctypes.c_ulong
-THREADINFOCLASS = ctypes.wintypes.DWORD
+THREADINFOCLASS = ctypes.c_ulong
 
 #: Retrieves information about the specified thread.
 #:
@@ -15,9 +12,9 @@ THREADINFOCLASS = ctypes.wintypes.DWORD
 NtQueryInformationThread = dll.NtQueryInformationThread
 NtQueryInformationThread.restype = NTSTATUS
 NtQueryInformationThread.argtypes = [
-    ctypes.wintypes.HANDLE,
+    ctypes.c_void_p,
     THREADINFOCLASS,
-    ctypes.wintypes.LPVOID,
-    ctypes.wintypes.ULONG,
-    ctypes.wintypes.PULONG
+    ctypes.c_void_p,
+    ctypes.c_ulong,
+    ctypes.POINTER(ctypes.c_ulong)
 ]

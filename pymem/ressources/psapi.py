@@ -1,8 +1,5 @@
 """XXX"""
 import ctypes
-import ctypes.wintypes
-
-import pymem.ressources.structure
 
 dll = ctypes.WinDLL('psapi.dll')
 #: Retrieves a handle for each module in the specified process that meets the specified filter criteria.

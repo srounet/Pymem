@@ -1,5 +1,4 @@
 import ctypes
-import ctypes.wintypes
 import logging
 
 import pymem.ressources.kernel32
@@ -40,7 +39,7 @@ def inject_dll(handle, filepath):
     )
     pymem.ressources.kernel32.WaitForSingleObject(thread_h, -1)
 
-    exitcode = ctypes.wintypes.DWORD(0)
+    exitcode = ctypes.c_ulong(0)
     pymem.ressources.kernel32.GetExitCodeThread(thread_h, ctypes.byref(exitcode))
     pymem.ressources.kernel32.VirtualFreeEx(
         handle, filepath_address, len(filepath), pymem.ressources.structure.MEMORY_STATE.MEM_RELEASE.value
@@ -89,13 +88,13 @@ def base_module(handle):
     """Returns process base address, looking at its modules.
 
     :param handle: A valid handle to an open object.
-    :type handle: ctypes.wintypes.HANDLE
+    :type handle: ctypes.c_void_p
     :param process_id: The identifier of the process.
-    :type process_id: ctypes.wintypes.HANDLE
+    :type process_id: ctypes.c_void_p
     :return: The base address of the current process.
-    :rtype: ctypes.wintypes.HANDLE
+    :rtype: ctypes.c_void_p
     """
-    hModules  = (ctypes.wintypes.HMODULE * 1024)()
+    hModules  = (ctypes.c_void_p * 1024)()
     process_module_success = pymem.ressources.psapi.EnumProcessModulesEx(
         handle,
         ctypes.byref(hModules),
@@ -125,19 +124,19 @@ def open(process_id, debug=None, process_access=None):
     :param process_id: The identifier of the process to be opened
     :param debug: open process in debug mode
     :param process_access: desired access level
-    :type process_id: ctypes.wintypes.HANDLE
+    :type process_id: ctypes.c_void_p
     :type debug: bool
     :type process_access: pymem.ressources.structure
 
     :return: A handle of the given process_id
-    :rtype: ctypes.wintypes.HANDLE
+    :rtype: ctypes.c_void_p
     """
     if not debug:
         debug = True
     if not process_access:
         process_access = pymem.ressources.structure.PROCESS.PROCESS_ALL_ACCESS.value
     if debug:
-        hToken = ctypes.wintypes.HANDLE()
+        hToken = ctypes.c_void_p()
         hCurrentProcess = ctypes.windll.kernel32.GetCurrentProcess()
         TOKEN_ADJUST_PRIVILEGES = 0x0020
         TOKEN_QUERY = 0x0008
@@ -151,10 +150,10 @@ def open_main_thread(process_id):
     """List given process threads and return a handle to first created one.
 
     :param process_id: The identifier of the process
-    :type process_id: ctypes.wintypes.HANDLE
+    :type process_id: ctypes.c_void_p
 
     :return: A handle to the first thread of the given process_id
-    :rtype: ctypes.wintypes.HANDLE
+    :rtype: ctypes.c_void_p
     """
     threads = enum_process_thread(process_id)
     threads = sorted(threads, key=lambda t32: t32.creation_time)
@@ -173,10 +172,10 @@ def open_thread(thread_id, thread_access=None):
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms684335%28v=vs.85%29.aspx
 
     :param thread_id: The identifier of the thread to be opened.
-    :type thread_id: ctypes.wintypes.HANDLE
+    :type thread_id: ctypes.c_void_p
 
     :return: A handle to the first thread of the given process_id
-    :rtype: ctypes.wintypes.HANDLE
+    :rtype: ctypes.c_void_p
     """
     #XXX
     if not thread_access:
@@ -191,7 +190,7 @@ def close_handle(handle):
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms724211%28v=vs.85%29.aspx
 
     :param handle: A valid handle to an open object.
-    :type handle: ctypes.wintypes.HANDLE
+    :type handle: ctypes.c_void_p
 
     :return: If the function succeeds, the return value is nonzero.
     :rtype: bool
@@ -231,7 +230,7 @@ def process_from_name(name):
     :type name: str
 
     :return: The ProcessEntry32 structure of the given process.
-    :rtype: ctypes.wintypes.HANDLE
+    :rtype: ctypes.c_void_p
     """
     name = name.lower()
     processes = list_processes()
@@ -244,10 +243,10 @@ def process_from_id(process_id):
     """Open a process given its name.
 
     :param process_id: The identifier of the process
-    :type process_id: ctypes.wintypes.HANDLE
+    :type process_id: ctypes.c_void_p
 
     :return: The ProcessEntry32 structure of the given process.
-    :rtype: ctypes.wintypes.HANDLE
+    :rtype: ctypes.c_void_p
     """
     processes = list_processes()
     for process in processes:
@@ -263,7 +262,7 @@ def module_from_name(process_handle, module_name):
 
     :param process_handle: A process handle
     :param module_name: The module name
-    :type process_handle: ctypes.wintypes.HANDLE
+    :type process_handle: ctypes.c_void_p
     :type module_name: str
     :return: MODULEINFO
     """
@@ -278,7 +277,7 @@ def enum_process_thread(process_id):
     """List all threads of given processes_id
 
     :param process_id: The identifier of the process
-    :type process_id: ctypes.wintypes.HANDLE
+    :type process_id: ctypes.c_void_p
 
     :return: a list of thread entry 32.
     :rtype: list(pymem.ressources.structure.ThreadEntry32)
@@ -305,12 +304,12 @@ def enum_process_module(handle):
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms683196(v=vs.85).aspx
 
     :param handle: A valid handle to an open object.
-    :type handle: ctypes.wintypes.HANDLE
+    :type handle: ctypes.c_void_p
 
     :return: a list of loaded modules
     :rtype: list(pymem.ressources.structure.MODULEINFO)
     """
-    hModules  = (ctypes.wintypes.HMODULE * 1024)()
+    hModules  = (ctypes.c_void_p * 1024)()
     process_module_success = pymem.ressources.psapi.EnumProcessModulesEx(
         handle,
         ctypes.byref(hModules),
@@ -335,11 +334,11 @@ def is_64_bit(handle):
     """Determines whether the specified process is running under WOW64 (emulation).
 
     :param handle: A valid handle to an open object.
-    :type handle: ctypes.wintypes.HANDLE
+    :type handle: ctypes.c_void_p
 
     :return: True if the 32 bit process is running under WOW64.
     :rtype: bool
     """
-    Wow64Process = ctypes.wintypes.BOOL()
+    Wow64Process = ctypes.c_long()
     response = pymem.ressources.kernel32.IsWow64Process(handle, ctypes.byref(Wow64Process))
     return Wow64Process

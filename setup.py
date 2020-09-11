@@ -23,7 +23,7 @@ setuptools.setup(
     url='http://pymem.readthedocs.org/en/latest/',
     long_description="A python library for windows, providing the needed functions to start working on your own with memory editing",
     license="mit",
-    packages=setuptools.find_packages(),
+    packages=["pymem", "pymem.ressources"],
     platforms=["windows"],
     keywords='memory win32 windows process',
     classifiers=[

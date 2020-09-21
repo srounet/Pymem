@@ -5,6 +5,7 @@ import logging
 import platform
 import struct
 import sys
+from os import getcwd
 
 import pymem.exception
 import pymem.memory
@@ -83,7 +84,7 @@ class Pymem(object):
             return
 
         # find the python library
-        python_version = "python{0}{1}.dll".format(sys.version_info.major, sys.version_info.minor)
+        python_version = getcwd()+"\\python{0}{1}.dll".format(sys.version_info.major, sys.version_info.minor)
         python_lib = ctypes.util.find_library(python_version)
         if not python_lib:
             raise pymem.exception.PymemError('Could not find python library')

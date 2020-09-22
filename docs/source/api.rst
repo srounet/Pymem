@@ -24,6 +24,13 @@ Structures
    :members:
    :inherited-members:
 
+Pattern
+-------
+
+.. automodule:: pymem.pattern
+   :members:
+   :inherited-members:
+
 Exceptions
 ----------
 

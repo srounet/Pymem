@@ -14,7 +14,7 @@ A minimal Pymem application looks something like this:
     from pymem import Pymem
 
     pm = Pymem('notepad.exe')
-    print('Process id: %s' % process_id)
+    print('Process id: %s' % pm.process_id)
     address = pm.allocate(10)
     print('Allocated address: %s' % address)
     pm.write_int(address, 1337)

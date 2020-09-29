@@ -131,7 +131,7 @@ def open(process_id, debug=None, process_access=None):
     :return: A handle of the given process_id
     :rtype: ctypes.c_void_p
     """
-    if not debug:
+    if debug is None:
         debug = True
     if not process_access:
         process_access = pymem.ressources.structure.PROCESS.PROCESS_ALL_ACCESS.value

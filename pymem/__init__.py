@@ -159,6 +159,7 @@ class Pymem(object):
             The new thread identifier
         """
         thread_id = ctypes.c_ulong(0)
+        ctypes.windll.kernel32.SetLastError(0)
         thread_h = pymem.ressources.kernel32.CreateRemoteThread(
             self.process_handle,
             None,
@@ -166,8 +167,11 @@ class Pymem(object):
             address,
             params,
             0,
-            None
+            ctypes.byref(thread_id)
         )
+        last_error = ctypes.windll.kernel32.GetLastError()
+        if last_error:
+            pymem.logger.warning('Got an error in start thread, code: %s' % last_error)
         pymem.ressources.kernel32.WaitForSingleObject(thread_h, -1)
         pymem.logger.debug('New thread_id: 0x%08x' % thread_h)
         return thread_h

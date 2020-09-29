@@ -12,6 +12,7 @@ import pymem.process
 import pymem.ressources.kernel32
 import pymem.ressources.structure
 import pymem.thread
+import pymem.pattern
 
 
 logger = logging.getLogger('pymem')

@@ -479,6 +479,39 @@ class Pymem(object):
             raise pymem.exception.MemoryReadError(address, struct.calcsize('i'), e.error_code)
         return value
 
+    def read_int_offset(self, address, *args):
+
+        """Reads 4 byte from an area of memory in a specified process.
+
+        Parameters
+        ----------
+        address: int
+            The base address that will be used to apply offsets to.
+        
+        args: int
+            Integers to be used as offsets from base address.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+
+        Returns
+        -------
+        int
+            returns the value read
+        """
+
+
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        
+        value = address
+        for i in args:
+            value = pymem.memory.read_int(self.process_handle, value + i)
+        return value
+        
+
     def read_uint(self, address):
         """Reads 4 byte from an area of memory in a specified process.
 

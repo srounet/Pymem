@@ -233,6 +233,30 @@ class PROCESS(enum.IntEnum):
     WRITE_OWNER = 0x00080000
 
 
+class TOKEN(enum.IntEnum):
+    STANDARD_RIGHTS_REQUIRED = 0x000F0000
+    TOKEN_ASSIGN_PRIMARY = 0x0001
+    TOKEN_DUPLICATE = 0x0002
+    TOKEN_IMPERSONATE = 0x0004
+    TOKEN_QUERY = 0x0008
+    TOKEN_QUERY_SOURCE = 0x0010
+    TOKEN_ADJUST_PRIVILEGES = 0x0020
+    TOKEN_ADJUST_GROUPS = 0x0040
+    TOKEN_ADJUST_DEFAULT = 0x0080
+    TOKEN_ADJUST_SESSIONID = 0x0100
+    TOKEN_ALL_ACCESS = (
+        STANDARD_RIGHTS_REQUIRED |
+        TOKEN_ASSIGN_PRIMARY |
+        TOKEN_DUPLICATE |
+        TOKEN_IMPERSONATE |
+        TOKEN_QUERY |
+        TOKEN_QUERY_SOURCE |
+        TOKEN_ADJUST_PRIVILEGES |
+        TOKEN_ADJUST_GROUPS |
+        TOKEN_ADJUST_DEFAULT
+    )
+
+
 class SE_TOKEN_PRIVILEGE(enum.IntEnum):
     """An access token contains the security information for a logon session.
     The system creates an access token when a user logs on, and every process executed on behalf of the user has a copy of the token."""

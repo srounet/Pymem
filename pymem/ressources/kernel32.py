@@ -223,7 +223,7 @@ CreateRemoteThread.restype = ctypes.c_void_p
 CreateRemoteThread.argtypes = (
     ctypes.c_void_p,
     pymem.ressources.structure.LPSECURITY_ATTRIBUTES,
-    ctypes.c_ulong,
+    ctypes.c_size_t,
     ctypes.c_void_p,
     ctypes.c_void_p,
     ctypes.c_ulong,

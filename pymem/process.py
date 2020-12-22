@@ -1,5 +1,6 @@
 import ctypes
 import logging
+import os
 
 import pymem.ressources.kernel32
 import pymem.ressources.psapi
@@ -38,13 +39,13 @@ def inject_dll(handle, filepath):
         handle, None, 0, load_library_a_address, filepath_address, 0, None
     )
     pymem.ressources.kernel32.WaitForSingleObject(thread_h, -1)
-
-    exitcode = ctypes.c_ulong(0)
-    pymem.ressources.kernel32.GetExitCodeThread(thread_h, ctypes.byref(exitcode))
     pymem.ressources.kernel32.VirtualFreeEx(
         handle, filepath_address, len(filepath), pymem.ressources.structure.MEMORY_STATE.MEM_RELEASE.value
     )
-    return exitcode.value
+    dll_name = os.path.basename(filepath)
+    dll_name = dll_name.decode('ascii')
+    module_address = pymem.ressources.kernel32.GetModuleHandleW(dll_name)
+    return module_address
 
 
 def set_debug_privilege(hToken, lpszPrivilege, bEnablePrivilege):

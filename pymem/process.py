@@ -1,6 +1,7 @@
 import ctypes
 import logging
 
+import pymem.ressources.advapi32
 import pymem.ressources.kernel32
 import pymem.ressources.psapi
 import pymem.ressources.structure
@@ -47,41 +48,57 @@ def inject_dll(handle, filepath):
     return exitcode.value
 
 
-def set_debug_privilege(hToken, lpszPrivilege, bEnablePrivilege):
+def get_luid(name):
+    """
+    Get the LUID for the SeCreateSymbolicLinkPrivilege
+    """
+    luid = pymem.ressources.structure.LUID()
+    res = pymem.ressources.advapi32.LookupPrivilegeValue(None, name, luid)
+    if not res > 0:
+        raise RuntimeError("Couldn't lookup privilege value")
+    return luid
+
+
+def get_process_token():
+    """
+    Get the current process token
+    """
+    token = ctypes.c_void_p()
+    res = pymem.ressources.advapi32.OpenProcessToken(ctypes.windll.kernel32.GetCurrentProcess(), pymem.ressources.structure.TOKEN.TOKEN_ALL_ACCESS, token)
+    if not res > 0:
+        raise RuntimeError("Couldn't get process token")
+    return token
+
+
+def set_debug_privilege(lpszPrivilege, bEnablePrivilege):
     """Leverage current process privileges.
 
-    :param hToken: Current process handle
     :param lpszPrivilege: privilege name
     :param bEnablePrivilege: Enable privilege
-    :type hToken: HANDLE
     :type lpszPrivilege: str
     :type bEnablePrivilege: bool
     :return: True if privileges have been leveraged.
     :rtype: bool
     """
-    tp = pymem.ressources.structure.TOKEN_PRIVILEGES()
-    luid = pymem.ressources.structure.LUID()
+    # create a space in memory for a TOKEN_PRIVILEGES structure
+    #  with one element
+    size = ctypes.sizeof(pymem.ressources.structure.TOKEN_PRIVILEGES)
+    size += ctypes.sizeof(pymem.ressources.structure.LUID_AND_ATTRIBUTES)
+    buffer = ctypes.create_string_buffer(size)
 
-    if not ctypes.windll.advapi32.LookupPrivilegeValueW( None, lpszPrivilege, ctypes.byref(luid)):
-        logger.error("LookupPrivilegeValue error: 0x%08x\n" % ctypes.GetLastError())
-        return False
+    tp = ctypes.cast(buffer, ctypes.POINTER(pymem.ressources.structure.TOKEN_PRIVILEGES)).contents
+    tp.count = 1
+    tp.get_array()[0].LUID = get_luid(lpszPrivilege)
+    tp.get_array()[0].Attributes = (
+        pymem.ressources.structure.SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_ENABLED if bEnablePrivilege else 0
+    )
+    token = get_process_token()
+    res = pymem.ressources.advapi32.AdjustTokenPrivileges(token, False, tp, 0, None, None)
+    if res == 0:
+        raise RuntimeError("AdjustTokenPrivileges error: 0x%08x\n" % ctypes.GetLastError())
 
-    tp.PrivilegeCount = 1
-    tp.Privileges[0].Luid = luid
-
-    if bEnablePrivilege:
-        tp.Privileges[0].Attributes = pymem.ressources.structure.SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_ENABLED.value
-    else:
-        tp.Privileges[0].Attributes = pymem.ressources.structure.SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_USED_FOR_ACCESS.value
-
-    if not ctypes.windll.advapi32.AdjustTokenPrivileges( hToken, False, ctypes.byref(tp), ctypes.sizeof(pymem.ressources.structure.TOKEN_PRIVILEGES), None, None):
-        logger.error("AdjustTokenPrivileges error: 0x%08x\n" % ctypes.GetLastError())
-        return False
-
-    if ctypes.GetLastError() == 0x514:
-        logger.error("The token does not have the specified privilege. \n")
-        return False
-    return True
+    ERROR_NOT_ALL_ASSIGNED = 1300
+    return ctypes.windll.kernel32.GetLastError() != ERROR_NOT_ALL_ASSIGNED
 
 
 def base_module(handle):
@@ -136,13 +153,8 @@ def open(process_id, debug=None, process_access=None):
     if not process_access:
         process_access = pymem.ressources.structure.PROCESS.PROCESS_ALL_ACCESS.value
     if debug:
-        hToken = ctypes.c_void_p()
-        hCurrentProcess = ctypes.windll.kernel32.GetCurrentProcess()
-        TOKEN_ADJUST_PRIVILEGES = 0x0020
-        TOKEN_QUERY = 0x0008
-        ctypes.windll.advapi32.OpenProcessToken(hCurrentProcess, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, ctypes.byref(hToken))
-        set_debug_privilege(hToken, 'SeDebugPrivilege', True)
-    process_handle = pymem.ressources.kernel32.OpenProcess(process_access, 0, process_id)
+        set_debug_privilege('SeDebugPrivilege', True)
+    process_handle = pymem.ressources.kernel32.OpenProcess(process_access, False, process_id)
     return process_handle
 
 

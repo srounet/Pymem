@@ -179,11 +179,17 @@ class PROCESS(enum.IntEnum):
     PROCESS_VM_WRITE = 0x0020
     #: Required to wait for the process to terminate using the wait functions.
     SYNCHRONIZE = 0x00100000
+    #: Combines DELETE, READ_CONTROL, WRITE_DAC, and WRITE_OWNER access.
+    STANDARD_RIGHTS_REQUIRED = 0x000F0000
     #: All possible access rights for a process object.
-    PROCESS_ALL_ACCESS = (0x000F0000 | 0x00100000 | 0xFFF)
+    PROCESS_ALL_ACCESS = (
+        STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0xFFF
+    )
     #: Required to delete the object.
     DELETE = 0x00010000
-    #: Required to read information in the security descriptor for the object, not including the information in the SACL. To read or write the SACL, you must request the ACCESS_SYSTEM_SECURITY access right. For more information, see SACL Access Right.
+    #: Required to read information in the security descriptor for the object, not including the information in the
+    #: SACL. To read or write the SACL, you must request the ACCESS_SYSTEM_SECURITY access right. For more information
+    #: see SACL Access Right.
     READ_CONTROL = 0x00020000
     #: Required to modify the DACL in the security descriptor for the object.
     WRITE_DAC = 0x00040000

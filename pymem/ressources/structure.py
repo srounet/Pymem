@@ -22,32 +22,67 @@ class LUID_AND_ATTRIBUTES(ctypes.Structure):
         ("Attributes", ctypes.c_ulong),
     ]
 
+    def is_enabled(self):
+        return bool(self.attributes & SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_ENABLED)
+
+    def enable(self):
+        self.attributes |= SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_ENABLED
+
+    def get_name(self):
+        import pymem.ressources.advapi32
+
+        size = ctypes.c_ulong(10240)
+        buf = ctypes.create_unicode_buffer(size.value)
+        res = pymem.ressources.advapi32.LookupPrivilegeName(None, self.LUID, buf, size)
+        if res == 0:
+            raise RuntimeError("Could not LookupPrivilegeName")
+        return buf[:size.value]
+
+    def __str__(self):
+        res = self.get_name()
+        if self.is_enabled():
+            res += ' (enabled)'
+        return res
+
 
 class TOKEN_PRIVILEGES(ctypes.Structure):
 
     _fields_ = [
-        ("PrivilegeCount", ctypes.c_ulong),
-        ("Privileges", 1 * LUID_AND_ATTRIBUTES)
+        ("count", ctypes.c_ulong),
+        ("Privileges", LUID_AND_ATTRIBUTES * 0)
     ]
+
+    def get_array(self):
+        array_type = LUID_AND_ATTRIBUTES*self.count
+        privileges = ctypes.cast(self.Privileges, ctypes.POINTER(array_type)).contents
+        return privileges
+
+    def __iter__(self):
+        return iter(self.get_array())
+
+
+PTOKEN_PRIVILEGES = ctypes.POINTER(TOKEN_PRIVILEGES)
 
 
 MAX_MODULE_NAME32 = 255
+
+
 class ModuleEntry32(ctypes.Structure):
     """Describes an entry from a list of the modules belonging to the specified process.
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms684225%28v=vs.85%29.aspx
     """
     _fields_ = [
-        ( 'dwSize' , ctypes.c_ulong ) ,
-        ( 'th32ModuleID' , ctypes.c_ulong ),
-        ( 'th32ProcessID' , ctypes.c_ulong ),
-        ( 'GlblcntUsage' , ctypes.c_ulong ),
-        ( 'ProccntUsage' , ctypes.c_ulong ) ,
-        ( 'modBaseAddr' , ctypes.POINTER(ctypes.c_ulonglong)),
-        ( 'modBaseSize' , ctypes.c_ulong ) ,
-        ( 'hModule' , ctypes.c_ulong ) ,
-        ( 'szModule' , ctypes.c_char * (MAX_MODULE_NAME32 + 1)),
-        ( 'szExePath' , ctypes.c_char * ctypes.wintypes.MAX_PATH)
+        ('dwSize', ctypes.c_ulong),
+        ('th32ModuleID', ctypes.c_ulong ),
+        ('th32ProcessID', ctypes.c_ulong ),
+        ('GlblcntUsage', ctypes.c_ulong ),
+        ('ProccntUsage', ctypes.c_ulong),
+        ('modBaseAddr', ctypes.POINTER(ctypes.c_ulonglong)),
+        ('modBaseSize', ctypes.c_ulong),
+        ('hModule', ctypes.c_ulong),
+        ('szModule', ctypes.c_char * (MAX_MODULE_NAME32 + 1)),
+        ('szExePath', ctypes.c_char * ctypes.wintypes.MAX_PATH)
     ]
 
     def __init__(self, *args, **kwds):
@@ -61,6 +96,7 @@ class ModuleEntry32(ctypes.Structure):
     @property
     def name(self):
         return self.szModule.decode('utf-8')
+
 
 LPMODULEENTRY32 = ctypes.POINTER(ModuleEntry32)
 

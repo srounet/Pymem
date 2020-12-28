@@ -1,4 +1,3 @@
-"""It handles memory management, input/output operations, and interrupts"""
 import ctypes
 
 import pymem.ressources.structure

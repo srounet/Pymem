@@ -1,4 +1,3 @@
-"""XXX"""
 import ctypes
 
 dll = ctypes.WinDLL('psapi.dll')

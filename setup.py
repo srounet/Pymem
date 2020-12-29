@@ -11,17 +11,21 @@ with open(ROOT + '/requirements-doc.txt', encoding='utf-8') as fp:
 with open(ROOT + '/requirements-test.txt', encoding='utf-8') as fp:
     extras['test'] = fp.read().splitlines()
 
+with open(ROOT + '/PYPI-README.md', encoding="utf-8") as fp:
+    long_description = fp.read()
+
 
 setuptools.setup(
     name='Pymem',
-    version='1.4',
+    version='1.6',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     description='pymem: python memory access made easy',
     author='Fabien Reboia',
     author_email='srounet@gmail.com',
     maintainer='Fabien Reboia',
     maintainer_email='srounet@gmail.com',
     url='http://pymem.readthedocs.org/en/latest/',
-    long_description="A python library for windows, providing the needed functions to start working on your own with memory editing",
     license="mit",
     packages=["pymem", "pymem.ressources"],
     platforms=["windows"],
@@ -29,6 +33,8 @@ setuptools.setup(
     classifiers=[
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Environment :: Win32 (MS Windows)',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',

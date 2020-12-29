@@ -22,32 +22,67 @@ class LUID_AND_ATTRIBUTES(ctypes.Structure):
         ("Attributes", ctypes.c_ulong),
     ]
 
+    def is_enabled(self):
+        return bool(self.attributes & SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_ENABLED)
+
+    def enable(self):
+        self.attributes |= SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_ENABLED
+
+    def get_name(self):
+        import pymem.ressources.advapi32
+
+        size = ctypes.c_ulong(10240)
+        buf = ctypes.create_unicode_buffer(size.value)
+        res = pymem.ressources.advapi32.LookupPrivilegeName(None, self.LUID, buf, size)
+        if res == 0:
+            raise RuntimeError("Could not LookupPrivilegeName")
+        return buf[:size.value]
+
+    def __str__(self):
+        res = self.get_name()
+        if self.is_enabled():
+            res += ' (enabled)'
+        return res
+
 
 class TOKEN_PRIVILEGES(ctypes.Structure):
 
     _fields_ = [
-        ("PrivilegeCount", ctypes.c_ulong),
-        ("Privileges", 1 * LUID_AND_ATTRIBUTES)
+        ("count", ctypes.c_ulong),
+        ("Privileges", LUID_AND_ATTRIBUTES * 0)
     ]
+
+    def get_array(self):
+        array_type = LUID_AND_ATTRIBUTES*self.count
+        privileges = ctypes.cast(self.Privileges, ctypes.POINTER(array_type)).contents
+        return privileges
+
+    def __iter__(self):
+        return iter(self.get_array())
+
+
+PTOKEN_PRIVILEGES = ctypes.POINTER(TOKEN_PRIVILEGES)
 
 
 MAX_MODULE_NAME32 = 255
+
+
 class ModuleEntry32(ctypes.Structure):
     """Describes an entry from a list of the modules belonging to the specified process.
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms684225%28v=vs.85%29.aspx
     """
     _fields_ = [
-        ( 'dwSize' , ctypes.c_ulong ) ,
-        ( 'th32ModuleID' , ctypes.c_ulong ),
-        ( 'th32ProcessID' , ctypes.c_ulong ),
-        ( 'GlblcntUsage' , ctypes.c_ulong ),
-        ( 'ProccntUsage' , ctypes.c_ulong ) ,
-        ( 'modBaseAddr' , ctypes.POINTER(ctypes.c_ulonglong)),
-        ( 'modBaseSize' , ctypes.c_ulong ) ,
-        ( 'hModule' , ctypes.c_ulong ) ,
-        ( 'szModule' , ctypes.c_char * (MAX_MODULE_NAME32 + 1)),
-        ( 'szExePath' , ctypes.c_char * ctypes.wintypes.MAX_PATH)
+        ('dwSize', ctypes.c_ulong),
+        ('th32ModuleID', ctypes.c_ulong ),
+        ('th32ProcessID', ctypes.c_ulong ),
+        ('GlblcntUsage', ctypes.c_ulong ),
+        ('ProccntUsage', ctypes.c_ulong),
+        ('modBaseAddr', ctypes.POINTER(ctypes.c_ulonglong)),
+        ('modBaseSize', ctypes.c_ulong),
+        ('hModule', ctypes.c_ulong),
+        ('szModule', ctypes.c_char * (MAX_MODULE_NAME32 + 1)),
+        ('szExePath', ctypes.c_char * ctypes.wintypes.MAX_PATH)
     ]
 
     def __init__(self, *args, **kwds):
@@ -62,6 +97,7 @@ class ModuleEntry32(ctypes.Structure):
     def name(self):
         return self.szModule.decode('utf-8')
 
+
 LPMODULEENTRY32 = ctypes.POINTER(ModuleEntry32)
 
 
@@ -71,16 +107,16 @@ class ProcessEntry32(ctypes.Structure):
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms684839(v=vs.85).aspx
     """
     _fields_ = [
-        ( 'dwSize' , ctypes.c_ulong ) ,
-        ( 'cntUsage' , ctypes.c_ulong) ,
-        ( 'th32ProcessID' , ctypes.c_ulong) ,
-        ( 'th32DefaultHeapID' , ctypes.POINTER(ctypes.c_ulong) ) ,
-        ( 'th32ModuleID' , ctypes.c_ulong) ,
-        ( 'cntThreads' , ctypes.c_ulong) ,
-        ( 'th32ParentProcessID' , ctypes.c_ulong) ,
-        ( 'pcPriClassBase' , ctypes.c_ulong) ,
-        ( 'dwFlags' , ctypes.c_ulong) ,
-        ( 'szExeFile' , ctypes.c_char * ctypes.wintypes.MAX_PATH)
+        ('dwSize', ctypes.c_ulong),
+        ('cntUsage', ctypes.c_ulong),
+        ('th32ProcessID', ctypes.c_ulong),
+        ('th32DefaultHeapID', ctypes.POINTER(ctypes.c_ulong)),
+        ('th32ModuleID', ctypes.c_ulong),
+        ('cntThreads', ctypes.c_ulong),
+        ('th32ParentProcessID', ctypes.c_ulong),
+        ('pcPriClassBase', ctypes.c_ulong),
+        ('dwFlags', ctypes.c_ulong),
+        ('szExeFile', ctypes.c_char * ctypes.wintypes.MAX_PATH)
     ]
 
     @property
@@ -179,16 +215,46 @@ class PROCESS(enum.IntEnum):
     PROCESS_VM_WRITE = 0x0020
     #: Required to wait for the process to terminate using the wait functions.
     SYNCHRONIZE = 0x00100000
+    #: Combines DELETE, READ_CONTROL, WRITE_DAC, and WRITE_OWNER access.
+    STANDARD_RIGHTS_REQUIRED = 0x000F0000
     #: All possible access rights for a process object.
-    PROCESS_ALL_ACCESS = (0x000F0000 | 0x00100000 | 0xFFF)
+    PROCESS_ALL_ACCESS = (
+        STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0xFFF
+    )
     #: Required to delete the object.
     DELETE = 0x00010000
-    #: Required to read information in the security descriptor for the object, not including the information in the SACL. To read or write the SACL, you must request the ACCESS_SYSTEM_SECURITY access right. For more information, see SACL Access Right.
+    #: Required to read information in the security descriptor for the object, not including the information in the
+    #: SACL. To read or write the SACL, you must request the ACCESS_SYSTEM_SECURITY access right. For more information
+    #: see SACL Access Right.
     READ_CONTROL = 0x00020000
     #: Required to modify the DACL in the security descriptor for the object.
     WRITE_DAC = 0x00040000
     #: Required to change the owner in the security descriptor for the object.
     WRITE_OWNER = 0x00080000
+
+
+class TOKEN(enum.IntEnum):
+    STANDARD_RIGHTS_REQUIRED = 0x000F0000
+    TOKEN_ASSIGN_PRIMARY = 0x0001
+    TOKEN_DUPLICATE = 0x0002
+    TOKEN_IMPERSONATE = 0x0004
+    TOKEN_QUERY = 0x0008
+    TOKEN_QUERY_SOURCE = 0x0010
+    TOKEN_ADJUST_PRIVILEGES = 0x0020
+    TOKEN_ADJUST_GROUPS = 0x0040
+    TOKEN_ADJUST_DEFAULT = 0x0080
+    TOKEN_ADJUST_SESSIONID = 0x0100
+    TOKEN_ALL_ACCESS = (
+        STANDARD_RIGHTS_REQUIRED |
+        TOKEN_ASSIGN_PRIMARY |
+        TOKEN_DUPLICATE |
+        TOKEN_IMPERSONATE |
+        TOKEN_QUERY |
+        TOKEN_QUERY_SOURCE |
+        TOKEN_ADJUST_PRIVILEGES |
+        TOKEN_ADJUST_GROUPS |
+        TOKEN_ADJUST_DEFAULT
+    )
 
 
 class SE_TOKEN_PRIVILEGE(enum.IntEnum):

@@ -1,4 +1,3 @@
-"""It handles memory management, input/output operations, and interrupts"""
 import ctypes
 
 import pymem.ressources.structure
@@ -76,7 +75,7 @@ DebugActiveProcess.restype = ctypes.c_long
 #: The function initializes the memory it allocates to zero, unless MEM_RESET is used.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366890%28v=vs.85%29.aspx
-VirtualAllocEx  = dll.VirtualAllocEx
+VirtualAllocEx = dll.VirtualAllocEx
 VirtualAllocEx.restype = ctypes.c_void_p
 VirtualAllocEx.argtypes = (
     ctypes.c_void_p,
@@ -215,7 +214,6 @@ GetModuleHandleW.restype = ctypes.c_void_p
 GetModuleHandleW.argtypes = [ctypes.c_wchar_p]
 
 GetProcAddress = dll.GetProcAddress
-#GetProcAddress.restype = ctypes.c_void_p
 GetProcAddress.restype = ctypes.c_void_p
 GetProcAddress.argtypes = (ctypes.c_void_p, ctypes.c_char_p)
 
@@ -224,7 +222,7 @@ CreateRemoteThread.restype = ctypes.c_void_p
 CreateRemoteThread.argtypes = (
     ctypes.c_void_p,
     pymem.ressources.structure.LPSECURITY_ATTRIBUTES,
-    ctypes.c_ulong,
+    ctypes.c_size_t,
     ctypes.c_void_p,
     ctypes.c_void_p,
     ctypes.c_ulong,

@@ -9,6 +9,29 @@ If you are familiar with pyenv_, it is highly recommended to sandbox pymem insta
 
 .. _pyenv: https://github.com/pyenv/pyenv
 
+Path
+----
+
+In order to use all pymem fonctionalities you have to first make sure that system python directory is configured within
+windows system PATH.
+
+In a PowerShell window type:
+
+.. code-block:: sh
+
+    $env:PATH
+
+This PATH should contain the directory where python is installed system wide or at least have access to pythonXX.dll
+If you don't find python in your PATH, then it is recommended to add it.
+
+.. code-block:: sh
+
+    - Open the Start Search, type in "env", and choose "Edit the system environment variables"
+    - Click the "Environment Variables..." button
+    - Under the "System Variables" section (the lower half), find the row with "Path" in the first column, and click edit.
+    - The "Edit environment variable" UI will appear. Here, you can click "New" and type in the new path you want to add.
+    - Add your python path and close the windows (something like: C:\Users\xxx\AppData\Local\Programs\Python\Python38)
+
 Virtual environments
 --------------------
 

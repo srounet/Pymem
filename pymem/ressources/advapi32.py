@@ -3,11 +3,13 @@ import ctypes
 import pymem.ressources.structure
 
 
+dll = ctypes.WinDLL('advapi32.dll')
+
 #: The LookupPrivilegeValue function retrieves the locally unique identifier (LUID) used on a specified system to
 #: locally represent the specified privilege name.
 #:
 #: https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-lookupprivilegevaluea
-LookupPrivilegeValue = ctypes.windll.advapi32.LookupPrivilegeValueW
+LookupPrivilegeValue = dll.LookupPrivilegeValueW
 LookupPrivilegeValue.argtypes = (
     ctypes.c_wchar_p,  # system name
     ctypes.c_wchar_p,  # name
@@ -19,7 +21,7 @@ LookupPrivilegeValue.restype = ctypes.c_long
 #: system by a specified locally unique identifier (LUID).
 #:
 #: https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-lookupprivilegenamea
-LookupPrivilegeName = ctypes.windll.advapi32.LookupPrivilegeNameW
+LookupPrivilegeName = dll.LookupPrivilegeNameW
 LookupPrivilegeName.argtypes = (
     ctypes.c_wchar_p,  # lpSystemName
     ctypes.POINTER(pymem.ressources.structure.LUID),  # lpLuid
@@ -32,7 +34,7 @@ LookupPrivilegeName.restype = ctypes.c_long
 #: The OpenProcessToken function opens the access token associated with a process.
 #:
 #: https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocesstoken
-OpenProcessToken = ctypes.windll.advapi32.OpenProcessToken
+OpenProcessToken = dll.OpenProcessToken
 OpenProcessToken.argtypes = (
     ctypes.c_void_p,
     ctypes.c_ulong,
@@ -45,7 +47,7 @@ OpenProcessToken.restype = ctypes.c_long
 #: Enabling or disabling privileges in an access token requires TOKEN_ADJUST_PRIVILEGES access.
 #:
 #: https://docs.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-adjusttokenprivileges
-AdjustTokenPrivileges = ctypes.windll.advapi32.AdjustTokenPrivileges
+AdjustTokenPrivileges = dll.AdjustTokenPrivileges
 AdjustTokenPrivileges.restype = ctypes.c_long
 AdjustTokenPrivileges.argtypes = (
     ctypes.c_void_p,  # TokenHandle

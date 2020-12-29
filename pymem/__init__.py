@@ -133,11 +133,13 @@ class Pymem(object):
         shellcode = shellcode.encode('ascii')
         shellcode_addr = pymem.ressources.kernel32.VirtualAllocEx(
             self.process_handle,
-            0,
+            None,
             len(shellcode),
             pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT.value | pymem.ressources.structure.MEMORY_STATE.MEM_RESERVE.value,
-            pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READWRITE.value
+            pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE.value
         )
+        if not shellcode_addr or ctypes.get_last_error():
+            raise RuntimeError('Could not allocate memory for shellcode')
         pymem.logger.debug('shellcode_addr loc: 0x%08x' % shellcode_addr)
         written = ctypes.c_ulonglong(0) if '64bit' in platform.architecture() else ctypes.c_ulong(0)
         pymem.ressources.kernel32.WriteProcessMemory(self.process_handle, shellcode_addr, shellcode, len(shellcode), ctypes.byref(written))
@@ -159,16 +161,21 @@ class Pymem(object):
         int
             The new thread identifier
         """
-        thread_id = ctypes.c_ulong(0)
+
+        params = params or 0
+        NULL_SECURITY_ATTRIBUTES = ctypes.cast(0, pymem.ressources.structure.LPSECURITY_ATTRIBUTES)
         thread_h = pymem.ressources.kernel32.CreateRemoteThread(
             self.process_handle,
-            None,
+            NULL_SECURITY_ATTRIBUTES,
             0,
             address,
             params,
             0,
-            None
+            ctypes.byref(ctypes.c_ulong(0))
         )
+        last_error = ctypes.windll.kernel32.GetLastError()
+        if last_error:
+            pymem.logger.warning('Got an error in start thread, code: %s' % last_error)
         pymem.ressources.kernel32.WaitForSingleObject(thread_h, -1)
         pymem.logger.debug('New thread_id: 0x%08x' % thread_h)
         return thread_h

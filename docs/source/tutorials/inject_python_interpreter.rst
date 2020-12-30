@@ -7,10 +7,12 @@ with a single call to :meth:`~pymem.Pymem.inject_python_interpreter`.
 .. code-block:: python
 
     from pymem import Pymem
+    import os
+    import subprocess
 
     notepad = subprocess.Popen(['notepad.exe'])
 
-    pm = pymem.Pymem('notepad.exe')
+    pm = Pymem('notepad.exe')
     pm.inject_python_interpreter()
     filepath = os.path.join(os.path.abspath('.'), 'pymem_injection.txt')
     filepath = filepath.replace("\\", "\\\\")

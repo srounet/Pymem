@@ -1,4 +1,5 @@
 import enum
+import locale
 import struct
 
 import ctypes
@@ -95,7 +96,7 @@ class ModuleEntry32(ctypes.Structure):
 
     @property
     def name(self):
-        return self.szModule.decode('utf-8')
+        return self.szModule.decode(locale.getpreferredencoding())
 
 
 LPMODULEENTRY32 = ctypes.POINTER(ModuleEntry32)
@@ -121,7 +122,7 @@ class ProcessEntry32(ctypes.Structure):
 
     @property
     def szExeFile(self):
-        return self.szExeFile.decode('utf-8')
+        return self.szExeFile.decode(locale.getpreferredencoding())
 
     def __init__(self, *args, **kwds):
         super(ProcessEntry32, self).__init__(*args, **kwds)
@@ -160,7 +161,7 @@ class ThreadEntry32(ctypes.Structure):
 
     @property
     def szExeFile(self):
-        return self.szExeFile.decode('utf-8')
+        return self.szExeFile.decode(locale.getpreferredencoding())
 
     # XXX: save it somehow
     @property
@@ -399,7 +400,7 @@ class MODULEINFO(ctypes.Structure):
             modname,
             ctypes.sizeof(modname)
         )
-        return modname.value.decode('utf-8')
+        return modname.value.decode(locale.getpreferredencoding())
 
     @property
     def filename(self):
@@ -410,7 +411,7 @@ class MODULEINFO(ctypes.Structure):
             _filename,
             ctypes.sizeof(_filename)
         )
-        return _filename.value
+        return _filename.value.decode(locale.getpreferredencoding())
 
 
 class SYSTEM_INFO(ctypes.Structure):

@@ -1,4 +1,5 @@
 import ctypes
+import locale
 import logging
 import os
 
@@ -248,7 +249,7 @@ def process_from_name(name):
     name = name.lower()
     processes = list_processes()
     for process in processes:
-        if name in process.szExeFile.decode('utf-8').lower():
+        if name in process.szExeFile.decode(locale.getpreferredencoding()).lower():
             return process
 
 

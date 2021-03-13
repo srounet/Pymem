@@ -2,7 +2,6 @@ import ctypes
 import ctypes.util
 import functools
 import logging
-import os
 import platform
 import struct
 import sys
@@ -23,14 +22,6 @@ ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
-
-
-def get_python_dll(version):
-    current_process_id = ctypes.c_void_p(os.getpid())
-    current_process_handle = pymem.process.open(current_process_id)
-    for module in pymem.process.enum_process_module(current_process_handle):
-        if module.name == version:
-            return module.filename
 
 
 class Pymem(object):
@@ -94,7 +85,7 @@ class Pymem(object):
 
         # find the python library
         python_version = "python{0}{1}.dll".format(sys.version_info.major, sys.version_info.minor)
-        python_lib = get_python_dll(python_version)
+        python_lib = pymem.process.get_python_dll(python_version)
         if not python_lib:
             raise pymem.exception.PymemError('Could not find python library')
 

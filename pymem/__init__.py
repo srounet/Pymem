@@ -11,9 +11,9 @@ import pymem.memory
 import pymem.process
 import pymem.ressources.kernel32
 import pymem.ressources.structure
+import pymem.ressources.psapi
 import pymem.thread
 import pymem.pattern
-
 
 logger = logging.getLogger('pymem')
 logger.setLevel(logging.DEBUG)
@@ -63,17 +63,17 @@ class Pymem(object):
         modules = pymem.process.enum_process_module(self.process_handle)
         return modules
 
-    def inject_python_interpreter(self):
+    def inject_python_interpreter(self, initsigs=1):
         """Inject python interpreter into target process and call Py_InitializeEx.
         """
+
         def find_existing_interpreter(_python_version):
             _local_handle = pymem.ressources.kernel32.GetModuleHandleW(_python_version)
             module = pymem.process.module_from_name(self.process_handle, _python_version)
-            
+
             self.py_run_simple_string = (
                 module.lpBaseOfDll + (
-                    pymem.ressources.kernel32.GetProcAddress(_local_handle, b'PyRun_SimpleString')
-                    - _local_handle
+                    pymem.ressources.kernel32.GetProcAddress(_local_handle, b'PyRun_SimpleString') - _local_handle
                 )
             )
             self._python_injected = True
@@ -85,7 +85,7 @@ class Pymem(object):
 
         # find the python library
         python_version = "python{0}{1}.dll".format(sys.version_info.major, sys.version_info.minor)
-        python_lib = ctypes.util.find_library(python_version)
+        python_lib = pymem.process.get_python_dll(python_version)
         if not python_lib:
             raise pymem.exception.PymemError('Could not find python library')
 
@@ -101,14 +101,12 @@ class Pymem(object):
         local_handle = pymem.ressources.kernel32.GetModuleHandleW(python_version)
         py_initialize_ex = (
             python_lib_h + (
-                pymem.ressources.kernel32.GetProcAddress(local_handle, b'Py_InitializeEx')
-                - local_handle
+                pymem.ressources.kernel32.GetProcAddress(local_handle, b'Py_InitializeEx') - local_handle
             )
         )
         self.py_run_simple_string = (
             python_lib_h + (
-                pymem.ressources.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString')
-                - local_handle
+                pymem.ressources.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString') - local_handle
             )
         )
         if not py_initialize_ex:
@@ -116,7 +114,9 @@ class Pymem(object):
         if not self.py_run_simple_string:
             raise pymem.exception.PymemError('Empty py_run_simple_string')
 
-        self.start_thread(py_initialize_ex)
+        param_addr = self.allocate(4)
+        self.write_int(param_addr, initsigs)
+        self.start_thread(py_initialize_ex, param_addr)
         self._python_injected = True
 
         pymem.logger.debug('Py_InitializeEx loc: 0x%08x' % py_initialize_ex)
@@ -145,7 +145,7 @@ class Pymem(object):
         pymem.ressources.kernel32.WriteProcessMemory(self.process_handle, shellcode_addr, shellcode, len(shellcode), ctypes.byref(written))
         # check written
         self.start_thread(self.py_run_simple_string, shellcode_addr)
-   
+
     def start_thread(self, address, params=None):
         """Create a new thread within the current debugged process.
 

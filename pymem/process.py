@@ -12,6 +12,26 @@ import pymem.ressources.structure
 logger = logging.getLogger(__name__)
 
 
+def get_python_dll(version):
+    """"Given a python dll version will find its path using the current process as a placeholder
+
+        Parameters
+        ----------
+        version: str
+            A string representation of python version as a dll (python38.dll)
+
+        Returns
+        -------
+        str
+            The full path of dll
+    """
+    current_process_id = ctypes.c_void_p(os.getpid())
+    current_process_handle = pymem.process.open(current_process_id)
+    for module in pymem.process.enum_process_module(current_process_handle):
+        if module.name == version:
+            return module.filename
+
+
 def inject_dll(handle, filepath):
     """Inject a dll into opened process.
 

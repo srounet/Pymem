@@ -36,6 +36,7 @@ GetLastError.restype = ctypes.c_ulong
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms683179%28v=vs.85%29.aspx
 GetCurrentProcess = dll.GetCurrentProcess
+GetCurrentProcess.argtypes = []
 GetCurrentProcess.restype = ctypes.c_ulong
 
 #: Reads data from an area of memory in a specified process. The entire area to be read must be accessible or the operation fails.

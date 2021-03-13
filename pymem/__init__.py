@@ -2,16 +2,17 @@ import ctypes
 import ctypes.util
 import functools
 import logging
+import os
 import platform
 import struct
 import sys
-from win32process import EnumProcessModules, GetModuleFileNameEx
 
 import pymem.exception
 import pymem.memory
 import pymem.process
 import pymem.ressources.kernel32
 import pymem.ressources.structure
+import pymem.ressources.psapi
 import pymem.thread
 import pymem.pattern
 
@@ -25,11 +26,11 @@ logger.addHandler(ch)
 
 
 def get_python_dll(version):
-    for process in EnumProcessModules(-1):
-        name = GetModuleFileNameEx(-1, process)
-        if version in name:
-            return name
-    return None
+    current_process_id = ctypes.c_void_p(os.getpid())
+    current_process_handle = pymem.process.open(current_process_id)
+    for module in pymem.process.enum_process_module(current_process_handle):
+        if module.name == version:
+            return module.filename
 
 
 class Pymem(object):

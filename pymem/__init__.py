@@ -81,10 +81,9 @@ class Pymem(object):
             module = pymem.process.module_from_name(self.process_handle, _python_version)
 
             self.py_run_simple_string = (
-                    module.lpBaseOfDll + (
-                    pymem.ressources.kernel32.GetProcAddress(_local_handle, b'PyRun_SimpleString')
-                    - _local_handle
-            )
+                module.lpBaseOfDll + (
+                    pymem.ressources.kernel32.GetProcAddress(_local_handle, b'PyRun_SimpleString') - _local_handle
+                )
             )
             self._python_injected = True
             pymem.logger.debug('PyRun_SimpleString loc: 0x%08x' % self.py_run_simple_string)
@@ -110,16 +109,14 @@ class Pymem(object):
 
         local_handle = pymem.ressources.kernel32.GetModuleHandleW(python_version)
         py_initialize_ex = (
-                python_lib_h + (
-                pymem.ressources.kernel32.GetProcAddress(local_handle, b'Py_InitializeEx')
-                - local_handle
-        )
+            python_lib_h + (
+                pymem.ressources.kernel32.GetProcAddress(local_handle, b'Py_InitializeEx') - local_handle
+            )
         )
         self.py_run_simple_string = (
-                python_lib_h + (
-                pymem.ressources.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString')
-                - local_handle
-        )
+            python_lib_h + (
+                pymem.ressources.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString') - local_handle
+            )
         )
         if not py_initialize_ex:
             raise pymem.exception.PymemError('Empty py_initialize_ex')

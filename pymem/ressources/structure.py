@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 import enum
 import locale
 import struct
@@ -6,6 +8,7 @@ import ctypes
 
 import pymem.ressources.psapi
 import pymem.ressources.ntdll
+import pymem.rctypes
 
 
 class LUID(ctypes.Structure):
@@ -338,6 +341,7 @@ class FLOATING_SAVE_AREA(ctypes.Structure):
         ('Cr0NpxState', ctypes.c_uint)
     ]
 
+
 MAXIMUM_SUPPORTED_EXTENSION = 512
 class ThreadContext(ctypes.Structure):
     """Represents a thread context"""
@@ -498,6 +502,8 @@ class SECURITY_ATTRIBUTES(ctypes.Structure):
                 ('lpSecurityDescriptor', ctypes.c_void_p),
                 ('bInheritHandle', ctypes.c_long)
     ]
+
+
 LPSECURITY_ATTRIBUTES = ctypes.POINTER(SECURITY_ATTRIBUTES)
 
 
@@ -529,7 +535,7 @@ class TIB_UNION(ctypes.Union):
 
 class NT_TIB(ctypes.Structure):
     _fields_ = [
-        ("ExceptionList", ctypes.c_void_p), # PEXCEPTION_REGISTRATION_RECORD
+        ("ExceptionList", ctypes.c_void_p),  # PEXCEPTION_REGISTRATION_RECORD
         ("StackBase", ctypes.c_void_p),
         ("StackLimit", ctypes.c_void_p),
         ("SubSystemTib", ctypes.c_void_p),
@@ -543,9 +549,365 @@ class SMALL_TEB(ctypes.Structure):
     _pack_ = 1
 
     _fields_ = [
-        ("NtTib",                           NT_TIB),
-        ("EnvironmentPointer",              ctypes.c_void_p),
-        ("ClientId",                        CLIENT_ID),
-        ("ActiveRpcHandle",                 ctypes.c_void_p),
-        ("ThreadLocalStoragePointer",       ctypes.c_void_p)
+        ("NtTib", NT_TIB),
+        ("EnvironmentPointer", ctypes.c_void_p),
+        ("ClientId", CLIENT_ID),
+        ("ActiveRpcHandle", ctypes.c_void_p),
+        ("ThreadLocalStoragePointer", ctypes.c_void_p)
+    ]
+
+# start PE structure
+
+class IMAGE_DOS_HEADER(ctypes.Structure):
+
+    _fields_ = [
+        ("e_magic", ctypes.c_char * 2),
+        ("e_cblp", ctypes.c_ushort),
+        ("e_cp", ctypes.c_ushort),
+        ("e_crlc", ctypes.c_ushort),
+        ("e_cparhdr", ctypes.c_ushort),
+        ("e_minalloc", ctypes.c_ushort),
+        ("e_maxalloc", ctypes.c_ushort),
+        ("e_ss", ctypes.c_ushort),
+        ("e_sp", ctypes.c_ushort),
+        ("e_csum", ctypes.c_ushort),
+        ("e_ip", ctypes.c_ushort),
+        ("e_cs", ctypes.c_ushort),
+        ("e_lfarlc", ctypes.c_ushort),
+        ("e_ovno", ctypes.c_ushort),
+        ("e_res", ctypes.c_ushort * 4),
+        ("e_oemid", ctypes.c_ushort),
+        ("e_oeminfo", ctypes.c_ushort),
+        ("e_res2", ctypes.c_ushort * 10),
+        ("e_lfanew", ctypes.c_long),
+    ]
+
+
+PIMAGE_DOS_HEADER = ctypes.POINTER(IMAGE_DOS_HEADER)
+
+
+class IMAGE_FILE_HEADER(ctypes.Structure):
+
+    _fields_ = [
+        ("Machine", ctypes.c_ushort),
+        ("NumberOfSections", ctypes.c_ushort),
+        ("TimeDateStamp", ctypes.c_ulong),
+        ("PointerToSymbolTable", ctypes.c_ulong),
+        ("NumberOfSymbols", ctypes.c_ulong),
+        ("SizeOfOptionalHeader", ctypes.c_ushort),
+        ("Characteristics", ctypes.c_ushort),
+    ]
+
+
+class IMAGE_DATA_DIRECTORY(ctypes.Structure):
+
+    _fields_ = [
+        ("VirtualAddress", ctypes.c_ulong),
+        ("Size", ctypes.c_ulong),
+    ]
+
+
+IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16
+class IMAGE_OPTIONAL_HEADER32(ctypes.Structure):
+
+    _fields_ = [
+        ("Magic", ctypes.c_ushort),
+        ("MajorLinkerVersion", ctypes.c_byte),
+        ("MinorLinkerVersion", ctypes.c_byte),
+        ("SizeOfCode", ctypes.c_ulong),
+        ("SizeOfInitializedData", ctypes.c_ulong),
+        ("SizeOfUninitializedData", ctypes.c_ulong),
+        ("AddressOfEntryPoint", ctypes.c_ulong),
+        ("BaseOfCode", ctypes.c_ulong),
+        ("BaseOfData", ctypes.c_ulong),
+        ("ImageBase", ctypes.c_ulong),
+        ("SectionAlignment", ctypes.c_ulong),
+        ("FileAlignment", ctypes.c_ulong),
+        ("MajorOperatingSystemVersion", ctypes.c_ushort),
+        ("MinorOperatingSystemVersion", ctypes.c_ushort),
+        ("MajorImageVersion", ctypes.c_ushort),
+        ("MinorImageVersion", ctypes.c_ushort),
+        ("MajorSubsystemVersion", ctypes.c_ushort),
+        ("MinorSubsystemVersion", ctypes.c_ushort),
+        ("Win32VersionValue", ctypes.c_ulong),
+        ("SizeOfImage", ctypes.c_ulong),
+        ("SizeOfHeaders", ctypes.c_ulong),
+        ("CheckSum", ctypes.c_ulong),
+        ("Subsystem", ctypes.c_ushort),
+        ("DllCharacteristics", ctypes.c_ushort),
+        ("SizeOfStackReserve", ctypes.c_ulong),
+        ("SizeOfStackCommit", ctypes.c_ulong),
+        ("SizeOfHeapReserve", ctypes.c_ulong),
+        ("SizeOfHeapCommit", ctypes.c_ulong),
+        ("LoaderFlags", ctypes.c_ulong),
+        ("NumberOfRvaAndSizes", ctypes.c_ulong),
+        ("DataDirectory", IMAGE_DATA_DIRECTORY * IMAGE_NUMBEROF_DIRECTORY_ENTRIES),
+    ]
+
+
+class IMAGE_OPTIONAL_HEADER64(ctypes.Structure):
+    _fields_ = [
+        ("Magic", ctypes.c_ushort),
+        ("MajorLinkerVersion", ctypes.c_byte),
+        ("MinorLinkerVersion", ctypes.c_byte),
+        ("SizeOfCode", ctypes.c_ulong),
+        ("SizeOfInitializedData", ctypes.c_ulong),
+        ("SizeOfUninitializedData", ctypes.c_ulong),
+        ("AddressOfEntryPoint", ctypes.c_ulong),
+        ("BaseOfCode", ctypes.c_ulong),
+        ("ImageBase", ctypes.c_ulonglong),
+        ("SectionAlignment", ctypes.c_ulong),
+        ("FileAlignment", ctypes.c_ulong),
+        ("MajorOperatingSystemVersion", ctypes.c_ushort),
+        ("MinorOperatingSystemVersion", ctypes.c_ushort),
+        ("MajorImageVersion", ctypes.c_ushort),
+        ("MinorImageVersion", ctypes.c_ushort),
+        ("MajorSubsystemVersion", ctypes.c_ushort),
+        ("MinorSubsystemVersion", ctypes.c_ushort),
+        ("Win32VersionValue", ctypes.c_ulong),
+        ("SizeOfImage", ctypes.c_ulong),
+        ("SizeOfHeaders", ctypes.c_ulong),
+        ("CheckSum", ctypes.c_ulong),
+        ("Subsystem", ctypes.c_ushort),
+        ("DllCharacteristics", ctypes.c_ushort),
+        ("SizeOfStackReserve", ctypes.c_ulonglong),
+        ("SizeOfStackCommit", ctypes.c_ulonglong),
+        ("SizeOfHeapReserve", ctypes.c_ulonglong),
+        ("SizeOfHeapCommit", ctypes.c_ulonglong),
+        ("LoaderFlags", ctypes.c_ulong),
+        ("NumberOfRvaAndSizes", ctypes.c_ulong),
+        ("DataDirectory", IMAGE_DATA_DIRECTORY * (IMAGE_NUMBEROF_DIRECTORY_ENTRIES)),
+    ]
+
+
+class IMAGE_NT_HEADERS(ctypes.Structure):
+
+    _fields_ = [
+        ("Signature", ctypes.c_ushort),
+        ("FileHeader", IMAGE_FILE_HEADER),
+        ("OptionalHeader", IMAGE_OPTIONAL_HEADER32)
+    ]
+
+IMAGE_NT_HEADERS32 = IMAGE_NT_HEADERS
+
+
+class IMAGE_NT_HEADERS64(ctypes.Structure):
+
+    _fields_ = [
+        ("Signature", ctypes.c_ushort),
+        ("FileHeader", IMAGE_FILE_HEADER),
+        ("OptionalHeader", IMAGE_OPTIONAL_HEADER64)
+    ]
+
+
+IMAGE_SIZEOF_SHORT_NAME = 8
+FILE_ALIGNMENT_HARDCODED_VALUE = 0x200
+
+
+class IMAGE_SECTION_HEADER(ctypes.Structure):
+
+    _fields_ = [
+        ("Name", ctypes.c_byte * IMAGE_SIZEOF_SHORT_NAME),
+        ("VirtualSize", ctypes.c_ulong),
+        ("VirtualAddress", ctypes.c_ulong),
+        ("SizeOfRawData", ctypes.c_ulong),
+        ("PointerToRawData", ctypes.c_ulong),
+        ("PointerToRelocations", ctypes.c_ulong),
+        ("PointerToLinenumbers", ctypes.c_ulong),
+        ("NumberOfRelocations", ctypes.c_ushort),
+        ("NumberOfLinenumbers", ctypes.c_ushort),
+        ("Characteristics", ctypes.c_ulong),
+    ]
+
+
+class IMAGE_IMPORT_DESCRIPTOR(ctypes.Structure):
+
+    _fields_ = [
+        ("OriginalFirstThunk", ctypes.c_ulong),
+        ("TimeDateStamp", ctypes.c_ulong),
+        ("ForwarderChain", ctypes.c_ulong),
+        ("Name", ctypes.c_ulong),
+        ("FirstThunk", ctypes.c_ulong),
+    ]
+
+    def is_empty(self):
+        return not any([
+            self.OriginalFirstThunk,
+            self.TimeDateStamp,
+            self.ForwarderChain,
+            self.Name,
+            self.FirstThunk
+        ])
+
+
+class IMAGE_THUNK_DATA(ctypes.Union):
+
+    _fields_ = [
+        ("ForwarderString", ctypes.c_uint),
+        ("Function", ctypes.c_uint),
+        ("Ordinal", ctypes.c_uint),
+        ("AddressOfData", ctypes.c_uint),
+    ]
+
+
+class IMAGE_THUNK_DATA64(ctypes.Union):
+
+    _fields_ = [
+        ("ForwarderString", ctypes.c_ulong),
+        ("Function", ctypes.c_ulong),
+        ("Ordinal", ctypes.c_ulong),
+        ("AddressOfData", ctypes.c_ulong),
+    ]
+
+    def is_empty(self):
+        return not any(
+            attrgetter(*(map(lambda f: f[0], self._fields_)))(self)
+        )
+
+
+class IMAGE_EXPORT_DIRECTORY(ctypes.Structure):
+
+    _fields_ = [
+        ("Characteristics", ctypes.c_uint),
+        ("TimeDateStamp", ctypes.c_uint),
+        ("MajorVersion", ctypes.c_ushort),
+        ("MinorVersion", ctypes.c_ushort),
+        ("Name", ctypes.c_uint),
+        ("Base", ctypes.c_uint),
+        ("NumberOfFunctions", ctypes.c_uint),
+        ("NumberOfNames", ctypes.c_uint),
+        ("AddressOfFunctions", ctypes.c_uint),
+        ("AddressOfNames", ctypes.c_uint),
+        ("AddressOfNameOrdinals", ctypes.c_uint),
+    ]
+
+    def is_empty(self):
+        return not any(
+            attrgetter(*(map(lambda f: f[0], self._fields_)))(self)
+        )
+
+
+class UNICODE_STRING(ctypes.Structure):
+    _fields_ = [
+        ("Length", ctypes.c_ushort),
+        ("MaximumLength", ctypes.c_ushort),
+        ("Buffer", ctypes.c_void_p),
+    ]
+
+
+INITIAL_UNICODE_STRING = UNICODE_STRING
+
+
+class UNICODE_STRING(INITIAL_UNICODE_STRING):
+
+    @property
+    def str(self):
+        """The python string of the LSA_UNICODE_STRING object
+
+        :type: :class:`unicode`
+        """
+        if not self.Length:
+            return ""
+        if getattr(self, "handle", None) is not None:  # remote ctypes :D -> TRICKS OF THE YEAR
+            raw_data = pymem.memory.read_bytes(self.handle, self.Buffer, self.Length)
+            return raw_data.decode("utf16")
+        size = int(self.Length / 2)
+        return (ctypes.c_wchar * size).from_address(self.Buffer)[:]
+
+    def __repr__(self):
+        return """<{0} "{1}" at {2}>""".format(type(self).__name__, self.str, hex(id(self)))
+
+
+class CURDIR(ctypes.Structure):
+    _fields_ = [
+        ("DosPath", UNICODE_STRING),
+        ("Handle", ctypes.c_void_p),
+    ]
+
+
+class RTL_USER_PROCESS_PARAMETERS(ctypes.Structure):
+    _fields_ = [
+        ("MaximumLength", ctypes.c_ulong),
+        ("Length", ctypes.c_ulong),
+        ("Flags", ctypes.c_ulong),
+        ("DebugFlags", ctypes.c_ulong),
+        ("ConsoleHandle", ctypes.c_void_p),
+        ("ConsoleFlags", ctypes.c_ulong),
+        ("StandardInput", ctypes.c_void_p),
+        ("StandardOutput", ctypes.c_void_p),
+        ("StandardError", ctypes.c_void_p),
+        ("CurrentDirectory", CURDIR),
+        ("DllPath", UNICODE_STRING),
+        ("ImagePathName", UNICODE_STRING),
+        ("CommandLine", UNICODE_STRING),
+    ]
+
+
+class _LIST_ENTRY(ctypes.Structure):
+    pass
+
+
+LIST_ENTRY = _LIST_ENTRY
+PRLIST_ENTRY = ctypes.POINTER(_LIST_ENTRY)
+_LIST_ENTRY._fields_ = [
+    ("Flink", ctypes.POINTER(_LIST_ENTRY)),
+    ("Blink", ctypes.POINTER(_LIST_ENTRY)),
+]
+
+
+class PEB_LDR_DATA(ctypes.Structure):
+    _fields_ = [
+        ("Reserved1", ctypes.c_ubyte * 8),
+        ("Reserved2", ctypes.c_void_p * 3),
+        ("InMemoryOrderModuleList", LIST_ENTRY),
+    ]
+
+
+class PEB(ctypes.Structure):
+
+    _fields_ = [
+        ("Reserved1", ctypes.c_ubyte * 2),
+        ("BeingDebugged", ctypes.c_ubyte),
+        ("Reserved2", ctypes.c_ubyte),
+        ("Reserved3", ctypes.c_void_p),
+        ("ImageBaseAddress", ctypes.c_void_p),
+        ("Ldr", ctypes.POINTER(PEB_LDR_DATA)),
+        ("ProcessParameters", ctypes.POINTER(RTL_USER_PROCESS_PARAMETERS)),
+        ("Reserved4", ctypes.c_ubyte * 104),
+        ("Reserved5", ctypes.c_void_p * 52),
+        ("PostProcessInitRoutine", ctypes.c_void_p),
+        ("Reserved6", ctypes.c_ubyte * 128),
+        ("Reserved7", ctypes.c_void_p),
+        ("SessionId", ctypes.c_ulong)
+    ]
+
+
+class RemotePEB(pymem.rctypes.RemoteStructure.from_structure(PEB)):
+
+    @property
+    def imagepath(self):
+        """The ImagePathName of the PEB
+
+        :type: :class:`~windows.generated_def.winstructs.LSA_UNICODE_STRING`
+        """
+        return self.ProcessParameters.contents.ImagePathName
+
+    @property
+    def exe(self):
+        """The executable of the process, as pointed by PEB.ImageBaseAddress
+        :type: :class:`windows.pe_parse.PEFile`
+        """
+        import pymem.rpe
+
+        return pymem.rpe.GetPEFile(self.ImageBaseAddress, handle=self.handle)
+
+
+class PROCESS_BASIC_INFORMATION(ctypes.Structure):
+
+    _fields_ = [
+        ("ExitStatus", ctypes.c_ulong),
+        ("PebBaseAddress", ctypes.POINTER(PEB)),
+        ("Reserved2", ctypes.c_void_p * 2),
+        ("UniqueProcessId", ctypes.POINTER(ctypes.c_ulong)),
+        ("Reserved3", ctypes.c_void_p)
     ]

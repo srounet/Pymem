@@ -17,3 +17,17 @@ NtQueryInformationThread.argtypes = [
     ctypes.c_ulong,
     ctypes.POINTER(ctypes.c_ulong)
 ]
+
+
+#: Retrieves information about the specified process.
+#:
+#: https://docs.microsoft.com/en-us/windows/win32/api/winternl/nf-winternl-ntqueryinformationprocess
+NtQueryInformationProcess = dll.NtQueryInformationProcess
+NtQueryInformationProcess.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_int,
+    ctypes.c_void_p,
+    ctypes.c_ulong,
+    ctypes.POINTER(ctypes.c_ulong)
+]
+NtQueryInformationProcess.restype = ctypes.c_ulong

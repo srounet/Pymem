@@ -1,5 +1,4 @@
 import logging
-import subprocess
 
 import pymem
 import pymem.exception

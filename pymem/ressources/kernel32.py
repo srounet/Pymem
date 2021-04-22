@@ -86,6 +86,19 @@ VirtualAllocEx.argtypes = (
     ctypes.c_ulong
 )
 
+#: Reserves, commits, or changes the state of a region of pages in the virtual address space of the calling process.
+#: Memory allocated by this function is automatically initialized to zero.
+#:
+#: https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc
+VirtualAlloc = dll.VirtualAlloc
+VirtualAlloc.restype = ctypes.c_void_p
+VirtualAlloc.argtypes = (
+    ctypes.c_void_p,
+    ctypes.c_ulong,
+    ctypes.c_ulong,
+    ctypes.c_ulong
+)
+
 #: Changes the protection on a region of committed pages in the virtual address space of a specified process.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366899%28v=vs.85%29.aspx

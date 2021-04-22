@@ -10,10 +10,12 @@ import pymem.exception
 import pymem.memory
 import pymem.process
 import pymem.ressources.kernel32
+import pymem.ressources.ntdll
 import pymem.ressources.structure
 import pymem.ressources.psapi
 import pymem.thread
 import pymem.pattern
+
 
 logger = logging.getLogger('pymem')
 logger.setLevel(logging.DEBUG)
@@ -296,6 +298,29 @@ class Pymem(object):
         if not self.process_handle:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         return pymem.memory.free_memory(self.process_handle, address)
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def peb_address(self):
+        """Lookup process basic information and returns the process peb address
+
+        Returns
+        -------
+        integer
+            Process peb address
+        """
+        pbi = pymem.ressources.structure.PROCESS_BASIC_INFORMATION()
+        pymem.ressources.ntdll.NtQueryInformationProcess(
+            self.process_handle, 0, ctypes.byref(pbi), ctypes.sizeof(pbi), None
+        )
+        peb_address = ctypes.cast(pbi.PebBaseAddress, ctypes.c_void_p).value
+        return peb_address
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def peb(self):
+        peb = pymem.ressources.structure.RemotePEB(self.process_handle, self.peb_address)
+        return peb
 
     @property
     def process_base(self):

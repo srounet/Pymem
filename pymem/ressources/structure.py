@@ -902,6 +902,32 @@ class RemotePEB(pymem.rctypes.RemoteStructure.from_structure(PEB)):
         return pymem.rpe.GetPEFile(self.ImageBaseAddress, handle=self.handle)
 
 
+class RemotePEB64(pymem.rctypes.transform_type_to_remote64bits(PEB)):
+
+    @property
+    def exe(self):
+        """The executable of the process, as pointed by PEB.ImageBaseAddress
+
+        :type: :class:`windows.pe_parse.PEFile`
+        """
+        import pymem.rpe
+
+        return pymem.rpe.GetPEFile(self.ImageBaseAddress, handle=self.handle)
+
+
+class RemotePEB32(pymem.rctypes.transform_type_to_remote32bits(PEB)):
+
+    @property
+    def exe(self):
+        """The executable of the process, as pointed by PEB.ImageBaseAddress
+
+        :type: :class:`windows.pe_parse.PEFile`
+        """
+        import pymem.rpe
+
+        return pymem.rpe.GetPEFile(self.ImageBaseAddress, handle=self.handle)
+
+
 class PROCESS_BASIC_INFORMATION(ctypes.Structure):
 
     _fields_ = [

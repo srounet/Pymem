@@ -2,6 +2,7 @@ import ctypes
 import ctypes.util
 import functools
 import logging
+import os
 import platform
 import struct
 import sys
@@ -301,6 +302,31 @@ class Pymem(object):
 
     @property
     @functools.lru_cache(maxsize=1)
+    def current_process_bitness(self):
+        return 8 * struct.calcsize("P")
+
+    @property
+    @functools.lru_cache(maxsize=1)
+    def bitness(self):
+        """The bitness of the process
+
+        :returns: :class:`int` -- 32 or 64
+        """
+        def system_bitness():
+            if os.environ["PROCESSOR_ARCHITECTURE"].lower() != "x86":
+                return 64
+            if "PROCESSOR_ARCHITEW6432" in os.environ:
+                return 64
+            return 32
+
+        if system_bitness() == 32:
+            return 32
+        if self.is_WoW64:
+            return 32
+        return 64
+
+    @property
+    @functools.lru_cache(maxsize=1)
     def peb_address(self):
         """Lookup process basic information and returns the process peb address
 
@@ -309,18 +335,60 @@ class Pymem(object):
         integer
             Process peb address
         """
-        pbi = pymem.ressources.structure.PROCESS_BASIC_INFORMATION()
-        pymem.ressources.ntdll.NtQueryInformationProcess(
-            self.process_handle, 0, ctypes.byref(pbi), ctypes.sizeof(pbi), None
-        )
-        peb_address = ctypes.cast(pbi.PebBaseAddress, ctypes.c_void_p).value
-        return peb_address
+        # pbi = pymem.ressources.structure.PROCESS_BASIC_INFORMATION()
+        # pymem.ressources.ntdll.NtQueryInformationProcess(
+        #     self.process_handle, 0, ctypes.byref(pbi), ctypes.sizeof(pbi), None
+        # )
+        # peb_address = ctypes.cast(pbi.PebBaseAddress, ctypes.c_void_p).value
+        # return peb_address
+        import pymem.rctypes
+
+        if self.current_process_bitness == 32 and self.bitness == 64:
+            information_type = 0
+            x = pymem.rctypes.transform_structure_to_remote64bits(pymem.ressources.structure.PROCESS_BASIC_INFORMATION)
+            data = (ctypes.c_char * ctypes.sizeof(x))()
+
+            pymem.ressources.ntdll.NtQueryInformationProcess(
+                self.process_handle, information_type, ctypes.byref(data), ctypes.sizeof(data), None
+            )
+            peb_offset = x.PebBaseAddress.offset
+            peb_addr = struct.unpack("<Q", data[x.PebBaseAddress.offset: x.PebBaseAddress.offset + 8])[0]
+            #
+            # # x = windows.remotectypes.transform_type_to_remote64bits(PROCESS_BASIC_INFORMATION)
+            # # Fuck-it <3
+            # data = (ctypes.c_char * ctypes.sizeof(x))()
+            # windows.syswow64.NtQueryInformationProcess_32_to_64(self.handle, ProcessInformation=data,
+            #                                                     ProcessInformationLength=ctypes.sizeof(x))
+            # peb_offset = x.PebBaseAddress.offset
+            # peb_addr = struct.unpack("<Q", data[x.PebBaseAddress.offset: x.PebBaseAddress.offset + 8])[0]
+        elif self.current_process_bitness == 64 and self.bitness == 32:
+            information_type = 26
+            y = ctypes.c_ulonglong()
+            pymem.ressources.ntdll.NtQueryInformationProcess(
+                self.process_handle, information_type, ctypes.byref(y), ctypes.sizeof(y), None
+            )
+            peb_addr = y.value
+        else:
+            information_type = 0
+            pbi = pymem.ressources.structure.PROCESS_BASIC_INFORMATION()
+            pymem.ressources.ntdll.NtQueryInformationProcess(
+                self.process_handle, information_type, ctypes.byref(pbi), ctypes.sizeof(pbi), None
+            )
+            peb_addr = ctypes.cast(pbi.PebBaseAddress, ctypes.c_void_p).value
+        if peb_addr is None:
+            raise ValueError("Could not get peb addr of process {0}".format(self.name))
+        return peb_addr
 
     @property
     @functools.lru_cache(maxsize=1)
     def peb(self):
-        peb = pymem.ressources.structure.RemotePEB(self.process_handle, self.peb_address)
-        return peb
+        import pymem.rpe
+
+        if self.current_process_bitness == 32 and self.bitness == 64:
+            return pymem.ressources.structure.RemotePEB64(self.process_handle, self.peb_address)
+        if self.current_process_bitness == 64 and self.bitness == 32:
+            return pymem.ressources.structure.RemotePEB32(self.process_handle, self.peb_address)
+        return pymem.ressources.structure.RemotePEB(self.process_handle, self.peb_address)
 
     @property
     def process_base(self):

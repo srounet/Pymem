@@ -324,6 +324,13 @@ class Pymem(object):
     def base_address(self):
         """Gets the memory address where the main module was loaded (ie address of exe file in memory)
 
+        Raises
+        ------
+        TypeError
+            If process_id is not an integer
+        ProcessError
+            If could not find process first module address
+
         Returns
         -------
         int

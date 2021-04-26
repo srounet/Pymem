@@ -71,6 +71,8 @@ def test_read_bytes_bad_parameter():
 def test_read_no_handle():
     pm = pymem.Pymem()
     with pytest.raises(pymem.exception.ProcessError):
+        pm.read_bool(0x111111)
+    with pytest.raises(pymem.exception.ProcessError):
         pm.read_char(0x111111)
     with pytest.raises(pymem.exception.ProcessError):
         pm.read_uchar(0x111111)
@@ -134,6 +136,25 @@ def test_write_int():
     pm = pymem.Pymem()
     with pytest.raises(pymem.exception.ProcessError):
         pm.write_int(0x111111, 1)
+
+
+def test_write_bool():
+    pm = pymem.Pymem('python.exe')
+    address = pm.allocate(1)
+
+    pm.write_bool(address, True)
+    assert pm.read_bool(address) is True
+
+    pm.write_bool(address, False)
+    assert pm.read_bool(address) is False
+    pm.free(address)
+
+    with pytest.raises(TypeError):
+        pm.write_bool(0x111111, 2)
+
+    pm = pymem.Pymem()
+    with pytest.raises(pymem.exception.ProcessError):
+        pm.write_bool(0x111111, 1)
 
 
 def test_write_uint():

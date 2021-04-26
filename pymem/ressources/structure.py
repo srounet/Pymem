@@ -383,9 +383,9 @@ class MODULEINFO(ctypes.Structure):
     """
 
     _fields_ = [
-        ("lpBaseOfDll", ctypes.c_void_p), # remote pointer
+        ("lpBaseOfDll", ctypes.c_void_p),  # remote pointer
         ("SizeOfImage", ctypes.c_ulong),
-        ("EntryPoint", ctypes.c_void_p), # remote pointer
+        ("EntryPoint", ctypes.c_void_p),  # remote pointer
     ]
 
     def __init__(self, handle):

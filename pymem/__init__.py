@@ -397,7 +397,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
 
@@ -425,7 +425,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -455,7 +455,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -485,7 +485,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -515,7 +515,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -545,7 +545,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -575,7 +575,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -605,7 +605,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -635,7 +635,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -665,7 +665,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -695,7 +695,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -725,7 +725,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -755,7 +755,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -785,7 +785,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -817,7 +817,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryReadError
             If ReadProcessMemory failed
         TypeError
@@ -853,7 +853,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -881,7 +881,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -909,7 +909,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -937,7 +937,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -965,7 +965,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -993,7 +993,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -1021,7 +1021,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -1049,7 +1049,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -1077,7 +1077,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -1105,7 +1105,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -1133,7 +1133,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -1161,7 +1161,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -1189,7 +1189,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -1218,7 +1218,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError
@@ -1247,7 +1247,7 @@ class Pymem(object):
         Raises
         ------
         ProcessError
-            If there id no opened process
+            If there is no opened process
         MemoryWriteError
             If WriteProcessMemory failed
         TypeError

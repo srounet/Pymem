@@ -321,6 +321,17 @@ class Pymem(object):
         return base_module
 
     @property
+    def base_address(self):
+        """Gets the memory address where the main module was loaded (ie address of exe file in memory)
+
+        Returns
+        -------
+        int
+            Address of main module
+        """
+        return self.process_base.lpBaseOfDll
+
+    @property
     @functools.lru_cache(maxsize=1)
     def main_thread(self):
         """Retrieve ThreadEntry32 of main thread given its creation time.
@@ -394,6 +405,36 @@ class Pymem(object):
             value = pymem.memory.read_bytes(self.process_handle, address, length)
         except pymem.exception.WinAPIError as e:
             raise pymem.exception.MemoryReadError(address, length, e.error_code)
+        return value
+
+    def read_bool(self, address):
+        """Reads 1 byte from an area of memory in a specified process.
+
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryReadError
+            If ReadProcessMemory failed
+        TypeError
+            If address is not a valid integer
+
+        Returns
+        -------
+        bool
+            returns the value read
+        """
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        try:
+            value = pymem.memory.read_bool(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('?'), e.error_code)
         return value
 
     def read_char(self, address):
@@ -817,6 +858,34 @@ class Pymem(object):
             raise TypeError('Invalid argument: {}'.format(value))
         try:
             pymem.memory.write_bytes(self.process_handle, address, value, length)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
+
+    def write_bool(self, address, value):
+        """Write `value` to the given `address` into the current opened process.
+
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        value: bool
+            the value to be written
+
+        Raises
+        ------
+        ProcessError
+            If there id no opened process
+        MemoryWriteError
+            If WriteProcessMemory failed
+        TypeError
+            If address is not a valid integer
+        """
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        if value is None or not isinstance(value, bool):
+            raise TypeError('Invalid argument: {}'.format(value))
+        try:
+            pymem.memory.write_bool(self.process_handle, address, value)
         except pymem.exception.WinAPIError as e:
             raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 

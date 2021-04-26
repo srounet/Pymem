@@ -1,5 +1,5 @@
 import logging
-import subprocess
+import struct
 
 import pymem
 import pymem.exception
@@ -24,6 +24,16 @@ def test_process_base():
 
     with pytest.raises(TypeError):
         assert pm.process_base
+
+
+def test_base_address():
+    pm = pymem.Pymem()
+
+    with pytest.raises(TypeError):
+        assert pm.base_address
+
+    pm = pymem.Pymem("python.exe")
+    assert pm.base_address
 
 
 def test_main_thread_id():

@@ -107,6 +107,39 @@ def read_bytes(handle, address, byte):
     return raw
 
 
+def read_bool(handle, address):
+    """Reads 1 byte from an area of memory in a specified process.
+    The entire area to be read must be accessible or the operation fails.
+
+    Unpack the value using struct.unpack('?')
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
+
+    Parameters
+    ----------
+    handle: ctypes.c_void_p
+        The handle to a process. The function allocates memory within the virtual address space of this process.
+        The handle must have the PROCESS_VM_OPERATION access right.
+    address: int
+        An address of the region of memory to be read.
+
+    Raises
+    ------
+    TypeError
+        if address is not a valid integer
+    WinAPIError
+        if ReadProcessMemory failed
+
+    Returns
+    -------
+    bool
+        the raw value read as a string
+    """
+    bytes = read_bytes(handle, address, struct.calcsize('?'))
+    bytes = struct.unpack('?', bytes)[0]
+    return bytes
+
+
 def read_char(handle, address):
     """Reads 1 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
@@ -586,6 +619,40 @@ def write_bytes(handle, address, data, length):
     if error_code:
         ctypes.windll.kernel32.SetLastError(0)
         raise pymem.exception.WinAPIError(error_code)
+    return res
+
+
+def write_bool(handle, address, value):
+    """Writes 1 byte to an area of memory in a specified process.
+    The entire area to be written to must be accessible or the operation fails.
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms681674%28v=vs.85%29.aspx
+
+    Parameters
+    ----------
+    handle: ctypes.c_void_p
+        The handle to a process. The function allocates memory within the virtual address space of this process.
+        The handle must have the PROCESS_VM_OPERATION access right.
+    address: int
+        An address of the region of memory to be written.
+    value: bool
+        A boolean representing the value to be written
+
+    Raises
+    ------
+    TypeError
+        if address is not a valid integer
+    WinAPIError
+        if WriteProcessMemory failed
+
+    Returns
+    -------
+    bool
+        A boolean indicating a successful write.
+    """
+    value = struct.pack('?', value)
+    length = struct.calcsize('?')
+    res = write_bytes(handle, address, value, length)
     return res
 
 

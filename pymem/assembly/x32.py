@@ -714,13 +714,12 @@ class Jmp(JmpType):
                 (RawBits.from_int(8, 0xea), SegmentSelectorAbsoluteAddr())]
 
 
-class Je(JmpType):
-    encoding = [(RawBits.from_int(8, 0x74), JmpImm8(2)),]
-
-
 class Jz(JmpType):
     encoding = [(RawBits.from_int(8, 0x74), JmpImm8(2)),
                 (RawBits.from_int(16, 0x0f84), JmpImm32(6))]
+
+
+Je = Jz
 
 
 class Jnz(JmpType):
@@ -795,16 +794,22 @@ class Pushfd(Instruction):
     encoding = [(RawBits.from_int(8, 0x9c),)]
 
 
-class Pushad(Instruction):
+class Pushal(Instruction):
     encoding = [(RawBits.from_int(8, 0x60),)]
+
+
+Pushad = Pushal
 
 
 class Popfd(Instruction):
     encoding = [(RawBits.from_int(8, 0x9d),)]
 
 
-class Popad(Instruction):
+class Popal(Instruction):
     encoding = [(RawBits.from_int(8, 0x61),)]
+
+
+Popad = Popal
 
 
 class Movsb(Instruction):

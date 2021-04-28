@@ -16,9 +16,11 @@ Documentation
 =============
 You can find pymem documentation on readthedoc there: http://pymem.readthedocs.io/
 
-Issues And Contributions
-========================
-Feel free to add issues and make pull-requests :)
+Contributions
+=============
+
+- [Hakril](https://www.google.com "Hakril's Github profil") ([PythonForWindows](https://github.com/hakril/PythonForWindows/)) without whom this project would not be the same.
+
 
 Discord Support
 ===============

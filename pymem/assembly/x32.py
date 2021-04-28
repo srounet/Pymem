@@ -707,10 +707,15 @@ class Call(JmpType):
                 (RawBits.from_int(8, 0xff), Slash(2)),
                 (RawBits.from_int(8, 0x9a), SegmentSelectorAbsoluteAddr())]
 
+
 class Jmp(JmpType):
     encoding = [(RawBits.from_int(8, 0xeb), JmpImm8(2)),
                 (RawBits.from_int(8, 0xe9), JmpImm32(5)),
                 (RawBits.from_int(8, 0xea), SegmentSelectorAbsoluteAddr())]
+
+
+class Je(JmpType):
+    encoding = [(RawBits.from_int(8, 0x74), JmpImm8(2)),]
 
 
 class Jz(JmpType):
@@ -786,6 +791,22 @@ class Mov(Instruction):
                 (RawBits.from_int(16, 0x0f22), ControlRegisterModRM(writecr=True))]
 
 
+class Pushfd(Instruction):
+    encoding = [(RawBits.from_int(8, 0x9c),)]
+
+
+class Pushad(Instruction):
+    encoding = [(RawBits.from_int(8, 0x60),)]
+
+
+class Popfd(Instruction):
+    encoding = [(RawBits.from_int(8, 0x9d),)]
+
+
+class Popad(Instruction):
+    encoding = [(RawBits.from_int(8, 0x61),)]
+
+
 class Movsb(Instruction):
     encoding = [(RawBits.from_int(8, 0xa4),)]
 
@@ -805,7 +826,7 @@ class Cmp(Instruction):
 
 
 class Test(Instruction):
-    encoding = [(RawBits.from_int(8, 0xf7), Slash(7), Imm32()),
+    encoding = [(RawBits.from_int(8, 0xf7), Slash(0), Imm32()),
                 (RawBits.from_int(8, 0x85), ModRM([ModRM_REG__REG, ModRM_REG__MEM], has_direction_bit=False))]
 
 

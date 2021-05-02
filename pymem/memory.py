@@ -1118,8 +1118,13 @@ def virtual_query(handle, address):
     MEMORY_BASIC_INFORMATION
         A memory basic information object
     """
-    mbi = pymem.ressources.structure.MEMORY_BASIC_INFORMATION()
-    mbi_pointer = ctypes.byref(mbi)
-    size = ctypes.sizeof(mbi)
-    pymem.ressources.kernel32.VirtualQueryEx(handle, address, mbi_pointer, size)
+    current_bitness = 8 * struct.calcsize("P")
+
+    if current_bitness == 32:
+        mbi = pymem.ressources.structure.MEMORY_BASIC_INFORMATION32()
+    else:
+        mbi = pymem.ressources.structure.MEMORY_BASIC_INFORMATION64()
+
+    mbi_pointer = ctypes.cast(ctypes.byref(mbi), pymem.ressources.structure.MEMORY_BASIC_INFORMATION)
+    pymem.ressources.kernel32.VirtualQueryEx(handle, address, mbi_pointer, ctypes.sizeof(mbi_pointer))
     return mbi

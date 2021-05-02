@@ -1125,6 +1125,6 @@ def virtual_query(handle, address):
     else:
         mbi = pymem.ressources.structure.MEMORY_BASIC_INFORMATION64()
 
-    mbi_pointer = ctypes.cast(ctypes.byref(mbi), pymem.ressources.structure.MEMORY_BASIC_INFORMATION)
+    mbi_pointer = ctypes.cast(ctypes.byref(mbi), ctypes.POINTER(pymem.ressources.structure.MEMORY_BASIC_INFORMATION))
     pymem.ressources.kernel32.VirtualQueryEx(handle, address, mbi_pointer, ctypes.sizeof(mbi_pointer))
     return mbi

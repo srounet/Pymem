@@ -53,3 +53,40 @@ class Thread(object):
         teb = pymem.ressources.structure.SMALL_TEB.from_buffer_copy(bytes)
         pymem.ressources.kernel32.CloseHandle(thread_handle)
         return teb
+
+    def suspend(self):
+        THREAD_ALL_ACCESS = (
+            pymem.ressources.structure.PROCESS.STANDARD_RIGHTS_REQUIRED +
+            pymem.ressources.structure.PROCESS.SYNCHRONIZE +
+            0x3FF
+        )
+        hThread = self.th_entry_32.th32ThreadID
+
+        thread_handle = pymem.ressources.kernel32.OpenThread(THREAD_ALL_ACCESS, 0, hThread)
+        pymem.ressources.kernel32.SuspendThread(thread_handle)
+        pymem.ressources.kernel32.CloseHandle(thread_handle)
+
+    def resume(self):
+        THREAD_ALL_ACCESS = (
+            pymem.ressources.structure.PROCESS.STANDARD_RIGHTS_REQUIRED +
+            pymem.ressources.structure.PROCESS.SYNCHRONIZE +
+            0x3FF
+        )
+        hThread = self.th_entry_32.th32ThreadID
+
+        thread_handle = pymem.ressources.kernel32.OpenThread(THREAD_ALL_ACCESS, 0, hThread)
+        pymem.ressources.kernel32.ResumeThread(thread_handle)
+        pymem.ressources.kernel32.CloseHandle(thread_handle)
+
+    def terminate(self):
+        THREAD_ALL_ACCESS = (
+            pymem.ressources.structure.PROCESS.STANDARD_RIGHTS_REQUIRED +
+            pymem.ressources.structure.PROCESS.SYNCHRONIZE +
+            0x3FF
+        )
+        hThread = self.th_entry_32.th32ThreadID
+        print(self.th_entry_32)
+
+        thread_handle = pymem.ressources.kernel32.OpenThread(THREAD_ALL_ACCESS, 0, hThread)
+        res = pymem.ressources.kernel32.TerminateThread(thread_handle, 0)
+        pymem.ressources.kernel32.CloseHandle(thread_handle)

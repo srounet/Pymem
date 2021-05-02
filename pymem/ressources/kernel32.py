@@ -173,13 +173,29 @@ OpenThread.argtypes = [
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms686345%28v=vs.85%29.aspx
 SuspendThread = dll.SuspendThread
-SuspendThread.restype  = ctypes.c_ulong
+SuspendThread.argtypes = [
+    ctypes.c_void_p
+]
+SuspendThread.restype = ctypes.c_ulong
 
 #: Decrements a thread's suspend count. When the suspend count is decremented to zero, the execution of the thread is resumed.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms685086%28v=vs.85%29.aspx
 ResumeThread = dll.ResumeThread
+ResumeThread.argtypes = [
+    ctypes.c_void_p
+]
 ResumeThread.restype = ctypes.c_ulong
+
+#: TerminateThread is used to cause a thread to exit
+#:
+#: https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminatethread
+TerminateThread = dll.TerminateThread
+TerminateThread.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_ulong
+]
+TerminateThread.restype = ctypes.c_long
 
 #: Retrieves the context of the specified thread.
 #:

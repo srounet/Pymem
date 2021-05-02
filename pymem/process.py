@@ -327,6 +327,8 @@ def enum_process_thread(process_id):
     while ret:
         if thread_entry.th32OwnerProcessID == process_id:
             yield thread_entry
+
+        thread_entry = pymem.ressources.structure.ThreadEntry32()
         ret = pymem.ressources.kernel32.Thread32Next(hSnap, ctypes.byref(thread_entry))
     pymem.ressources.kernel32.CloseHandle(hSnap)
 

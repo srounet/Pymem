@@ -157,18 +157,21 @@ class ThreadEntry32(ctypes.Structure):
         ("cntUsage", ctypes.c_ulong),
         ("th32ThreadID", ctypes.c_ulong),
         ("th32OwnerProcessID", ctypes.c_ulong),
-        ("tpBasePri", ctypes.c_ulong),
-        ("tpDeltaPri", ctypes.c_ulong),
+        ("tpBasePri", ctypes.c_long),
+        ("tpDeltaPri", ctypes.c_long),
         ("dwFlags", ctypes.c_ulong)
     ]
 
     @property
     def szExeFile(self):
-        return self.szExeFile.decode(locale.getpreferredencoding())
+        if self.szExeFile:
+            return self.szExeFile.decode(locale.getpreferredencoding())
 
-    # XXX: save it somehow
     @property
     def creation_time(self):
+        if not self.th32ThreadID:
+            return
+
         THREAD_QUERY_INFORMATION = 0x0040
         handle = pymem.ressources.kernel32.OpenThread(
             THREAD_QUERY_INFORMATION, False, self.th32ThreadID

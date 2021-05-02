@@ -414,6 +414,30 @@ class Pymem(object):
         return base_module
 
     @property
+    def threads(self):
+        """Retrieve a list of ThreadEntry32 sorted by creation time.
+
+        Raises
+        ------
+        ProcessError
+            If there is no process opened or could not list process thread
+
+        Returns
+        -------
+        list(ThreadEntry32)
+            process threads
+        """
+        if not self.process_id:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+
+        threads = [
+            pymem.thread.Thread(self.process_handle, thread_entry)
+            for thread_entry in pymem.process.enum_process_thread(self.process_id)
+        ]
+        threads = sorted(threads, key=lambda k: k.th_entry_32.creation_time)
+        return threads
+
+    @property
     @functools.lru_cache(maxsize=1)
     def main_thread(self):
         """Retrieve ThreadEntry32 of main thread given its creation time.
@@ -428,16 +452,10 @@ class Pymem(object):
         Thread
             Process main thread
         """
-        if not self.process_id:
-            raise pymem.exception.ProcessError('You must open a process before calling this method')
-        threads = pymem.process.enum_process_thread(self.process_id)
-        threads = sorted(threads, key=lambda k: k.creation_time)
-
-        if not threads:
+        if not self.threads:
             raise pymem.exception.ProcessError('Could not list process thread')
 
-        main_thread = threads[0]
-        main_thread = pymem.thread.Thread(self.process_handle, main_thread)
+        main_thread = self.threads[0]
         return main_thread
 
     @property

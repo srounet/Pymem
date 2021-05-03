@@ -1119,7 +1119,10 @@ def virtual_query(handle, address):
         A memory basic information object
     """
     mbi = pymem.ressources.structure.MEMORY_BASIC_INFORMATION()
-    mbi_pointer = ctypes.byref(mbi)
-    size = ctypes.sizeof(mbi)
-    pymem.ressources.kernel32.VirtualQueryEx(handle, address, mbi_pointer, size)
+    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.VirtualQueryEx(handle, address, ctypes.byref(mbi), ctypes.sizeof(mbi))
+    error_code = ctypes.windll.kernel32.GetLastError()
+    if error_code:
+        ctypes.windll.kernel32.SetLastError(0)
+        raise pymem.exception.WinAPIError(error_code)
     return mbi

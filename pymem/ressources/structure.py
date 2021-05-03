@@ -437,23 +437,6 @@ class SYSTEM_INFO(ctypes.Structure):
     ]
 
 
-class MEMORY_BASIC_INFORMATION(ctypes.Structure):
-    """Contains information about a range of pages in the virtual address space of a process.
-    The VirtualQuery and VirtualQueryEx functions use this structure.
-
-    https://msdn.microsoft.com/en-us/library/windows/desktop/aa366775(v=vs.85).aspx
-    """
-    _fields_ = [
-        ("BaseAddress", ctypes.c_ulong),
-        ("AllocationBase", ctypes.c_ulong),
-        ("AllocationProtect", ctypes.c_ulong),
-        ("RegionSize", ctypes.c_ulong),
-        ("State", ctypes.c_ulong),
-        ("Protect", ctypes.c_ulong),
-        ("Type", ctypes.c_ulong)
-    ]
-
-
 class MEMORY_BASIC_INFORMATION32(ctypes.Structure):
     """Contains information about a range of pages in the virtual address space of a process.
     The VirtualQuery and VirtualQueryEx functions use this structure.
@@ -520,6 +503,13 @@ class MEMORY_BASIC_INFORMATION64(ctypes.Structure):
         enum_type = [e for e in MEMORY_PROTECTION if e.value == self.Protect]
         enum_type = enum_type[0] if enum_type else None
         return enum_type
+
+
+PTR_SIZE = ctypes.sizeof(ctypes.c_void_p)
+if PTR_SIZE == 8:       # 64-bit python
+    MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION64
+elif PTR_SIZE == 4:     # 32-bit python
+    MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION32
 
 
 class EnumProcessModuleEX(object):

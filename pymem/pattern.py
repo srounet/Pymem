@@ -50,6 +50,7 @@ def scan_pattern_page(handle, address, pattern):
 
     return next_region, found
 
+
 def pattern_scan_module(handle, module, pattern):
     """Given a handle over an opened process and a module will scan memory after
     a byte pattern and return its corresponding memory address.

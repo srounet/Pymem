@@ -193,7 +193,7 @@ VirtualQueryEx = dll.VirtualQueryEx
 VirtualQueryEx.argtypes = [
     ctypes.c_void_p,
     ctypes.c_void_p,
-    ctypes.POINTER(pymem.ressources.structure.MEMORY_BASIC_INFORMATION),
+    ctypes.c_void_p,
     ctypes.c_size_t
 ]
 VirtualQueryEx.restype = ctypes.c_ulong

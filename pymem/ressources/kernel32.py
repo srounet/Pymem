@@ -202,6 +202,10 @@ VirtualQueryEx.restype = ctypes.c_ulong
 #:
 #: https://msdn.microsoft.com/en-us/library/ms684139(v=vs.85).aspx
 IsWow64Process = dll.IsWow64Process
+IsWow64Process.argtypes = [
+    ctypes.c_void_p,
+    ctypes.POINTER(ctypes.c_long)
+]
 IsWow64Process.restype = ctypes.c_long
 
 #: Retrieves information about the current system.

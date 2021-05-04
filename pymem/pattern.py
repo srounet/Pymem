@@ -1,8 +1,8 @@
 import re
 
 import pymem.memory
-import pymem.ressources.kernel32
-import pymem.ressources.structure
+import pymem.resources.kernel32
+import pymem.resources.structure
 
 
 def scan_pattern_page(handle, address, pattern):
@@ -31,12 +31,12 @@ def scan_pattern_page(handle, address, pattern):
     mbi = pymem.memory.virtual_query(handle, address)
     next_region = mbi.BaseAddress + mbi.RegionSize
     allowed_protections = [
-        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READ,
-        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE,
-        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READWRITE,
-        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READONLY,
+        pymem.resources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READ,
+        pymem.resources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE,
+        pymem.resources.structure.MEMORY_PROTECTION.PAGE_READWRITE,
+        pymem.resources.structure.MEMORY_PROTECTION.PAGE_READONLY,
     ]
-    if mbi.state != pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT or mbi.protect not in allowed_protections:
+    if mbi.state != pymem.resources.structure.MEMORY_STATE.MEM_COMMIT or mbi.protect not in allowed_protections:
         return next_region, None
 
     page_bytes = pymem.memory.read_bytes(handle, address, mbi.RegionSize)

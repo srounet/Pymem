@@ -1,6 +1,6 @@
 import ctypes
 
-import pymem.ressources.structure
+import pymem.resources.structure
 
 
 dll = ctypes.WinDLL('advapi32.dll')
@@ -13,7 +13,7 @@ LookupPrivilegeValue = dll.LookupPrivilegeValueW
 LookupPrivilegeValue.argtypes = (
     ctypes.c_wchar_p,  # system name
     ctypes.c_wchar_p,  # name
-    ctypes.POINTER(pymem.ressources.structure.LUID),
+    ctypes.POINTER(pymem.resources.structure.LUID),
 )
 LookupPrivilegeValue.restype = ctypes.c_long
 
@@ -24,7 +24,7 @@ LookupPrivilegeValue.restype = ctypes.c_long
 LookupPrivilegeName = dll.LookupPrivilegeNameW
 LookupPrivilegeName.argtypes = (
     ctypes.c_wchar_p,  # lpSystemName
-    ctypes.POINTER(pymem.ressources.structure.LUID),  # lpLuid
+    ctypes.POINTER(pymem.resources.structure.LUID),  # lpLuid
     ctypes.c_wchar_p,  # lpName
     ctypes.POINTER(ctypes.c_ulong),  # cchName
 )
@@ -52,8 +52,8 @@ AdjustTokenPrivileges.restype = ctypes.c_long
 AdjustTokenPrivileges.argtypes = (
     ctypes.c_void_p,  # TokenHandle
     ctypes.c_long,  # DisableAllPrivileges
-    pymem.ressources.structure.PTOKEN_PRIVILEGES,  # NewState (optional)
+    pymem.resources.structure.PTOKEN_PRIVILEGES,  # NewState (optional)
     ctypes.c_ulong,  # BufferLength of PreviousState
-    pymem.ressources.structure.PTOKEN_PRIVILEGES,  # PreviousState (out, optional)
+    pymem.resources.structure.PTOKEN_PRIVILEGES,  # PreviousState (out, optional)
     ctypes.POINTER(ctypes.c_ulong),  # ReturnLength
 )

@@ -27,7 +27,7 @@ setuptools.setup(
     maintainer_email='srounet@gmail.com',
     url='http://pymem.readthedocs.org/en/latest/',
     license="mit",
-    packages=["pymem", "pymem.ressources"],
+    packages=["pymem", "pymem.resources"],
     platforms=["windows"],
     keywords='memory win32 windows process',
     classifiers=[

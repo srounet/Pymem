@@ -4,7 +4,7 @@ import functools
 import struct
 
 import pymem.rctypes
-import pymem.ressources.structure
+import pymem.resources.structure
 
 
 IMAGE_ORDINAL_FLAG32 = 0x80000000
@@ -93,7 +93,7 @@ def get_string(handle, addr):
     return pymem.memory.read_string(handle, addr)
 
 
-class PESection(pymem.ressources.structure.IMAGE_SECTION_HEADER):
+class PESection(pymem.resources.structure.IMAGE_SECTION_HEADER):
 
     @property
     def name(self):
@@ -194,7 +194,7 @@ class IATEntry(ctypes.Structure):
     #         # print("LOL BYE {0}".format(self.hook))
 
 
-class IMAGE_IMPORT_DESCRIPTOR(pymem.ressources.structure.IMAGE_IMPORT_DESCRIPTOR): # TODO: use explicite name winstructs.IMAGE_IMPORT_DESCRIPTOR
+class IMAGE_IMPORT_DESCRIPTOR(pymem.resources.structure.IMAGE_IMPORT_DESCRIPTOR): # TODO: use explicite name winstructs.IMAGE_IMPORT_DESCRIPTOR
 
     def get_INT(self):
         if not self.OriginalFirstThunk:
@@ -234,7 +234,7 @@ class IMAGE_IMPORT_DESCRIPTOR(pymem.ressources.structure.IMAGE_IMPORT_DESCRIPTOR
         return self
 
 
-class IMAGE_EXPORT_DIRECTORY(pymem.ressources.structure.IMAGE_EXPORT_DIRECTORY): # TODO: use explicite name winstructs._IMAGE_EXPORT_DIRECTORY
+class IMAGE_EXPORT_DIRECTORY(pymem.resources.structure.IMAGE_EXPORT_DIRECTORY): # TODO: use explicite name winstructs._IMAGE_EXPORT_DIRECTORY
     def get_exports(self):
         NameOrdinals = self.transformers.create_structure_at((ctypes.c_ushort * self.NumberOfNames), self.AddressOfNameOrdinals + self.baseaddr)
         NameOrdinals = list(NameOrdinals)
@@ -306,8 +306,8 @@ class PEFile(object):
     def get_NT_HEADER(self):
         offset = self.get_DOS_HEADER().e_lfanew
         if self.bitness == 32:
-            return self.transformers.create_structure_at(pymem.ressources.structure.IMAGE_NT_HEADERS32, self.baseaddr + offset)
-        return self.transformers.create_structure_at(pymem.ressources.structure.IMAGE_NT_HEADERS64, self.baseaddr + offset)
+            return self.transformers.create_structure_at(pymem.resources.structure.IMAGE_NT_HEADERS32, self.baseaddr + offset)
+        return self.transformers.create_structure_at(pymem.resources.structure.IMAGE_NT_HEADERS64, self.baseaddr + offset)
 
     def get_OptionalHeader(self):
         return self.get_NT_HEADER().OptionalHeader
@@ -316,7 +316,7 @@ class PEFile(object):
         # This won't work if we load a PE32 in a 64bit process
         # PE32 .NET...
         # return self.get_OptionalHeader().DataDirectory
-        DataDirectory_type = pymem.ressources.structure.IMAGE_DATA_DIRECTORY * pymem.ressources.structure.IMAGE_NUMBEROF_DIRECTORY_ENTRIES
+        DataDirectory_type = pymem.resources.structure.IMAGE_DATA_DIRECTORY * pymem.resources.structure.IMAGE_NUMBEROF_DIRECTORY_ENTRIES
         SizeOfOptionalHeader = self.get_NT_HEADER().FileHeader.SizeOfOptionalHeader
         if self.handle is None:
             opt_header_addr = ctypes.addressof(self.get_NT_HEADER().OptionalHeader)
@@ -362,7 +362,7 @@ class PEFile(object):
         #pe_section_type = IMAGE_SECTION_HEADER
         # return [PESection.create(self, base_section + (sizeof(IMAGE_SECTION_HEADER) * i)) for i in range(nb_section)]
         return [
-            PESection.create(self, base_section + (ctypes.sizeof(pymem.ressources.structure.IMAGE_SECTION_HEADER) * i))
+            PESection.create(self, base_section + (ctypes.sizeof(pymem.resources.structure.IMAGE_SECTION_HEADER) * i))
             for i in range(nb_section)
         ]
         #sections_array = self.transformers.create_structure_at((self.PESection * nb_section), base_section)

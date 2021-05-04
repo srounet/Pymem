@@ -2,8 +2,8 @@ import ctypes
 import struct
 
 import pymem.exception
-import pymem.ressources.kernel32
-import pymem.ressources.structure
+import pymem.resources.kernel32
+import pymem.resources.structure
 
 
 def allocate_memory(handle, size, allocation_type=None, protection_type=None):
@@ -30,11 +30,11 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
         The address of the allocated region of pages.
     """
     if not allocation_type:
-        allocation_type = pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT.value
+        allocation_type = pymem.resources.structure.MEMORY_STATE.MEM_COMMIT.value
     if not protection_type:
-        protection_type = pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE.value
+        protection_type = pymem.resources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE.value
     ctypes.windll.kernel32.SetLastError(0)
-    address = pymem.ressources.kernel32.VirtualAllocEx(handle, None, size, allocation_type, protection_type)
+    address = pymem.resources.kernel32.VirtualAllocEx(handle, None, size, allocation_type, protection_type)
     return address
 
 
@@ -59,9 +59,9 @@ def free_memory(handle, address, free_type=None):
         A boolean indicating if the call was a success.
     """
     if not free_type:
-        free_type = pymem.ressources.structure.MEMORY_STATE.MEM_RELEASE
+        free_type = pymem.resources.structure.MEMORY_STATE.MEM_RELEASE
     ctypes.windll.kernel32.SetLastError(0)
-    ret = pymem.ressources.kernel32.VirtualFreeEx(handle, address, 0, free_type)
+    ret = pymem.resources.kernel32.VirtualFreeEx(handle, address, 0, free_type)
     return ret
 
 
@@ -98,7 +98,7 @@ def read_bytes(handle, address, byte):
     buff = ctypes.create_string_buffer(byte)
     bytes_read = ctypes.c_size_t()
     ctypes.windll.kernel32.SetLastError(0)
-    pymem.ressources.kernel32.ReadProcessMemory(handle, ctypes.c_void_p(address), ctypes.byref(buff), byte, ctypes.byref(bytes_read))
+    pymem.resources.kernel32.ReadProcessMemory(handle, ctypes.c_void_p(address), ctypes.byref(buff), byte, ctypes.byref(bytes_read))
     error_code = ctypes.windll.kernel32.GetLastError()
     if error_code:
         ctypes.windll.kernel32.SetLastError(0)
@@ -1118,9 +1118,9 @@ def virtual_query(handle, address):
     MEMORY_BASIC_INFORMATION
         A memory basic information object
     """
-    mbi = pymem.ressources.structure.MEMORY_BASIC_INFORMATION()
+    mbi = pymem.resources.structure.MEMORY_BASIC_INFORMATION()
     ctypes.windll.kernel32.SetLastError(0)
-    pymem.ressources.kernel32.VirtualQueryEx(handle, address, ctypes.byref(mbi), ctypes.sizeof(mbi))
+    pymem.resources.kernel32.VirtualQueryEx(handle, address, ctypes.byref(mbi), ctypes.sizeof(mbi))
     error_code = ctypes.windll.kernel32.GetLastError()
     if error_code:
         ctypes.windll.kernel32.SetLastError(0)

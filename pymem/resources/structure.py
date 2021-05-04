@@ -1,13 +1,14 @@
 from operator import attrgetter
 
+import functools
 import enum
 import locale
 import struct
 
 import ctypes
 
-import pymem.ressources.psapi
-import pymem.ressources.ntdll
+import pymem.resources.psapi
+import pymem.resources.ntdll
 import pymem.rctypes
 
 
@@ -33,11 +34,11 @@ class LUID_AND_ATTRIBUTES(ctypes.Structure):
         self.attributes |= SE_TOKEN_PRIVILEGE.SE_PRIVILEGE_ENABLED
 
     def get_name(self):
-        import pymem.ressources.advapi32
+        import pymem.resources.advapi32
 
         size = ctypes.c_ulong(10240)
         buf = ctypes.create_unicode_buffer(size.value)
-        res = pymem.ressources.advapi32.LookupPrivilegeName(None, self.LUID, buf, size)
+        res = pymem.resources.advapi32.LookupPrivilegeName(None, self.LUID, buf, size)
         if res == 0:
             raise RuntimeError("Could not LookupPrivilegeName")
         return buf[:size.value]
@@ -173,7 +174,7 @@ class ThreadEntry32(ctypes.Structure):
             return
 
         THREAD_QUERY_INFORMATION = 0x0040
-        handle = pymem.ressources.kernel32.OpenThread(
+        handle = pymem.resources.kernel32.OpenThread(
             THREAD_QUERY_INFORMATION, False, self.th32ThreadID
         )
 
@@ -182,10 +183,10 @@ class ThreadEntry32(ctypes.Structure):
         ktime = FILETIME()
         utime = FILETIME()
 
-        pymem.ressources.kernel32.GetThreadTimes(
+        pymem.resources.kernel32.GetThreadTimes(
             handle, ctypes.pointer(ctime), ctypes.pointer(etime), ctypes.pointer(ktime), ctypes.pointer(utime)
         )
-        pymem.ressources.kernel32.CloseHandle(handle)
+        pymem.resources.kernel32.CloseHandle(handle)
         return ctime.value
 
     def __init__(self, *args, **kwds):
@@ -401,7 +402,7 @@ class MODULEINFO(ctypes.Structure):
     @property
     def name(self):
         modname = ctypes.c_buffer(ctypes.wintypes.MAX_PATH)
-        pymem.ressources.psapi.GetModuleBaseNameA(
+        pymem.resources.psapi.GetModuleBaseNameA(
             self.process_handle,
             ctypes.c_void_p(self.lpBaseOfDll),
             modname,
@@ -412,7 +413,7 @@ class MODULEINFO(ctypes.Structure):
     @property
     def filename(self):
         _filename = ctypes.c_buffer(ctypes.wintypes.MAX_PATH)
-        pymem.ressources.psapi.GetModuleFileNameExA(
+        pymem.resources.psapi.GetModuleFileNameExA(
             self.process_handle,
             ctypes.c_void_p(self.lpBaseOfDll),
             _filename,
@@ -560,7 +561,7 @@ class CLIENT_ID(ctypes.Structure):
 
 class THREAD_BASIC_INFORMATION(ctypes.Structure):
     _fields_ = [
-        ("ExitStatus", pymem.ressources.ntdll.NTSTATUS),
+        ("ExitStatus", pymem.resources.ntdll.NTSTATUS),
         ("TebBaseAddress", ctypes.c_void_p),
         ("ClientId", CLIENT_ID),
         ("AffinityMask", ctypes.c_long),

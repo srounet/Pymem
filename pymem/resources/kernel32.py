@@ -1,6 +1,6 @@
 import ctypes
 
-import pymem.ressources.structure
+import pymem.resources.structure
 
 
 dll = ctypes.WinDLL('kernel32.dll')
@@ -117,14 +117,14 @@ CreateToolhelp32Snapshot.argtypes = (ctypes.c_ulong, ctypes.c_ulong)
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms684218%28v=vs.85%29.aspx
 Module32First = dll.Module32First
 Module32First.restype = ctypes.c_ulonglong
-Module32First.argtypes = (ctypes.c_void_p, pymem.ressources.structure.LPMODULEENTRY32)
+Module32First.argtypes = (ctypes.c_void_p, pymem.resources.structure.LPMODULEENTRY32)
 
 #: Retrieves information about the next module associated with a process or thread.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms684221%28v=vs.85%29.aspx
 Module32Next = dll.Module32Next
 Module32Next.restype = ctypes.c_ulonglong
-Module32Next.argtypes = (ctypes.c_void_p, pymem.ressources.structure.LPMODULEENTRY32)
+Module32Next.argtypes = (ctypes.c_void_p, pymem.resources.structure.LPMODULEENTRY32)
 
 #: Retrieves information about the first process encountered in a system snapshot.
 #:
@@ -145,7 +145,7 @@ Thread32First = dll.Thread32First
 Thread32First.restype = ctypes.c_long
 Thread32First.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(pymem.ressources.structure.ThreadEntry32)
+    ctypes.POINTER(pymem.resources.structure.ThreadEntry32)
 ]
 
 #: Retrieves information about the next thread of any process encountered in the system memory snapshot.
@@ -155,7 +155,7 @@ Thread32Next = dll.Thread32Next
 Thread32Next.restype = ctypes.c_long
 Thread32Next.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(pymem.ressources.structure.ThreadEntry32)
+    ctypes.POINTER(pymem.resources.structure.ThreadEntry32)
 ]
 
 #: Opens an existing thread object.
@@ -251,7 +251,7 @@ CreateRemoteThread = dll.CreateRemoteThread
 CreateRemoteThread.restype = ctypes.c_void_p
 CreateRemoteThread.argtypes = (
     ctypes.c_void_p,
-    pymem.ressources.structure.LPSECURITY_ATTRIBUTES,
+    pymem.resources.structure.LPSECURITY_ATTRIBUTES,
     ctypes.c_size_t,
     ctypes.c_void_p,
     ctypes.c_void_p,
@@ -291,8 +291,8 @@ GetThreadTimes = dll.GetThreadTimes
 GetThreadTimes.restype = ctypes.c_long
 GetThreadTimes.artypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(pymem.ressources.structure.FILETIME),
-    ctypes.POINTER(pymem.ressources.structure.FILETIME),
-    ctypes.POINTER(pymem.ressources.structure.FILETIME),
-    ctypes.POINTER(pymem.ressources.structure.FILETIME)
+    ctypes.POINTER(pymem.resources.structure.FILETIME),
+    ctypes.POINTER(pymem.resources.structure.FILETIME),
+    ctypes.POINTER(pymem.resources.structure.FILETIME),
+    ctypes.POINTER(pymem.resources.structure.FILETIME)
 ]

@@ -10,10 +10,10 @@ import sys
 import pymem.exception
 import pymem.memory
 import pymem.process
-import pymem.ressources.kernel32
-import pymem.ressources.ntdll
-import pymem.ressources.structure
-import pymem.ressources.psapi
+import pymem.resources.kernel32
+import pymem.resources.ntdll
+import pymem.resources.structure
+import pymem.resources.psapi
 import pymem.thread
 import pymem.pattern
 
@@ -71,12 +71,12 @@ class Pymem(object):
         """
 
         def find_existing_interpreter(_python_version):
-            _local_handle = pymem.ressources.kernel32.GetModuleHandleW(_python_version)
+            _local_handle = pymem.resources.kernel32.GetModuleHandleW(_python_version)
             module = pymem.process.module_from_name(self.process_handle, _python_version)
 
             self.py_run_simple_string = (
                 module.lpBaseOfDll + (
-                    pymem.ressources.kernel32.GetProcAddress(_local_handle, b'PyRun_SimpleString') - _local_handle
+                    pymem.resources.kernel32.GetProcAddress(_local_handle, b'PyRun_SimpleString') - _local_handle
                 )
             )
             self._python_injected = True
@@ -101,15 +101,15 @@ class Pymem(object):
             if not python_lib_h:
                 raise pymem.exception.PymemError('Inject dll failed')
 
-        local_handle = pymem.ressources.kernel32.GetModuleHandleW(python_version)
+        local_handle = pymem.resources.kernel32.GetModuleHandleW(python_version)
         py_initialize_ex = (
             python_lib_h + (
-                pymem.ressources.kernel32.GetProcAddress(local_handle, b'Py_InitializeEx') - local_handle
+                pymem.resources.kernel32.GetProcAddress(local_handle, b'Py_InitializeEx') - local_handle
             )
         )
         self.py_run_simple_string = (
             python_lib_h + (
-                pymem.ressources.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString') - local_handle
+                pymem.resources.kernel32.GetProcAddress(local_handle, b'PyRun_SimpleString') - local_handle
             )
         )
         if not py_initialize_ex:
@@ -134,18 +134,18 @@ class Pymem(object):
             A string with python instructions.
         """
         shellcode = shellcode.encode('ascii')
-        shellcode_addr = pymem.ressources.kernel32.VirtualAllocEx(
+        shellcode_addr = pymem.resources.kernel32.VirtualAllocEx(
             self.process_handle,
             None,
             len(shellcode),
-            pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT.value | pymem.ressources.structure.MEMORY_STATE.MEM_RESERVE.value,
-            pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE.value
+            pymem.resources.structure.MEMORY_STATE.MEM_COMMIT.value | pymem.resources.structure.MEMORY_STATE.MEM_RESERVE.value,
+            pymem.resources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE.value
         )
         if not shellcode_addr or ctypes.get_last_error():
             raise RuntimeError('Could not allocate memory for shellcode')
         pymem.logger.debug('shellcode_addr loc: 0x%08x' % shellcode_addr)
         written = ctypes.c_ulonglong(0) if '64bit' in platform.architecture() else ctypes.c_ulong(0)
-        pymem.ressources.kernel32.WriteProcessMemory(self.process_handle, shellcode_addr, shellcode, len(shellcode), ctypes.byref(written))
+        pymem.resources.kernel32.WriteProcessMemory(self.process_handle, shellcode_addr, shellcode, len(shellcode), ctypes.byref(written))
         # check written
         self.start_thread(self.py_run_simple_string, shellcode_addr)
 
@@ -166,8 +166,8 @@ class Pymem(object):
         """
 
         params = params or 0
-        NULL_SECURITY_ATTRIBUTES = ctypes.cast(0, pymem.ressources.structure.LPSECURITY_ATTRIBUTES)
-        thread_h = pymem.ressources.kernel32.CreateRemoteThread(
+        NULL_SECURITY_ATTRIBUTES = ctypes.cast(0, pymem.resources.structure.LPSECURITY_ATTRIBUTES)
+        thread_h = pymem.resources.kernel32.CreateRemoteThread(
             self.process_handle,
             NULL_SECURITY_ATTRIBUTES,
             0,
@@ -179,7 +179,7 @@ class Pymem(object):
         last_error = ctypes.windll.kernel32.GetLastError()
         if last_error:
             pymem.logger.warning('Got an error in start thread, code: %s' % last_error)
-        pymem.ressources.kernel32.WaitForSingleObject(thread_h, -1)
+        pymem.resources.kernel32.WaitForSingleObject(thread_h, -1)
         pymem.logger.debug('New thread_id: 0x%08x' % thread_h)
         return thread_h
 
@@ -335,8 +335,8 @@ class Pymem(object):
         integer
             Process peb address
         """
-        # pbi = pymem.ressources.structure.PROCESS_BASIC_INFORMATION()
-        # pymem.ressources.ntdll.NtQueryInformationProcess(
+        # pbi = pymem.resources.structure.PROCESS_BASIC_INFORMATION()
+        # pymem.resources.ntdll.NtQueryInformationProcess(
         #     self.process_handle, 0, ctypes.byref(pbi), ctypes.sizeof(pbi), None
         # )
         # peb_address = ctypes.cast(pbi.PebBaseAddress, ctypes.c_void_p).value
@@ -345,10 +345,10 @@ class Pymem(object):
 
         if self.current_process_bitness == 32 and self.bitness == 64:
             information_type = 0
-            x = pymem.rctypes.transform_structure_to_remote64bits(pymem.ressources.structure.PROCESS_BASIC_INFORMATION)
+            x = pymem.rctypes.transform_structure_to_remote64bits(pymem.resources.structure.PROCESS_BASIC_INFORMATION)
             data = (ctypes.c_char * ctypes.sizeof(x))()
 
-            pymem.ressources.ntdll.NtQueryInformationProcess(
+            pymem.resources.ntdll.NtQueryInformationProcess(
                 self.process_handle, information_type, ctypes.byref(data), ctypes.sizeof(data), None
             )
             peb_offset = x.PebBaseAddress.offset
@@ -364,14 +364,14 @@ class Pymem(object):
         elif self.current_process_bitness == 64 and self.bitness == 32:
             information_type = 26
             y = ctypes.c_ulonglong()
-            pymem.ressources.ntdll.NtQueryInformationProcess(
+            pymem.resources.ntdll.NtQueryInformationProcess(
                 self.process_handle, information_type, ctypes.byref(y), ctypes.sizeof(y), None
             )
             peb_addr = y.value
         else:
             information_type = 0
-            pbi = pymem.ressources.structure.PROCESS_BASIC_INFORMATION()
-            pymem.ressources.ntdll.NtQueryInformationProcess(
+            pbi = pymem.resources.structure.PROCESS_BASIC_INFORMATION()
+            pymem.resources.ntdll.NtQueryInformationProcess(
                 self.process_handle, information_type, ctypes.byref(pbi), ctypes.sizeof(pbi), None
             )
             peb_addr = ctypes.cast(pbi.PebBaseAddress, ctypes.c_void_p).value
@@ -385,10 +385,10 @@ class Pymem(object):
         import pymem.rpe
 
         if self.current_process_bitness == 32 and self.bitness == 64:
-            return pymem.ressources.structure.RemotePEB64(self.process_handle, self.peb_address)
+            return pymem.resources.structure.RemotePEB64(self.process_handle, self.peb_address)
         if self.current_process_bitness == 64 and self.bitness == 32:
-            return pymem.ressources.structure.RemotePEB32(self.process_handle, self.peb_address)
-        return pymem.ressources.structure.RemotePEB(self.process_handle, self.peb_address)
+            return pymem.resources.structure.RemotePEB32(self.process_handle, self.peb_address)
+        return pymem.resources.structure.RemotePEB(self.process_handle, self.peb_address)
 
     @property
     def process_base(self):

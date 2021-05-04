@@ -18,13 +18,10 @@ import pymem.thread
 import pymem.pattern
 
 
-logger = logging.getLogger('pymem')
+# Configure pymem's handler to lowest level possible so everything is cached and could be later displayed
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+logger.addHandler(logging.NullHandler())
 
 
 class Pymem(object):

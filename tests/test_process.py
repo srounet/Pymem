@@ -25,6 +25,16 @@ def test_process_base():
         assert pm.process_base
 
 
+def test_base_address():
+    pm = pymem.Pymem()
+
+    with pytest.raises(TypeError):
+        assert pm.base_address
+
+    pm = pymem.Pymem("python.exe")
+    assert pm.base_address
+
+
 def test_main_thread_id():
     pm = pymem.Pymem()
     with pytest.raises(pymem.exception.ProcessError):

@@ -390,9 +390,9 @@ class MODULEINFO(ctypes.Structure):
     """
 
     _fields_ = [
-        ("lpBaseOfDll", ctypes.c_void_p), # remote pointer
+        ("lpBaseOfDll", ctypes.c_void_p),  # remote pointer
         ("SizeOfImage", ctypes.c_ulong),
-        ("EntryPoint", ctypes.c_void_p), # remote pointer
+        ("EntryPoint", ctypes.c_void_p),  # remote pointer
     ]
 
     def __init__(self, handle):
@@ -444,17 +444,17 @@ class SYSTEM_INFO(ctypes.Structure):
     ]
 
 
-class MEMORY_BASIC_INFORMATION(ctypes.Structure):
+class MEMORY_BASIC_INFORMATION32(ctypes.Structure):
     """Contains information about a range of pages in the virtual address space of a process.
     The VirtualQuery and VirtualQueryEx functions use this structure.
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa366775(v=vs.85).aspx
     """
     _fields_ = [
-        ("BaseAddress", ctypes.c_ulonglong),
-        ("AllocationBase", ctypes.c_ulonglong),
+        ("BaseAddress", ctypes.c_ulong),
+        ("AllocationBase", ctypes.c_ulong),
         ("AllocationProtect", ctypes.c_ulong),
-        ("RegionSize", ctypes.c_ulonglong),
+        ("RegionSize", ctypes.c_ulong),
         ("State", ctypes.c_ulong),
         ("Protect", ctypes.c_ulong),
         ("Type", ctypes.c_ulong)
@@ -477,6 +477,46 @@ class MEMORY_BASIC_INFORMATION(ctypes.Structure):
         enum_type = [e for e in MEMORY_PROTECTION if e.value == self.Protect]
         enum_type = enum_type[0] if enum_type else None
         return enum_type
+
+
+class MEMORY_BASIC_INFORMATION64(ctypes.Structure):
+
+    _fields_ = [
+        ("BaseAddress", ctypes.c_ulonglong),
+        ("AllocationBase", ctypes.c_ulonglong),
+        ("AllocationProtect", ctypes.c_ulong),
+        ("__alignment1", ctypes.c_ulong),
+        ("RegionSize", ctypes.c_ulonglong),
+        ("State", ctypes.c_ulong),
+        ("Protect", ctypes.c_ulong),
+        ("Type", ctypes.c_ulong),
+        ("__alignment2", ctypes.c_ulong),
+    ]
+
+    @property
+    def type(self):
+        enum_type = [e for e in MEMORY_TYPES if e.value == self.Type] or None
+        enum_type = enum_type[0] if enum_type else None
+        return enum_type
+
+    @property
+    def state(self):
+        enum_type = [e for e in MEMORY_STATE if e.value == self.State] or None
+        enum_type = enum_type[0] if enum_type else None
+        return enum_type
+
+    @property
+    def protect(self):
+        enum_type = [e for e in MEMORY_PROTECTION if e.value == self.Protect]
+        enum_type = enum_type[0] if enum_type else None
+        return enum_type
+
+
+PTR_SIZE = ctypes.sizeof(ctypes.c_void_p)
+if PTR_SIZE == 8:       # 64-bit python
+    MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION64
+elif PTR_SIZE == 4:     # 32-bit python
+    MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION32
 
 
 class EnumProcessModuleEX(object):

@@ -79,19 +79,19 @@ def read_bytes(handle, address, byte):
     address: int
         An address of the region of memory to be read.
     byte: int
-        number of bytes to be read
+        Number of bytes to be read
 
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     bytes
-        the raw value read as bytes
+        The raw value read as bytes
     """
     if not isinstance(address, int):
         raise TypeError('Address must be int: {}'.format(address))
@@ -105,6 +105,39 @@ def read_bytes(handle, address, byte):
         raise pymem.exception.WinAPIError(error_code)
     raw = buff.raw
     return raw
+
+
+def read_bool(handle, address):
+    """Reads 1 byte from an area of memory in a specified process.
+    The entire area to be read must be accessible or the operation fails.
+
+    Unpack the value using struct.unpack('?')
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
+
+    Parameters
+    ----------
+    handle: ctypes.c_void_p
+        The handle to a process. The function allocates memory within the virtual address space of this process.
+        The handle must have the PROCESS_VM_OPERATION access right.
+    address: int
+        An address of the region of memory to be read.
+
+    Raises
+    ------
+    TypeError
+        If address is not a valid integer
+    WinAPIError
+        If ReadProcessMemory failed
+
+    Returns
+    -------
+    bool
+        The raw value read as a string
+    """
+    bytes = read_bytes(handle, address, struct.calcsize('?'))
+    bytes = struct.unpack('?', bytes)[0]
+    return bytes
 
 
 def read_char(handle, address):
@@ -126,14 +159,14 @@ def read_char(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     str
-        the raw value read as a string
+        The raw value read as a string
     """
     bytes = read_bytes(handle, address, struct.calcsize('c'))
     bytes = struct.unpack('<c', bytes)[0]
@@ -160,14 +193,14 @@ def read_uchar(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     int
-        the raw value read as an int
+        The raw value read as an int
     """
     bytes = read_bytes(handle, address, struct.calcsize('B'))
     bytes = struct.unpack('<B', bytes)[0]
@@ -193,14 +226,14 @@ def read_short(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     int
-        the raw value read as an int
+        The raw value read as an int
     """
     bytes = read_bytes(handle, address, struct.calcsize('h'))
     bytes = struct.unpack('<h', bytes)[0]
@@ -226,14 +259,14 @@ def read_ushort(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     int
-        the raw value read as an int
+        The raw value read as an int
     """
     bytes = read_bytes(handle, address, struct.calcsize('H'))
     bytes = struct.unpack('<H', bytes)[0]
@@ -259,14 +292,14 @@ def read_int(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     int
-        the raw value read as an int
+        The raw value read as an int
     """
     bytes = read_bytes(handle, address, struct.calcsize('i'))
     bytes = struct.unpack('<i', bytes)[0]
@@ -294,14 +327,14 @@ def read_uint(handle, address, is_64=None):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     int
-        the raw value read as an int
+        The raw value read as an int
     """
     is_64 = is_64 or False
     raw = read_bytes(handle, address, struct.calcsize('I'))
@@ -332,14 +365,14 @@ def read_float(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     float
-        the raw value read as a float
+        The raw value read as a float
     """
     bytes = read_bytes(handle, address, struct.calcsize('f'))
     bytes = struct.unpack('<f', bytes)[0]
@@ -365,14 +398,14 @@ def read_long(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     int
-        the raw value read as an int
+        The raw value read as an int
     """
     bytes = read_bytes(handle, address, struct.calcsize('l'))
     bytes = struct.unpack('<l', bytes)[0]
@@ -398,14 +431,14 @@ def read_ulong(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     int
-        the raw value read as an int
+        The raw value read as an int
     """
     bytes = read_bytes(handle, address, struct.calcsize('L'))
     bytes = struct.unpack('<L', bytes)[0]
@@ -431,14 +464,14 @@ def read_longlong(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     int
-        the raw value read as an int
+        The raw value read as an int
     """
     bytes = read_bytes(handle, address, struct.calcsize('q'))
     bytes = struct.unpack('<q', bytes)[0]
@@ -464,14 +497,14 @@ def read_ulonglong(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     int
-        the raw value read as an int
+        The raw value read as an int
     """
     bytes = read_bytes(handle, address, struct.calcsize('Q'))
     bytes = struct.unpack('<Q', bytes)[0]
@@ -497,14 +530,14 @@ def read_double(handle, address):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     float
-        the raw value read as an float
+        The raw value read as an float
     """
     bytes = read_bytes(handle, address, struct.calcsize('d'))
     bytes = struct.unpack('<d', bytes)[0]
@@ -528,14 +561,14 @@ def read_string(handle, address, byte=50):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
-        if ReadProcessMemory failed
+        If ReadProcessMemory failed
 
     Returns
     -------
     str
-        the raw value read as a string
+        The raw value read as a string
     """
     buff = read_bytes(handle, address, byte)
     i = buff.find(b'\x00')
@@ -568,7 +601,7 @@ def write_bytes(handle, address, data, length):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -586,6 +619,40 @@ def write_bytes(handle, address, data, length):
     if error_code:
         ctypes.windll.kernel32.SetLastError(0)
         raise pymem.exception.WinAPIError(error_code)
+    return res
+
+
+def write_bool(handle, address, value):
+    """Writes 1 byte to an area of memory in a specified process.
+    The entire area to be written to must be accessible or the operation fails.
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms681674%28v=vs.85%29.aspx
+
+    Parameters
+    ----------
+    handle: ctypes.c_void_p
+        The handle to a process. The function allocates memory within the virtual address space of this process.
+        The handle must have the PROCESS_VM_OPERATION access right.
+    address: int
+        An address of the region of memory to be written.
+    value: bool
+        A boolean representing the value to be written
+
+    Raises
+    ------
+    TypeError
+        If address is not a valid integer
+    WinAPIError
+        if WriteProcessMemory failed
+
+    Returns
+    -------
+    bool
+        A boolean indicating a successful write.
+    """
+    value = struct.pack('?', value)
+    length = struct.calcsize('?')
+    res = write_bytes(handle, address, value, length)
     return res
 
 
@@ -608,7 +675,7 @@ def write_char(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -642,7 +709,7 @@ def write_uchar(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -676,7 +743,7 @@ def write_short(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -710,7 +777,7 @@ def write_ushort(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -744,7 +811,7 @@ def write_int(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -778,7 +845,7 @@ def write_uint(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -812,7 +879,7 @@ def write_float(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -846,7 +913,7 @@ def write_long(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -880,7 +947,7 @@ def write_ulong(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -914,7 +981,7 @@ def write_longlong(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -948,7 +1015,7 @@ def write_ulonglong(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -982,7 +1049,7 @@ def write_double(handle, address, value):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -1016,7 +1083,7 @@ def write_string(handle, address, bytecode):
     Raises
     ------
     TypeError
-        if address is not a valid integer
+        If address is not a valid integer
     WinAPIError
         if WriteProcessMemory failed
 
@@ -1052,7 +1119,10 @@ def virtual_query(handle, address):
         A memory basic information object
     """
     mbi = pymem.ressources.structure.MEMORY_BASIC_INFORMATION()
-    mbi_pointer = ctypes.byref(mbi)
-    size = ctypes.sizeof(mbi)
-    pymem.ressources.kernel32.VirtualQueryEx(handle, address, mbi_pointer, size)
+    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.VirtualQueryEx(handle, address, ctypes.byref(mbi), ctypes.sizeof(mbi))
+    error_code = ctypes.windll.kernel32.GetLastError()
+    if error_code:
+        ctypes.windll.kernel32.SetLastError(0)
+        raise pymem.exception.WinAPIError(error_code)
     return mbi

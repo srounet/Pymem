@@ -43,7 +43,7 @@ def scan_pattern_page(handle, address, pattern):
 
     found = None
 
-    match = re.search(pattern, page_bytes)
+    match = re.search(pattern, page_bytes, re.DOTALL)
 
     if match:
         found = address + match.span()[0]

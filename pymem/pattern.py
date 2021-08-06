@@ -5,7 +5,7 @@ import pymem.ressources.kernel32
 import pymem.ressources.structure
 
 
-def scan_pattern_page(handle, address, pattern):
+def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
     """Search a byte pattern given a memory location.
     Will query memory location information and search over until it reaches the
     length of the memory page. If nothing is found the function returns the
@@ -19,6 +19,8 @@ def scan_pattern_page(handle, address, pattern):
         An address to search from
     pattern: bytes
         A regex byte pattern to search for
+    return_multiple: bool
+        If multiple results should be returned instead of stopping on the first
 
     Returns
     -------
@@ -27,6 +29,9 @@ def scan_pattern_page(handle, address, pattern):
 
         found address may be None if one was not found or we didn't have permission to scan
         the region
+
+        if return_multiple is True found address will instead be a list of found addresses
+        or an empty list if no results
     """
     mbi = pymem.memory.virtual_query(handle, address)
     next_region = mbi.BaseAddress + mbi.RegionSize
@@ -41,17 +46,24 @@ def scan_pattern_page(handle, address, pattern):
 
     page_bytes = pymem.memory.read_bytes(handle, address, mbi.RegionSize)
 
-    found = None
+    if not return_multiple:
+        found = None
+        match = re.search(pattern, page_bytes, re.DOTALL)
 
-    match = re.search(pattern, page_bytes, re.DOTALL)
+        if match:
+            found = address + match.span()[0]
 
-    if match:
-        found = address + match.span()[0]
+    else:
+        found = []
+
+        for match in re.finditer(pattern, page_bytes, re.DOTALL):
+            found_address = address + match.span()[0]
+            found.append(found_address)
 
     return next_region, found
 
 
-def pattern_scan_module(handle, module, pattern):
+def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
     """Given a handle over an opened process and a module will scan memory after
     a byte pattern and return its corresponding memory address.
 
@@ -63,11 +75,14 @@ def pattern_scan_module(handle, module, pattern):
         An instance of a given module
     pattern: bytes
         A regex byte pattern to search for
+    return_multiple: bool
+        If multiple results should be returned instead of stopping on the first
 
     Returns
     -------
-    Optional[int]
+    Union[Optional[int], list]
         Memory address of given pattern, or None if one was not found
+        or a list of found addresses in return_multiple is True
 
     Examples
     --------
@@ -83,11 +98,24 @@ def pattern_scan_module(handle, module, pattern):
     max_address = module.lpBaseOfDll + module.SizeOfImage
     page_address = base_address
 
-    found = None
-    while page_address < max_address:
-        next_page, found = scan_pattern_page(handle, page_address, pattern)
-        if found:
-            break
-        page_address = next_page
+    if not return_multiple:
+        found = None
+        while page_address < max_address:
+            next_page, found = scan_pattern_page(handle, page_address, pattern)
+
+            if found:
+                break
+
+            page_address = next_page
+
+    else:
+        found = []
+        while page_address < max_address:
+            next_page, new_found = scan_pattern_page(handle, page_address, pattern, return_multiple=True)
+
+            if new_found:
+                found += new_found
+
+            page_address = next_page
 
     return found

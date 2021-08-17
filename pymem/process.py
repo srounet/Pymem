@@ -269,7 +269,7 @@ def process_from_name(name):
     name = name.lower()
     processes = list_processes()
     for process in processes:
-        if name in process.szExeFile.decode(locale.getpreferredencoding()).lower():
+        if name == process.szExeFile.decode(locale.getpreferredencoding()).lower():
             return process
 
 

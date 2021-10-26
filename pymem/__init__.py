@@ -802,6 +802,78 @@ class Pymem(object):
             raise pymem.exception.MemoryReadError(address, struct.calcsize('d'), e.error_code)
         return value
 
+    def read_vec2(self, address):
+        """Reads 3 * 4 byte from an area of memory in a specified process.
+        The entire area to be read must be accessible or the operation fails.
+
+        Unpack the value using struct.unpack('3f')
+
+        https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
+
+        Parameters
+        ----------
+        handle: ctypes.c_void_p
+            The handle to a process. The function allocates memory within the virtual address space of this process.
+            The handle must have the PROCESS_VM_OPERATION access right.
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        TypeError
+            If address is not a valid integer
+        WinAPIError
+            If ReadProcessMemory failed
+
+        Returns
+        -------
+        dictionary - keys: x, y, z
+            The raw values read as floats
+        """
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        try:
+            value = pymem.memory.read_vec2(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('d'), e.error_code)
+        return value
+
+    def read_vec3(self, address):
+        """Reads 2 * 4 byte from an area of memory in a specified process.
+        The entire area to be read must be accessible or the operation fails.
+
+        Unpack the value using struct.unpack('3f')
+
+        https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
+
+        Parameters
+        ----------
+        handle: ctypes.c_void_p
+            The handle to a process. The function allocates memory within the virtual address space of this process.
+            The handle must have the PROCESS_VM_OPERATION access right.
+        address: int
+            An address of the region of memory to be read.
+
+        Raises
+        ------
+        TypeError
+            If address is not a valid integer
+        WinAPIError
+            If ReadProcessMemory failed
+
+        Returns
+        -------
+        dictionary - keys: x, y
+            The raw values read as floats
+        """
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        try:
+            value = pymem.memory.read_vec3(self.process_handle, address)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, struct.calcsize('d'), e.error_code)
+        return value
+
     def read_string(self, address, byte=50):
         """Reads n `byte` from an area of memory in a specified process.
 
@@ -1171,6 +1243,80 @@ class Pymem(object):
             raise TypeError('Invalid argument: {}'.format(value))
         try:
             pymem.memory.write_double(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
+
+    def write_vec2(self, address, value):
+        """Writes 2 * 4 bytes to an area of memory in a specified process.
+        The entire area to be written to must be accessible or the operation fails.
+
+        https://msdn.microsoft.com/en-us/library/windows/desktop/ms681674%28v=vs.85%29.aspx
+
+        Parameters
+        ----------
+        handle: ctypes.c_void_p
+            The handle to a process. The function allocates memory within the virtual address space of this process.
+            The handle must have the PROCESS_VM_OPERATION access right.
+        address: int
+            An address of the region of memory to be written.
+        value: dictionary (2 keys)
+            A buffer that contains data to be written
+
+        Raises
+        ------
+        TypeError
+            If address is not a valid integer
+        WinAPIError
+            if WriteProcessMemory failed
+
+        Returns
+        -------
+        bool
+            A boolean indicating a successful write.
+        """
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        if value is None or not isinstance(value, dict):
+            raise TypeError('Invalid argument: {}'.format(value))
+        try:
+            pymem.memory.write_vec2(self.process_handle, address, value)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, value, e.error_code)
+
+    def write_vec3(self, address, value):
+        """Writes 3 * 4 bytes to an area of memory in a specified process.
+        The entire area to be written to must be accessible or the operation fails.
+
+        https://msdn.microsoft.com/en-us/library/windows/desktop/ms681674%28v=vs.85%29.aspx
+
+        Parameters
+        ----------
+        handle: ctypes.c_void_p
+            The handle to a process. The function allocates memory within the virtual address space of this process.
+            The handle must have the PROCESS_VM_OPERATION access right.
+        address: int
+            An address of the region of memory to be written.
+        value: dictionary (3 keys)
+            A buffer that contains data to be written
+
+        Raises
+        ------
+        TypeError
+            If address is not a valid integer
+        WinAPIError
+            if WriteProcessMemory failed
+
+        Returns
+        -------
+        bool
+            A boolean indicating a successful write.
+        """
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        if value is None or not isinstance(value, dict):
+            raise TypeError('Invalid argument: {}'.format(value))
+        try:
+            pymem.memory.write_vec3(self.process_handle, address, value)
         except pymem.exception.WinAPIError as e:
             raise pymem.exception.MemoryWriteError(address, value, e.error_code)
 

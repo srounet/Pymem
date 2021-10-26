@@ -544,6 +544,72 @@ def read_double(handle, address):
     return bytes
 
 
+def read_vec3(handle, address):
+    """Reads 3 * 4 byte from an area of memory in a specified process.
+    The entire area to be read must be accessible or the operation fails.
+
+    Unpack the value using struct.unpack('3f')
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
+
+    Parameters
+    ----------
+    handle: ctypes.c_void_p
+        The handle to a process. The function allocates memory within the virtual address space of this process.
+        The handle must have the PROCESS_VM_OPERATION access right.
+    address: int
+        An address of the region of memory to be read.
+
+    Raises
+    ------
+    TypeError
+        If address is not a valid integer
+    WinAPIError
+        If ReadProcessMemory failed
+
+    Returns
+    -------
+    dictionary - keys: x, y, z
+        The raw values read as floats
+    """
+    bytes = read_bytes(handle, address, struct.calcsize("3f"))
+    bytes = struct.unpack("3f", bytes)
+    return {"x": bytes[0], "y": bytes[1], "z": bytes[2]}
+
+
+def read_vec2(handle, address):
+    """Reads 2 * 4 byte from an area of memory in a specified process.
+    The entire area to be read must be accessible or the operation fails.
+
+    Unpack the value using struct.unpack('3f')
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
+
+    Parameters
+    ----------
+    handle: ctypes.c_void_p
+        The handle to a process. The function allocates memory within the virtual address space of this process.
+        The handle must have the PROCESS_VM_OPERATION access right.
+    address: int
+        An address of the region of memory to be read.
+
+    Raises
+    ------
+    TypeError
+        If address is not a valid integer
+    WinAPIError
+        If ReadProcessMemory failed
+
+    Returns
+    -------
+    dictionary - keys: x, y
+        The raw values read as floats
+    """
+    bytes = read_bytes(handle, address, struct.calcsize("2f"))
+    bytes = struct.unpack("2f", bytes)
+    return {"x": bytes[0], "y": bytes[1]}
+
+
 def read_string(handle, address, byte=50):
     """Reads n `byte` from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
@@ -1060,6 +1126,74 @@ def write_double(handle, address, value):
     """
     value = struct.pack('d', value)
     length = struct.calcsize('d')
+    res = write_bytes(handle, address, value, length)
+    return res
+
+
+def write_vec3(handle, address, value):
+    """Writes 3 * 4 bytes to an area of memory in a specified process.
+    The entire area to be written to must be accessible or the operation fails.
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms681674%28v=vs.85%29.aspx
+
+    Parameters
+    ----------
+    handle: ctypes.c_void_p
+        The handle to a process. The function allocates memory within the virtual address space of this process.
+        The handle must have the PROCESS_VM_OPERATION access right.
+    address: int
+        An address of the region of memory to be written.
+    value: dictionary
+        A buffer that contains data to be written
+
+    Raises
+    ------
+    TypeError
+        If address is not a valid integer
+    WinAPIError
+        if WriteProcessMemory failed
+
+    Returns
+    -------
+    bool
+        A boolean indicating a successful write.
+    """
+    value = struct.pack("3f", *value.values())
+    length = struct.calcsize("3f")
+    res = write_bytes(handle, address, value, length)
+    return res
+
+
+def write_vec2(handle, address, value):
+    """Writes 2 * 4 bytes to an area of memory in a specified process.
+    The entire area to be written to must be accessible or the operation fails.
+
+    https://msdn.microsoft.com/en-us/library/windows/desktop/ms681674%28v=vs.85%29.aspx
+
+    Parameters
+    ----------
+    handle: ctypes.c_void_p
+        The handle to a process. The function allocates memory within the virtual address space of this process.
+        The handle must have the PROCESS_VM_OPERATION access right.
+    address: int
+        An address of the region of memory to be written.
+    value: dictionary
+        A buffer that contains data to be written
+
+    Raises
+    ------
+    TypeError
+        If address is not a valid integer
+    WinAPIError
+        if WriteProcessMemory failed
+
+    Returns
+    -------
+    bool
+        A boolean indicating a successful write.
+    """
+    value = struct.pack("2f", *value.values())
+    length = struct.calcsize("2f")
     res = write_bytes(handle, address, value, length)
     return res
 

@@ -51,13 +51,13 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
         match = re.search(pattern.hex(), page_bytes.hex(), re.DOTALL)
 
         if match:
-            found = address + match.span()[0]
+            found = address + int(match.span()[0]/2.0)
 
     else:
         found = []
 
         for match in re.finditer(pattern.hex(), page_bytes.hex(), re.DOTALL):
-            found_address = address + match.span()[0]
+            found_address = address + int(match.span()[0]/2.0)
             found.append(found_address)
 
     return next_region, found

@@ -48,7 +48,7 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
 
     if not return_multiple:
         found = None
-        match = re.search(pattern, page_bytes, re.DOTALL)
+        match = re.search(pattern.hex(), page_bytes.hex(), re.DOTALL)
 
         if match:
             found = address + match.span()[0]
@@ -56,7 +56,7 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
     else:
         found = []
 
-        for match in re.finditer(pattern, page_bytes, re.DOTALL):
+        for match in re.finditer(pattern.hex(), page_bytes.hex(), re.DOTALL):
             found_address = address + match.span()[0]
             found.append(found_address)
 

@@ -32,6 +32,16 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
 
         if return_multiple is True found address will instead be a list of found addresses
         or an empty list if no results
+
+    Examples
+    --------
+    >>> pm = pymem.Pymem("Notepad.exe")
+    >>> address_reference = 0x7ABC00001
+    # Here the "." means that the byte can be any byte; a "wildcard"
+    # also note that this pattern may be outdated
+    >>> bytes_pattern = b".\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00" \\
+    ...                 b"\\x00\\x00\\x00\\x00\\x00\\x00..\\x00\\x00..\\x00\\x00\\x64\\x04"
+    >>> character_count_address = pymem.pattern.scan_pattern_page(pm.process_handle, address_reference, bytes_pattern)
     """
     mbi = pymem.memory.virtual_query(handle, address)
     next_region = mbi.BaseAddress + mbi.RegionSize
@@ -89,10 +99,10 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
     >>> pm = pymem.Pymem("Notepad.exe")
     # Here the "." means that the byte can be any byte; a "wildcard"
     # also note that this pattern may be outdated
-    >>> character_count_pattern = b".\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00" \
-    ...                           b"\x00\x00\x00\x00\x00\x00..\x00\x00..\x00\x00\x64\x04"
-    >>> module = pymem.process.module_from_name(pm.process_handle, "Notepad.exe")
-    >>> character_count_address = pymem.pattern.pattern_scan_module(pm.process_handle, module, character_count_pattern)
+    >>> bytes_pattern = b".\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00" \\
+    ...                 b"\\x00\\x00\\x00\\x00\\x00\\x00..\\x00\\x00..\\x00\\x00\\x64\\x04"
+    >>> module_notepad = pymem.process.module_from_name(pm.process_handle, "Notepad.exe")
+    >>> character_count_address = pymem.pattern.pattern_scan_module(pm.process_handle, module_notepad, bytes_pattern)
     """
     base_address = module.lpBaseOfDll
     max_address = module.lpBaseOfDll + module.SizeOfImage

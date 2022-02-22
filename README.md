@@ -12,6 +12,14 @@ Pymem
 
 A python library to manipulate Windows processes.
 
+Installation
+============
+```sh
+pip install pymem
+# with speedups
+pip install pymem[speed]
+```
+
 Documentation
 =============
 You can find pymem documentation on readthedoc there: http://pymem.readthedocs.io/

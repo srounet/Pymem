@@ -3,7 +3,9 @@ import setuptools
 
 ROOT = str(pathlib.Path(__file__).parent)
 
-extras = {}
+extras = {
+        'speed': ['regex']
+}
 
 with open(ROOT + '/requirements-doc.txt', encoding='utf-8') as fp:
     extras['doc'] = fp.read().splitlines()

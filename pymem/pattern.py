@@ -1,8 +1,12 @@
-import re
-
 import pymem.memory
 import pymem.ressources.kernel32
 import pymem.ressources.structure
+
+try:
+    # faster than builtin re
+    import regex as re
+except ImportError:
+    import re
 
 
 def scan_pattern_page(handle, address, pattern, *, return_multiple=False):

@@ -10,7 +10,7 @@
 Pymem
 =====
 
-A python library to manipulate Windows processes.
+A python library to manipulate Windows processes
 
 Installation
 ============

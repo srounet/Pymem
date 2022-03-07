@@ -19,6 +19,11 @@ environment:
     - PYTHON: "C:\\Python38-x64"
       PYTHON_ARCH: "64"
 
+  global:
+    TWINE_USERNAME: __token__
+    TWINE_PASSWORD:
+      secure: uvO05h1Fbx/RYMGq5YMoiWJTp3JkuRbDqnm3VkINHpcUn9BcXRB/e4/aMKuucWFcwUZNpw+9BB5uO6DenpBcQIX1ET/fwoRTcRCRY7E97PKEvvBR29MjpHqX2UkdDCOqyEaNl/KenU9IWdVIDe3PgTYofgha+q2zO/It1LQzVg9L10x6oH0/tMyGz009FUTo+k+CA+VvAx3BJqV3p59b2HARdDVTWuv2UGg9swfDWXd0OPbaFP+iSzEyKBgPclXSfRhB00PlfHK/9PtPQyqMag==
+
 matrix:
   fast_finish: true
 
@@ -54,6 +59,24 @@ after_test:
   - "cd docs/source && make.bat html"
   - "python -m pip install wheel"
   - "python setup.py sdist bdist_wheel"
+
+for:
+-
+  branches:
+    only:
+      - autotwine
+
+  build_script:
+    - python -m pip install -r requirements-test.txt
+    - python -m pip install -U pip
+    - python setup.py -q sdist bdist
+
+  build: on
+
+  deploy: on
+
+  deploy_script:
+    - ps: twine upload --skip-existing dist/*
 
 artifacts:
   - path: 'docs/source/_build/html'

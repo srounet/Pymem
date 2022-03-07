@@ -42,7 +42,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
-    'sphinxcontrib.napoleon'
+    'sphinx.ext.napoleon'
 ]
 
 # Napoleon settings

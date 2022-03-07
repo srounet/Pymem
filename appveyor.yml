@@ -65,6 +65,9 @@ for:
   branches:
     only:
       - autotwine
+  matrix:
+    only:
+      - "C:\\Python38-x64"
 
   build_script:
     - python -m pip install -r requirements-test.txt

@@ -81,5 +81,3 @@ for:
 artifacts:
   - path: 'docs/source/_build/html'
     name: doc
-  - path: 'dist'
-    name: package

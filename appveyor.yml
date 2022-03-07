@@ -76,7 +76,7 @@ for:
   deploy: on
 
   deploy_script:
-    - ps: twine upload --skip-existing dist/*
+    - ps: twine upload --verbose --skip-existing dist/* && exit 0
 
 artifacts:
   - path: 'docs/source/_build/html'

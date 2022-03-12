@@ -841,6 +841,7 @@ class Pymem(object):
             raise pymem.exception.MemoryReadError(address, byte, e.error_code)
         return value
 
+    # TODO: make length optional, remove in 2.0
     def write_bytes(self, address, value, length):
         """Write `value` to the given `address` into the current opened process.
 

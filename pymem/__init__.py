@@ -300,6 +300,52 @@ class Pymem(object):
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         return pymem.memory.free_memory(self.process_handle, address)
 
+    def pattern_scan_all(self, pattern, *, return_multiple=False):
+        """Scan the entire address space of this process for a regex pattern
+
+        Parameters
+        ----------
+        pattern: bytes
+            The regex pattern to search for
+        return_multiple: bool
+            If multiple results should be returned
+
+        Returns
+        -------
+        int, list, optional
+            Memory address of given pattern, or None if one was not found
+            or a list of found addresses in return_multiple is True
+        """
+        return pymem.pattern.pattern_scan_all(self.process_handle, pattern, return_multiple=return_multiple)
+
+    def pattern_scan_module(self, pattern, module, *, return_multiple=False):
+        """Scan a module for a regex pattern
+
+        Parameters
+        ----------
+        pattern: bytes
+            The regex pattern to search for
+        module: str, MODULEINFO
+            Name of the module to search for, or a MODULEINFO object
+        return_multiple: bool
+            If multiple results should be returned
+
+        Returns
+        -------
+        int, list, optional
+            Memory address of given pattern, or None if one was not found
+            or a list of found addresses in return_multiple is True
+        """
+        if isinstance(module, str):
+            module = pymem.process.module_from_name(self.process_handle, module)
+
+        return pymem.pattern.pattern_scan_module(
+            self.process_handle,
+            module,
+            pattern,
+            return_multiple=return_multiple
+        )
+
     @property
     def process_base(self):
         """Lookup process base Module.

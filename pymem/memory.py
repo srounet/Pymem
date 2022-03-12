@@ -14,19 +14,19 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     size: int
         The size of the region of memory to allocate, in bytes.
-    allocation_type: pymem.ressources.structure.MEMORY_STATE
+    allocation_type: MEMORY_STATE
         The type of memory allocation.
-    protection_type: pymem.ressources.structure.MEMORY_PROTECTION
+    protection_type: MEMORY_PROTECTION
         The memory protection for the region of pages to be allocated.
 
     Returns
     -------
-    ctypes.c_void_p
+    int
         The address of the allocated region of pages.
     """
     if not allocation_type:
@@ -39,23 +39,24 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
 
 
 def free_memory(handle, address, free_type=None):
-    """Releases, decommits, or releases and decommits a region of memory within the virtual address space of a specified process.
+    """Releases, decommits, or releases and decommits a region of memory within the virtual address space of a specified
+    process.
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa366894%28v=vs.85%29.aspx
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
         An address of the region of memory to be freed.
-    free_type: pymem.ressources.structure.MEMORY_PROTECTION
+    free_type: MEMORY_PROTECTION
         The type of free operation.
 
     Returns
     -------
-    ctypes.c_long
+    int
         A boolean indicating if the call was a success.
     """
     if not free_type:
@@ -73,7 +74,7 @@ def read_bytes(handle, address, byte):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -98,7 +99,13 @@ def read_bytes(handle, address, byte):
     buff = ctypes.create_string_buffer(byte)
     bytes_read = ctypes.c_size_t()
     ctypes.windll.kernel32.SetLastError(0)
-    pymem.ressources.kernel32.ReadProcessMemory(handle, ctypes.c_void_p(address), ctypes.byref(buff), byte, ctypes.byref(bytes_read))
+    pymem.ressources.kernel32.ReadProcessMemory(
+        handle,
+        ctypes.c_void_p(address),
+        ctypes.byref(buff),
+        byte,
+        ctypes.byref(bytes_read)
+    )
     error_code = ctypes.windll.kernel32.GetLastError()
     if error_code:
         ctypes.windll.kernel32.SetLastError(0)
@@ -117,7 +124,7 @@ def read_bool(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -135,9 +142,9 @@ def read_bool(handle, address):
     bool
         The raw value read as a string
     """
-    bytes = read_bytes(handle, address, struct.calcsize('?'))
-    bytes = struct.unpack('?', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('?'))
+    data = struct.unpack('?', data)[0]
+    return data
 
 
 def read_char(handle, address):
@@ -150,7 +157,7 @@ def read_char(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -168,10 +175,10 @@ def read_char(handle, address):
     str
         The raw value read as a string
     """
-    bytes = read_bytes(handle, address, struct.calcsize('c'))
-    bytes = struct.unpack('<c', bytes)[0]
-    bytes = bytes.decode()
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('c'))
+    data = struct.unpack('<c', data)[0]
+    data = data.decode()
+    return data
 
 
 def read_uchar(handle, address):
@@ -184,7 +191,7 @@ def read_uchar(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -202,9 +209,9 @@ def read_uchar(handle, address):
     int
         The raw value read as an int
     """
-    bytes = read_bytes(handle, address, struct.calcsize('B'))
-    bytes = struct.unpack('<B', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('B'))
+    data = struct.unpack('<B', data)[0]
+    return data
 
 
 def read_short(handle, address):
@@ -217,7 +224,7 @@ def read_short(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -235,9 +242,9 @@ def read_short(handle, address):
     int
         The raw value read as an int
     """
-    bytes = read_bytes(handle, address, struct.calcsize('h'))
-    bytes = struct.unpack('<h', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('h'))
+    data = struct.unpack('<h', data)[0]
+    return data
 
 
 def read_ushort(handle, address):
@@ -250,7 +257,7 @@ def read_ushort(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -268,9 +275,9 @@ def read_ushort(handle, address):
     int
         The raw value read as an int
     """
-    bytes = read_bytes(handle, address, struct.calcsize('H'))
-    bytes = struct.unpack('<H', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('H'))
+    data = struct.unpack('<H', data)[0]
+    return data
 
 
 def read_int(handle, address):
@@ -283,7 +290,7 @@ def read_int(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -301,12 +308,12 @@ def read_int(handle, address):
     int
         The raw value read as an int
     """
-    bytes = read_bytes(handle, address, struct.calcsize('i'))
-    bytes = struct.unpack('<i', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('i'))
+    data = struct.unpack('<i', data)[0]
+    return data
 
 
-def read_uint(handle, address, is_64=None):
+def read_uint(handle, address, is_64=False):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -316,7 +323,7 @@ def read_uint(handle, address, is_64=None):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -336,7 +343,6 @@ def read_uint(handle, address, is_64=None):
     int
         The raw value read as an int
     """
-    is_64 = is_64 or False
     raw = read_bytes(handle, address, struct.calcsize('I'))
     if not is_64:
         raw = struct.unpack('<I', raw)[0]
@@ -356,7 +362,7 @@ def read_float(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -374,9 +380,9 @@ def read_float(handle, address):
     float
         The raw value read as a float
     """
-    bytes = read_bytes(handle, address, struct.calcsize('f'))
-    bytes = struct.unpack('<f', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('f'))
+    data = struct.unpack('<f', data)[0]
+    return data
 
 
 def read_long(handle, address):
@@ -389,7 +395,7 @@ def read_long(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -407,9 +413,9 @@ def read_long(handle, address):
     int
         The raw value read as an int
     """
-    bytes = read_bytes(handle, address, struct.calcsize('l'))
-    bytes = struct.unpack('<l', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('l'))
+    data = struct.unpack('<l', data)[0]
+    return data
 
 
 def read_ulong(handle, address):
@@ -422,7 +428,7 @@ def read_ulong(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -440,9 +446,9 @@ def read_ulong(handle, address):
     int
         The raw value read as an int
     """
-    bytes = read_bytes(handle, address, struct.calcsize('L'))
-    bytes = struct.unpack('<L', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('L'))
+    data = struct.unpack('<L', data)[0]
+    return data
 
 
 def read_longlong(handle, address):
@@ -455,7 +461,7 @@ def read_longlong(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -473,9 +479,9 @@ def read_longlong(handle, address):
     int
         The raw value read as an int
     """
-    bytes = read_bytes(handle, address, struct.calcsize('q'))
-    bytes = struct.unpack('<q', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('q'))
+    data = struct.unpack('<q', data)[0]
+    return data
 
 
 def read_ulonglong(handle, address):
@@ -488,7 +494,7 @@ def read_ulonglong(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -506,9 +512,9 @@ def read_ulonglong(handle, address):
     int
         The raw value read as an int
     """
-    bytes = read_bytes(handle, address, struct.calcsize('Q'))
-    bytes = struct.unpack('<Q', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('Q'))
+    data = struct.unpack('<Q', data)[0]
+    return data
 
 
 def read_double(handle, address):
@@ -521,7 +527,7 @@ def read_double(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -537,11 +543,11 @@ def read_double(handle, address):
     Returns
     -------
     float
-        The raw value read as an float
+        The raw value read as a float
     """
-    bytes = read_bytes(handle, address, struct.calcsize('d'))
-    bytes = struct.unpack('<d', bytes)[0]
-    return bytes
+    data = read_bytes(handle, address, struct.calcsize('d'))
+    data = struct.unpack('<d', data)[0]
+    return data
 
 
 def read_string(handle, address, byte=50):
@@ -552,11 +558,13 @@ def read_string(handle, address, byte=50):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
         An address of the region of memory to be read.
+    byte: int, default=50
+        max number of bytes to check for null terminator, defaults to 50
 
     Raises
     ------
@@ -588,7 +596,7 @@ def write_bytes(handle, address, data, length):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -630,7 +638,7 @@ def write_bool(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -664,7 +672,7 @@ def write_char(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -698,7 +706,7 @@ def write_uchar(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -732,7 +740,7 @@ def write_short(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -766,7 +774,7 @@ def write_ushort(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -800,7 +808,7 @@ def write_int(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -834,7 +842,7 @@ def write_uint(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -868,7 +876,7 @@ def write_float(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -902,7 +910,7 @@ def write_long(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -936,7 +944,7 @@ def write_ulong(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -970,7 +978,7 @@ def write_longlong(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -1004,7 +1012,7 @@ def write_ulonglong(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -1038,7 +1046,7 @@ def write_double(handle, address, value):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
@@ -1072,12 +1080,12 @@ def write_string(handle, address, bytecode):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
         An address of the region of memory to be written.
-    bytecode: str
+    bytecode: str, bytes
         A buffer that contains data to be written
 
     Raises
@@ -1092,8 +1100,10 @@ def write_string(handle, address, bytecode):
     bool
         A boolean indicating a successful write.
     """
+    if isinstance(bytecode, str):
+        bytecode = bytecode.encode()
     src = ctypes.c_char_p(bytecode)
-    length = ctypes.c_int(len(bytecode))
+    length = len(bytecode)
     res = write_bytes(handle, address, src, length)
     return res
 
@@ -1107,7 +1117,7 @@ def virtual_query(handle, address):
 
     Parameters
     ----------
-    handle: ctypes.c_void_p
+    handle: int
         The handle to a process. The function allocates memory within the virtual address space of this process.
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int

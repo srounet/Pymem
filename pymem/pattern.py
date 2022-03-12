@@ -9,6 +9,7 @@ except ImportError:
     import re
 
 
+# TODO: warn that pattern is a regex and may need to be escaped
 def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
     """Search a byte pattern given a memory location.
     Will query memory location information and search over until it reaches the
@@ -17,7 +18,7 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
 
     Parameters
     ----------
-    handle: HANDLE
+    handle: int
         Handle to an open object
     address: int
         An address to search from
@@ -31,7 +32,7 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
     tuple
         next_region, found address
 
-        found address may be None if one was not found or we didn't have permission to scan
+        found address may be None if one was not found, or we didn't have permission to scan
         the region
 
         if return_multiple is True found address will instead be a list of found addresses
@@ -83,7 +84,7 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
 
     Parameters
     ----------
-    handle: HANDLE
+    handle: int
         Handle to an open object
     module: MODULEINFO
         An instance of a given module
@@ -94,7 +95,7 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
 
     Returns
     -------
-    Union[Optional[int], list]
+    int, list, optional
         Memory address of given pattern, or None if one was not found
         or a list of found addresses in return_multiple is True
 
@@ -133,3 +134,5 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
             page_address = next_page
 
     return found
+
+# TODO: add method to scan all process space

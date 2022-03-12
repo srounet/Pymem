@@ -16,7 +16,7 @@ import pymem.thread
 import pymem.pattern
 
 
-# Configure pymem's handler to lowest level possible so everything is cached and could be later displayed
+# Configure pymem's handler to the lowest level possible so everything is cached and could be later displayed
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.NullHandler())
@@ -47,8 +47,7 @@ class Pymem(object):
     def check_wow64(self):
         """Check if a process is running under WoW64.
         """
-        verdict = pymem.process.is_64_bit(self.process_handle)
-        self.is_WoW64 = bool(verdict)
+        self.is_WoW64 = pymem.process.is_64_bit(self.process_handle)
 
     def list_modules(self):
         """List a process loaded modules.
@@ -140,7 +139,13 @@ class Pymem(object):
             raise RuntimeError('Could not allocate memory for shellcode')
         pymem.logger.debug('shellcode_addr loc: 0x%08x' % shellcode_addr)
         written = ctypes.c_ulonglong(0) if '64bit' in platform.architecture() else ctypes.c_ulong(0)
-        pymem.ressources.kernel32.WriteProcessMemory(self.process_handle, shellcode_addr, shellcode, len(shellcode), ctypes.byref(written))
+        pymem.ressources.kernel32.WriteProcessMemory(
+            self.process_handle,
+            shellcode_addr,
+            shellcode,
+            len(shellcode),
+            ctypes.byref(written)
+        )
         # check written
         self.start_thread(self.py_run_simple_string, shellcode_addr)
 
@@ -179,7 +184,7 @@ class Pymem(object):
         return thread_h
 
     def open_process_from_name(self, process_name):
-        """Open process given it's name and stores the handle into process_handle
+        """Open process given its name and stores the handle into process_handle
 
         Parameters
         ----------
@@ -204,7 +209,7 @@ class Pymem(object):
         self.open_process_from_id(self.process_id)
 
     def open_process_from_id(self, process_id):
-        """Open process given it's name and stores the handle into `self.process_handle`.
+        """Open process given its name and stores the handle into `self.process_handle`.
 
         Parameters
         ----------
@@ -264,7 +269,7 @@ class Pymem(object):
 
         Returns
         -------
-        HANDLE
+        int
             The base address of the current process.
         """
         if not size or not isinstance(size, int):
@@ -302,9 +307,9 @@ class Pymem(object):
         Raises
         ------
         TypeError
-            If process_id is not an integer
+            process_id is not an integer
         ProcessError
-            If could not find process first module address
+            Could not find process first module address
 
         Returns
         -------
@@ -327,7 +332,7 @@ class Pymem(object):
         TypeError
             If process_id is not an integer
         ProcessError
-            If could not find process first module address
+            Could not find process first module address
 
         Returns
         -------

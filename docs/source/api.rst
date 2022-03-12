@@ -31,6 +31,34 @@ Pattern
    :members:
    :inherited-members:
 
+Process
+-------
+
+.. automodule:: pymem.process
+    :members:
+    :inherited-members:
+
+Ptypes
+------
+
+.. automodule:: pymem.ptypes
+    :members:
+    :inherited-members:
+
+Thread
+------
+
+.. automodule:: pymem.thread
+    :members:
+    :inherited-members:
+
+Memory
+------
+
+.. automodule:: pymem.memory
+    :members:
+    :inherited-members:
+
 Exceptions
 ----------
 

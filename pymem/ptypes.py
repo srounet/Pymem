@@ -1,5 +1,4 @@
 import ctypes
-import functools
 import struct
 
 import pymem.memory
@@ -8,6 +7,24 @@ import pymem.exception
 
 class RemotePointer(object):
     """Pointer capable of reading the value mapped into another process memory.
+
+    Parameters
+    ----------
+    handle: int
+        Handle to the process
+    v: int, RemotePointer, any ctypes type
+        The address value
+    endianess: str
+        The endianess of the remote pointer, defaulting to little-endian
+
+    Raises
+    ------
+    PymemAlignmentError
+        If endianess is not a valid alignment
+
+    Notes
+    -----
+    The bool of RemotePointer checks if the internal value is 0
     """
 
     ALIGNMENTS = {
@@ -15,27 +32,15 @@ class RemotePointer(object):
         'big-endian': '>'
     }
 
-    def __init__(self, handle, v, endianess=None):
-        """Initialize a RemotePointer.
-
-            :param handle: A handle to an opened process
-            :param v: The address value
-            :param endianess: The endianess of the remote process, default to little-endian
-            :type handle: ctypes.c_void_p
-            :type v: [int, RemotePointer, ctypes]
-            :type endianess: str
-            :raise: PymemAlignmentError if endianess is not correct
-            :raise: WinAPIError if ReadProcessMemory failed
-        """
+    def __init__(self, handle, v, endianess='little-endian'):
         self._set_value(v)
 
-        if not endianess:
-            endianess = 'little-endian'
-        if not endianess in RemotePointer.ALIGNMENTS:
+        if endianess not in RemotePointer.ALIGNMENTS:
+            # TODO: maybe make this a ValueError in next major version
             raise pymem.exception.PymemAlignmentError(
                 "{endianess} is not a valid alignment, it should be one from: {alignments}".format(**{
                     'endianess': endianess,
-                    'alignments': ', '.join(RemotePointer.keys())
+                    'alignments': ', '.join(RemotePointer.ALIGNMENTS.keys())
                 })
             )
         self.endianess = endianess
@@ -44,19 +49,11 @@ class RemotePointer(object):
         self._memory_value = None
 
     def __bool__(self):
-        """Overrides boolean operation over the pointer value.
-
-            :return: True if value is > 0
-            :rtype: boolean
-        """
         return bool(self.value)
 
     def _set_value(self, v):
-        """Given a v value will setup the internal kitchen to map internal v to the correct
+        """Given a v value will set up the internal kitchen to map internal v to the correct
         type. self.v has to be a ctype instance.
-
-            :param v: The address value
-            :type v: [int, RemotePointer, ctypes]
         """
         if isinstance(v, RemotePointer):
             self.v = v.cvalue
@@ -77,13 +74,6 @@ class RemotePointer(object):
                 }))
 
     def __add__(self, a):
-        """Add a to the value pointed by the current RemotePointer instance.
-
-            :param a: The value to add
-            :type a: integer
-            :return: The new ctype value
-            :rtype: ctype
-        """
         self._memory_value = self.value + a
         return self.cvalue
 
@@ -91,8 +81,10 @@ class RemotePointer(object):
     def value(self):
         """Reads targeted process memory and returns the value pointed by the given address.
 
-            :return: The value pointed by the given address.
-            :rtype: integer
+        Returns
+        -------
+        int
+            The value pointed at by this remote pointer
         """
         if self._memory_value:
             return self._memory_value
@@ -111,8 +103,10 @@ class RemotePointer(object):
     def cvalue(self):
         """Reads targeted process memory and returns the value pointed by the given address.
 
-            :return: The value pointed by the given address as a ctype instance
-            :rtype: ctype
+        Returns
+        -------
+        a ctypes type
+            The value pointed at by this remote pointer as a ctypes type instance
         """
         v = self.v.__class__(self.value)
         return v

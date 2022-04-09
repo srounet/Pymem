@@ -156,7 +156,7 @@ def pattern_scan_all(handle, pattern, *, return_multiple=False):
     next_region = 0
 
     found = []
-    while next_region < sys.maxsize:
+    while next_region < 0x7FFFFFFF:
         next_region, page_found = scan_pattern_page(
             handle,
             next_region,

@@ -62,7 +62,7 @@ for:
 -
   branches:
     only:
-      - autotwine
+      - master
 
   build_script:
     - python -m pip install -r requirements-test.txt

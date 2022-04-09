@@ -1,3 +1,5 @@
+import sys
+
 import pymem.memory
 import pymem.ressources.kernel32
 import pymem.ressources.structure
@@ -154,7 +156,7 @@ def pattern_scan_all(handle, pattern, *, return_multiple=False):
     next_region = 0
 
     found = []
-    while next_region < 0x7FFFFFFF0000:
+    while next_region < sys.maxsize:
         next_region, page_found = scan_pattern_page(
             handle,
             next_region,

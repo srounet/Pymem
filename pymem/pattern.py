@@ -1,3 +1,5 @@
+import sys
+
 import pymem.memory
 import pymem.ressources.kernel32
 import pymem.ressources.structure
@@ -9,6 +11,8 @@ except ImportError:
     import re
 
 
+# TODO: warn that pattern is a regex and may need to be escaped
+# TODO: 2.0 rename to pattern_scan_page
 def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
     """Search a byte pattern given a memory location.
     Will query memory location information and search over until it reaches the
@@ -17,7 +21,7 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
 
     Parameters
     ----------
-    handle: HANDLE
+    handle: int
         Handle to an open object
     address: int
         An address to search from
@@ -31,7 +35,7 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
     tuple
         next_region, found address
 
-        found address may be None if one was not found or we didn't have permission to scan
+        found address may be None if one was not found, or we didn't have permission to scan
         the region
 
         if return_multiple is True found address will instead be a list of found addresses
@@ -83,7 +87,7 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
 
     Parameters
     ----------
-    handle: HANDLE
+    handle: int
         Handle to an open object
     module: MODULEINFO
         An instance of a given module
@@ -94,7 +98,7 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
 
     Returns
     -------
-    Union[Optional[int], list]
+    int, list, optional
         Memory address of given pattern, or None if one was not found
         or a list of found addresses in return_multiple is True
 
@@ -115,21 +119,59 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
     if not return_multiple:
         found = None
         while page_address < max_address:
-            next_page, found = scan_pattern_page(handle, page_address, pattern)
+            page_address, found = scan_pattern_page(handle, page_address, pattern)
 
             if found:
                 break
 
-            page_address = next_page
-
     else:
         found = []
         while page_address < max_address:
-            next_page, new_found = scan_pattern_page(handle, page_address, pattern, return_multiple=True)
+            page_address, new_found = scan_pattern_page(handle, page_address, pattern, return_multiple=True)
 
             if new_found:
                 found += new_found
 
-            page_address = next_page
+    return found
+
+
+def pattern_scan_all(handle, pattern, *, return_multiple=False):
+    """Scan the entire address space for a given regex pattern
+
+    Parameters
+    ----------
+    handle: int
+        Handle to an open process
+    pattern: bytes
+        A regex bytes pattern to search for
+    return_multiple: bool
+        If multiple results should be returned
+
+    Returns
+    -------
+    int, list, optional
+        Memory address of given pattern, or None if one was not found
+        or a list of found addresses in return_multiple is True
+    """
+    next_region = 0
+
+    found = []
+    user_space_limit = 0x7FFFFFFF0000 if sys.maxsize > 2**32 else 0x7fff0000
+    while next_region < user_space_limit:
+        next_region, page_found = scan_pattern_page(
+            handle,
+            next_region,
+            pattern,
+            return_multiple=return_multiple
+        )
+
+        if not return_multiple and page_found:
+            return page_found
+
+        if page_found:
+            found += page_found
+
+    if not return_multiple:
+        return None
 
     return found

@@ -16,7 +16,7 @@ import pymem.thread
 import pymem.pattern
 
 
-# Configure pymem's handler to lowest level possible so everything is cached and could be later displayed
+# Configure pymem's handler to the lowest level possible so everything is cached and could be later displayed
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.NullHandler())
@@ -47,8 +47,7 @@ class Pymem(object):
     def check_wow64(self):
         """Check if a process is running under WoW64.
         """
-        verdict = pymem.process.is_64_bit(self.process_handle)
-        self.is_WoW64 = bool(verdict)
+        self.is_WoW64 = pymem.process.is_64_bit(self.process_handle)
 
     def list_modules(self):
         """List a process loaded modules.
@@ -140,7 +139,13 @@ class Pymem(object):
             raise RuntimeError('Could not allocate memory for shellcode')
         pymem.logger.debug('shellcode_addr loc: 0x%08x' % shellcode_addr)
         written = ctypes.c_ulonglong(0) if '64bit' in platform.architecture() else ctypes.c_ulong(0)
-        pymem.ressources.kernel32.WriteProcessMemory(self.process_handle, shellcode_addr, shellcode, len(shellcode), ctypes.byref(written))
+        pymem.ressources.kernel32.WriteProcessMemory(
+            self.process_handle,
+            shellcode_addr,
+            shellcode,
+            len(shellcode),
+            ctypes.byref(written)
+        )
         # check written
         self.start_thread(self.py_run_simple_string, shellcode_addr)
 
@@ -179,7 +184,7 @@ class Pymem(object):
         return thread_h
 
     def open_process_from_name(self, process_name):
-        """Open process given it's name and stores the handle into process_handle
+        """Open process given its name and stores the handle into process_handle
 
         Parameters
         ----------
@@ -204,7 +209,7 @@ class Pymem(object):
         self.open_process_from_id(self.process_id)
 
     def open_process_from_id(self, process_id):
-        """Open process given it's name and stores the handle into `self.process_handle`.
+        """Open process given its name and stores the handle into `self.process_handle`.
 
         Parameters
         ----------
@@ -264,7 +269,7 @@ class Pymem(object):
 
         Returns
         -------
-        HANDLE
+        int
             The base address of the current process.
         """
         if not size or not isinstance(size, int):
@@ -295,6 +300,52 @@ class Pymem(object):
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         return pymem.memory.free_memory(self.process_handle, address)
 
+    def pattern_scan_all(self, pattern, *, return_multiple=False):
+        """Scan the entire address space of this process for a regex pattern
+
+        Parameters
+        ----------
+        pattern: bytes
+            The regex pattern to search for
+        return_multiple: bool
+            If multiple results should be returned
+
+        Returns
+        -------
+        int, list, optional
+            Memory address of given pattern, or None if one was not found
+            or a list of found addresses in return_multiple is True
+        """
+        return pymem.pattern.pattern_scan_all(self.process_handle, pattern, return_multiple=return_multiple)
+
+    def pattern_scan_module(self, pattern, module, *, return_multiple=False):
+        """Scan a module for a regex pattern
+
+        Parameters
+        ----------
+        pattern: bytes
+            The regex pattern to search for
+        module: str, MODULEINFO
+            Name of the module to search for, or a MODULEINFO object
+        return_multiple: bool
+            If multiple results should be returned
+
+        Returns
+        -------
+        int, list, optional
+            Memory address of given pattern, or None if one was not found
+            or a list of found addresses in return_multiple is True
+        """
+        if isinstance(module, str):
+            module = pymem.process.module_from_name(self.process_handle, module)
+
+        return pymem.pattern.pattern_scan_module(
+            self.process_handle,
+            module,
+            pattern,
+            return_multiple=return_multiple
+        )
+
     @property
     def process_base(self):
         """Lookup process base Module.
@@ -302,9 +353,9 @@ class Pymem(object):
         Raises
         ------
         TypeError
-            If process_id is not an integer
+            process_id is not an integer
         ProcessError
-            If could not find process first module address
+            Could not find process first module address
 
         Returns
         -------
@@ -327,7 +378,7 @@ class Pymem(object):
         TypeError
             If process_id is not an integer
         ProcessError
-            If could not find process first module address
+            Could not find process first module address
 
         Returns
         -------
@@ -836,6 +887,7 @@ class Pymem(object):
             raise pymem.exception.MemoryReadError(address, byte, e.error_code)
         return value
 
+    # TODO: make length optional, remove in 2.0
     def write_bytes(self, address, value, length):
         """Write `value` to the given `address` into the current opened process.
 

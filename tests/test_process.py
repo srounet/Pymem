@@ -1,5 +1,4 @@
 import logging
-import struct
 
 import pymem
 import pymem.exception

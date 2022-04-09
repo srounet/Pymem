@@ -1,6 +1,13 @@
 import ctypes
 
-dll = ctypes.WinDLL('ntdll.dll')
+try:
+    dll = ctypes.WinDLL('ntdll.dll')
+except AttributeError:
+    class MockObject:
+        def __getattr__(self, item):
+            return self
+
+    dll = MockObject()
 
 NTSTATUS = ctypes.c_ulong
 THREADINFOCLASS = ctypes.c_ulong

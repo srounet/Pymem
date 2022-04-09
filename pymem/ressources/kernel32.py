@@ -2,8 +2,15 @@ import ctypes
 
 import pymem.ressources.structure
 
+try:
+    dll = ctypes.WinDLL('kernel32.dll')
+except AttributeError:
+    class MockObject:
+        def __getattr__(self, item):
+            return self
 
-dll = ctypes.WinDLL('kernel32.dll')
+    dll = MockObject()
+
 #: Opens an existing local process object.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms684320%28v=vs.85%29.aspx
@@ -39,7 +46,8 @@ GetCurrentProcess = dll.GetCurrentProcess
 GetCurrentProcess.argtypes = []
 GetCurrentProcess.restype = ctypes.c_ulong
 
-#: Reads data from an area of memory in a specified process. The entire area to be read must be accessible or the operation fails.
+#: Reads data from an area of memory in a specified process.
+# The entire area to be read must be accessible or the operation fails.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 ReadProcessMemory = dll.ReadProcessMemory
@@ -160,9 +168,10 @@ OpenThread.argtypes = [
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms686345%28v=vs.85%29.aspx
 SuspendThread = dll.SuspendThread
-SuspendThread.restype  = ctypes.c_ulong
+SuspendThread.restype = ctypes.c_ulong
 
-#: Decrements a thread's suspend count. When the suspend count is decremented to zero, the execution of the thread is resumed.
+#: Decrements a thread's suspend count. When the suspend count is decremented to zero,
+# the execution of the thread is resumed.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms685086%28v=vs.85%29.aspx
 ResumeThread = dll.ResumeThread
@@ -180,7 +189,8 @@ GetThreadContext.restype = ctypes.c_long
 SetThreadContext = dll.SetThreadContext
 SetThreadContext.restype = ctypes.c_long
 
-#: Releases, decommits, or releases and decommits a region of memory within the virtual address space of a specified process.
+#: Releases, decommits, or releases and decommits a region of memory within the virtual address space
+# of a specified process.
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366894%28v=vs.85%29.aspx
 VirtualFreeEx = dll.VirtualFreeEx

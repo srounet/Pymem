@@ -1,15 +1,15 @@
 import enum
 import locale
 import struct
-
 import ctypes
+# these are available on linux also (doc ci building)
+import ctypes.wintypes
 
 import pymem.ressources.psapi
 import pymem.ressources.ntdll
 
 
 class LUID(ctypes.Structure):
-
     _fields_ = [
         ("LowPart", ctypes.c_ulong),
         ("HighPart", ctypes.c_long)
@@ -17,7 +17,6 @@ class LUID(ctypes.Structure):
 
 
 class LUID_AND_ATTRIBUTES(ctypes.Structure):
-
     _fields_ = [
         ("Luid", LUID),
         ("Attributes", ctypes.c_ulong),
@@ -47,14 +46,13 @@ class LUID_AND_ATTRIBUTES(ctypes.Structure):
 
 
 class TOKEN_PRIVILEGES(ctypes.Structure):
-
     _fields_ = [
         ("count", ctypes.c_ulong),
         ("Privileges", LUID_AND_ATTRIBUTES * 0)
     ]
 
     def get_array(self):
-        array_type = LUID_AND_ATTRIBUTES*self.count
+        array_type = LUID_AND_ATTRIBUTES * self.count
         privileges = ctypes.cast(self.Privileges, ctypes.POINTER(array_type)).contents
         return privileges
 
@@ -63,7 +61,6 @@ class TOKEN_PRIVILEGES(ctypes.Structure):
 
 
 PTOKEN_PRIVILEGES = ctypes.POINTER(TOKEN_PRIVILEGES)
-
 
 MAX_MODULE_NAME32 = 255
 
@@ -75,9 +72,9 @@ class ModuleEntry32(ctypes.Structure):
     """
     _fields_ = [
         ('dwSize', ctypes.c_ulong),
-        ('th32ModuleID', ctypes.c_ulong ),
-        ('th32ProcessID', ctypes.c_ulong ),
-        ('GlblcntUsage', ctypes.c_ulong ),
+        ('th32ModuleID', ctypes.c_ulong),
+        ('th32ProcessID', ctypes.c_ulong),
+        ('GlblcntUsage', ctypes.c_ulong),
         ('ProccntUsage', ctypes.c_ulong),
         ('modBaseAddr', ctypes.POINTER(ctypes.c_ulonglong)),
         ('modBaseSize', ctypes.c_ulong),
@@ -130,7 +127,6 @@ class ProcessEntry32(ctypes.Structure):
 
 
 class FILETIME(ctypes.Structure):
-
     _fields_ = [
         ("dwLowDateTime", ctypes.c_ulong),
         ("dwHighDateTime", ctypes.c_ulong)
@@ -196,9 +192,11 @@ class PROCESS(enum.IntEnum):
     PROCESS_CREATE_THREAD = 0x0002
     #: PROCESS_DUP_HANDLE
     PROCESS_DUP_HANDLE = 0x0040
-    #: Required to retrieve certain information about a process, such as its token, exit code, and priority class (see OpenProcessToken).
+    #: Required to retrieve certain information about a process, such as its token, exit code,
+    # and priority class (see OpenProcessToken).
     PROCESS_QUERY_INFORMATION = 0x0400
-    #: Required to retrieve certain information about a process (see GetExitCodeProcess, GetPriorityClass, IsProcessInJob, QueryFullProcessImageName).
+    #: Required to retrieve certain information about a process
+    # (see GetExitCodeProcess, GetPriorityClass, IsProcessInJob, QueryFullProcessImageName).
     PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
     #: Required to set certain information about a process, such as its priority class (see SetPriorityClass).
     PROCESS_SET_INFORMATION = 0x0200
@@ -220,7 +218,7 @@ class PROCESS(enum.IntEnum):
     STANDARD_RIGHTS_REQUIRED = 0x000F0000
     #: All possible access rights for a process object.
     PROCESS_ALL_ACCESS = (
-        STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0xFFF
+            STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0xFFF
     )
     #: Required to delete the object.
     DELETE = 0x00010000
@@ -246,21 +244,23 @@ class TOKEN(enum.IntEnum):
     TOKEN_ADJUST_DEFAULT = 0x0080
     TOKEN_ADJUST_SESSIONID = 0x0100
     TOKEN_ALL_ACCESS = (
-        STANDARD_RIGHTS_REQUIRED |
-        TOKEN_ASSIGN_PRIMARY |
-        TOKEN_DUPLICATE |
-        TOKEN_IMPERSONATE |
-        TOKEN_QUERY |
-        TOKEN_QUERY_SOURCE |
-        TOKEN_ADJUST_PRIVILEGES |
-        TOKEN_ADJUST_GROUPS |
-        TOKEN_ADJUST_DEFAULT
+            STANDARD_RIGHTS_REQUIRED |
+            TOKEN_ASSIGN_PRIMARY |
+            TOKEN_DUPLICATE |
+            TOKEN_IMPERSONATE |
+            TOKEN_QUERY |
+            TOKEN_QUERY_SOURCE |
+            TOKEN_ADJUST_PRIVILEGES |
+            TOKEN_ADJUST_GROUPS |
+            TOKEN_ADJUST_DEFAULT
     )
 
 
 class SE_TOKEN_PRIVILEGE(enum.IntEnum):
     """An access token contains the security information for a logon session.
-    The system creates an access token when a user logs on, and every process executed on behalf of the user has a copy of the token."""
+    The system creates an access token when a user logs on, and every process executed on behalf of the user has a copy
+    of the token.
+    """
 
     SE_PRIVILEGE_ENABLED_BY_DEFAULT = 0x00000001
     SE_PRIVILEGE_ENABLED = 0x00000002
@@ -270,7 +270,10 @@ class SE_TOKEN_PRIVILEGE(enum.IntEnum):
 
 class MEMORY_STATE(enum.IntEnum):
     """The type of memory allocation"""
-    #: Allocates memory charges (from the overall size of memory and the paging files on disk) for the specified reserved memory pages. The function also guarantees that when the caller later initially accesses the memory, the contents will be zero. Actual physical pages are not allocated unless/until the virtual addresses are actually accessed.
+    #: Allocates memory charges (from the overall size of memory and the paging files on disk)
+    # for the specified reserved memory pages. The function also guarantees that when the caller later
+    # initially accesses the memory, the contents will be zero.
+    # Actual physical pages are not allocated unless/until the virtual addresses are actually accessed.
     MEM_COMMIT = 0x1000
     #: XXX
     MEM_FREE = 0x10000
@@ -298,32 +301,57 @@ class MEMORY_PROTECTION(enum.IntEnum):
     you must specify one of the following values when allocating or protecting a page in memory
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa366786(v=vs.85).aspx"""
 
-    #: Enables execute access to the committed region of pages. An attempt to write to the committed region results in an access violation.
+    #: Enables execute access to the committed region of pages.
+    # An attempt to write to the committed region results in an access violation.
     PAGE_EXECUTE = 0x10
-    #: Enables execute or read-only access to the committed region of pages. An attempt to write to the committed region results in an access violation.
+    #: Enables execute or read-only access to the committed region of pages.
+    # An attempt to write to the committed region results in an access violation.
     PAGE_EXECUTE_READ = 0x20
     #: Enables execute, read-only, or read/write access to the committed region of pages.
     PAGE_EXECUTE_READWRITE = 0x40
-    #: Enables execute, read-only, or copy-on-write access to a mapped view of a file mapping object. An attempt to write to a committed copy-on-write page results in a private copy of the page being made for the process. The private page is marked as PAGE_EXECUTE_READWRITE, and the change is written to the new page.
+    #: Enables execute, read-only, or copy-on-write access to a mapped view of a file mapping object.
+    # An attempt to write to a committed copy-on-write page results in a private
+    # copy of the page being made for the process.
+    # The private page is marked as PAGE_EXECUTE_READWRITE, and the change is written to the new page.
     PAGE_EXECUTE_WRITECOPY = 0x80
-    #: Disables all access to the committed region of pages. An attempt to read from, write to, or execute the committed region results in an access violation.
+    #: Disables all access to the committed region of pages.
+    # An attempt to read from, write to, or execute the committed region results in an access violation.
     PAGE_NOACCESS = 0x01
-    #: Enables read-only access to the committed region of pages. An attempt to write to the committed region results in an access violation. If Data Execution Prevention is enabled, an attempt to execute code in the committed region results in an access violation.
+    #: Enables read-only access to the committed region of pages.
+    # An attempt to write to the committed region results in an access violation.
+    # If Data Execution Prevention is enabled,
+    # an attempt to execute code in the committed region results in an access violation.
     PAGE_READONLY = 0x02
-    #: Enables read-only or read/write access to the committed region of pages. If Data Execution Prevention is enabled, attempting to execute code in the committed region results in an access violation.
+    #: Enables read-only or read/write access to the committed region of pages.
+    # If Data Execution Prevention is enabled, attempting to execute code in the
+    # committed region results in an access violation.
     PAGE_READWRITE = 0x04
-    #: Enables read-only or copy-on-write access to a mapped view of a file mapping object. An attempt to write to a committed copy-on-write page results in a private copy of the page being made for the process. The private page is marked as PAGE_READWRITE, and the change is written to the new page. If Data Execution Prevention is enabled, attempting to execute code in the committed region results in an access violation.
+    #: Enables read-only or copy-on-write access to a mapped view of a file mapping object.
+    # An attempt to write to a committed copy-on-write page results in a private copy of
+    # the page being made for the process. The private page is marked as PAGE_READWRITE,
+    # and the change is written to the new page. If Data Execution Prevention is enabled,
+    # attempting to execute code in the committed region results in an access violation.
     PAGE_WRITECOPY = 0x08
-    #: Pages in the region become guard pages. Any attempt to access a guard page causes the system to raise a STATUS_GUARD_PAGE_VIOLATION exception and turn off the guard page status. Guard pages thus act as a one-time access alarm. For more information, see Creating Guard Pages.
+    #: Pages in the region become guard pages.
+    # Any attempt to access a guard page causes the system to
+    # raise a STATUS_GUARD_PAGE_VIOLATION exception and turn off the guard page status.
+    # Guard pages thus act as a one-time access alarm. For more information, see Creating Guard Pages.
     PAGE_GUARD = 0x100
-    #: Sets all pages to be non-cachable. Applications should not use this attribute except when explicitly required for a device. Using the interlocked functions with memory that is mapped with SEC_NOCACHE can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
+    #: Sets all pages to be non-cachable.
+    # Applications should not use this attribute except when explicitly required for a device.
+    # Using the interlocked functions with memory that is mapped with
+    # SEC_NOCACHE can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
     PAGE_NOCACHE = 0x200
     #: Sets all pages to be write-combined.
-    #: Applications should not use this attribute except when explicitly required for a device. Using the interlocked functions with memory that is mapped as write-combined can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
+    #: Applications should not use this attribute except when explicitly required for a device.
+    # Using the interlocked functions with memory that is mapped as write-combined can result in an
+    # EXCEPTION_ILLEGAL_INSTRUCTION exception.
     PAGE_WRITECOMBINE = 0x400
 
 
 SIZE_OF_80387_REGISTERS = 80
+
+
 class FLOATING_SAVE_AREA(ctypes.Structure):
     """Undocumented ctypes.Structure used for ThreadContext."""
     _fields_ = [
@@ -338,7 +366,10 @@ class FLOATING_SAVE_AREA(ctypes.Structure):
         ('Cr0NpxState', ctypes.c_uint)
     ]
 
+
 MAXIMUM_SUPPORTED_EXTENSION = 512
+
+
 class ThreadContext(ctypes.Structure):
     """Represents a thread context"""
 
@@ -473,7 +504,6 @@ class MEMORY_BASIC_INFORMATION32(ctypes.Structure):
 
 
 class MEMORY_BASIC_INFORMATION64(ctypes.Structure):
-
     _fields_ = [
         ("BaseAddress", ctypes.c_ulonglong),
         ("AllocationBase", ctypes.c_ulonglong),
@@ -506,9 +536,9 @@ class MEMORY_BASIC_INFORMATION64(ctypes.Structure):
 
 
 PTR_SIZE = ctypes.sizeof(ctypes.c_void_p)
-if PTR_SIZE == 8:       # 64-bit python
+if PTR_SIZE == 8:  # 64-bit python
     MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION64
-elif PTR_SIZE == 4:     # 32-bit python
+elif PTR_SIZE == 4:  # 32-bit python
     MEMORY_BASIC_INFORMATION = MEMORY_BASIC_INFORMATION32
 
 
@@ -537,7 +567,9 @@ class SECURITY_ATTRIBUTES(ctypes.Structure):
     _fields_ = [('nLength', ctypes.c_ulong),
                 ('lpSecurityDescriptor', ctypes.c_void_p),
                 ('bInheritHandle', ctypes.c_long)
-    ]
+                ]
+
+
 LPSECURITY_ATTRIBUTES = ctypes.POINTER(SECURITY_ATTRIBUTES)
 
 
@@ -559,23 +591,24 @@ class THREAD_BASIC_INFORMATION(ctypes.Structure):
         ("BasePriority", ctypes.c_long)
     ]
 
+
 # TEB
 class TIB_UNION(ctypes.Union):
-
     _fields_ = [
         ("FiberData", ctypes.c_void_p),
         ("Version", ctypes.c_ulong),
     ]
 
+
 class NT_TIB(ctypes.Structure):
     _fields_ = [
-        ("ExceptionList", ctypes.c_void_p), # PEXCEPTION_REGISTRATION_RECORD
+        ("ExceptionList", ctypes.c_void_p),  # PEXCEPTION_REGISTRATION_RECORD
         ("StackBase", ctypes.c_void_p),
         ("StackLimit", ctypes.c_void_p),
         ("SubSystemTib", ctypes.c_void_p),
         ("u", TIB_UNION),
         ("ArbitraryUserPointer", ctypes.c_void_p),
-        ("Self", ctypes.c_void_p), # PNTTIB
+        ("Self", ctypes.c_void_p),  # PNTTIB
     ]
 
 
@@ -583,9 +616,9 @@ class SMALL_TEB(ctypes.Structure):
     _pack_ = 1
 
     _fields_ = [
-        ("NtTib",                           NT_TIB),
-        ("EnvironmentPointer",              ctypes.c_void_p),
-        ("ClientId",                        CLIENT_ID),
-        ("ActiveRpcHandle",                 ctypes.c_void_p),
-        ("ThreadLocalStoragePointer",       ctypes.c_void_p)
+        ("NtTib", NT_TIB),
+        ("EnvironmentPointer", ctypes.c_void_p),
+        ("ClientId", CLIENT_ID),
+        ("ActiveRpcHandle", ctypes.c_void_p),
+        ("ThreadLocalStoragePointer", ctypes.c_void_p)
     ]

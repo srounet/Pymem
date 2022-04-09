@@ -7,15 +7,18 @@ import pymem.ressources.structure
 
 
 class Thread(object):
+    """
+    Provides basic thread information such as TEB.
+
+    Parameters
+    ----------
+    process_handle: int
+        A handle to an opened process
+    th_entry_32: ThreadEntry32
+        Target thread's entry object
+    """
 
     def __init__(self, process_handle, th_entry_32):
-        """Provides basic thread informations such as TEB.
-
-            :param process_handle: A handle to an opened process
-            :param th_entry_32: A ThreadEntry32 structure
-            :type process_handle: ctypes.c_void_p
-            :type th_entry_32: pymem.ressources.structure.ThreadEntry32
-        """
         self.process_handle = process_handle
         self.thread_id = th_entry_32.th32ThreadID
         self.th_entry_32 = th_entry_32
@@ -24,9 +27,9 @@ class Thread(object):
         # self.teb = self._query_teb()
 
     def _query_teb(self):
-        """Query current thread informations to extract the TEB structure.
+        """Query current thread information to extract the TEB structure.
 
-            :return: TEB informations
+            :return: TEB information
             :rtype: pymem.ressources.structure.SMALL_TEB
         """
         THREAD_QUERY_INFORMATION = 0x0040
@@ -45,11 +48,11 @@ class Thread(object):
             None
         )
         self.teb_address = res.TebBaseAddress
-        bytes = pymem.memory.read_bytes(
+        data = pymem.memory.read_bytes(
             self.process_handle,
             res.TebBaseAddress,
             ctypes.sizeof(pymem.ressources.structure.SMALL_TEB)
         )
-        teb = pymem.ressources.structure.SMALL_TEB.from_buffer_copy(bytes)
+        teb = pymem.ressources.structure.SMALL_TEB.from_buffer_copy(data)
         pymem.ressources.kernel32.CloseHandle(thread_handle)
         return teb

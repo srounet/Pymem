@@ -9,6 +9,7 @@ except AttributeError:
         def __getattr__(self, item):
             return self
 
+
     dll = MockObject()
 
 #: Opens an existing local process object.
@@ -38,6 +39,12 @@ CloseHandle.argtypes = [
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms679360%28v=vs.85%29.aspx
 GetLastError = dll.GetLastError
 GetLastError.restype = ctypes.c_ulong
+
+#: Sets the last-error code for the calling thread.
+#:
+#: https://docs.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-setlasterror
+SetLastError = dll.SetLastError
+SetLastError.argtypes = [ctypes.c_ulong]
 
 #: Retrieves a pseudo handle for the current process.
 #:

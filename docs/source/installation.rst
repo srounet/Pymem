@@ -12,7 +12,7 @@ If you are familiar with pyenv_, it is highly recommended to sandbox pymem insta
 Path
 ----
 
-In order to use all pymem fonctionalities you have to first make sure that system python directory is configured within
+In order to use all pymem functionalities you have to first make sure that system python directory is configured within
 windows system PATH.
 
 In a PowerShell window type:
@@ -102,3 +102,18 @@ Pymem:
 
 Pymem is now installed. Check out the :doc:`/quickstart` or go to the
 :doc:`Documentation Overview </index>`.
+
+Extra Packages
+--------------
+
+Pymem can use the regex_ package to speedup memory scans
+
+you can easily install this by adding [speed] to pymem when installing;
+such as:
+
+.. code-block:: sh
+
+    $ pip install pymem[speed]
+
+.. _regex: https://pypi.org/project/regex/
+

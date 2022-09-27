@@ -15,7 +15,7 @@ except AttributeError:
 #:
 #: https://msdn.microsoft.com/en-us/library/windows/desktop/ms684320%28v=vs.85%29.aspx
 OpenProcess = dll.OpenProcess
-OpenProcess.restype = ctypes.c_ulonglong
+OpenProcess.restype = ctypes.c_void_p
 
 #: Terminates the specified process and all of its threads.
 #:

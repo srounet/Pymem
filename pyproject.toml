@@ -16,7 +16,7 @@ classifiers=[
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0.0"
+python = ">=3.7,<4.0.0"
 regex = {version = "^2022.9.13", optional = true}
 
 [tool.poetry.extras]

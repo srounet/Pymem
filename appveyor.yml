@@ -39,24 +39,26 @@ install:
   # about it being out of date.
   - "python -m pip install --upgrade pip"
 
-  # Install the build dependencies of the project. If some dependencies contain
-  # compiled extensions and are not provided as pre-built wheel packages,
-  # pip will build them from source using the MSVC compiler matching the
-  # target Python version and architecture
-  - "python -m pip install -r requirements-test.txt"
+  # Install wheel for faster installs
+  - "python -m pip install --upgrade wheel"
 
-build: off
+  # Install poetry
+  - "python -m pip install poetry"
+
+  # Install test dependencies
+  - "poetry install --only=test"
+
+build: false
 
 test_script:
-  - "python -m pytest --cov=pymem"
+  - "poetry run pytest --cov=pymem"
 
 after_test:
-  - "codecov -t %COV_TOKEN%"
-  - "python -m pip install -r requirements-doc.txt"
-  - "sphinx-apidoc -f -o docs/source pymem"
-  - "cd docs/source && make.bat html"
-  - "python -m pip install wheel"
-  - "python setup.py sdist bdist_wheel"
+  - "poetry run codecov -t %COV_TOKEN%"
+  - "poetry install --only=doc"
+  - "poetry run sphinx-apidoc -f -o docs/source pymem"
+  - "cd docs/source && poetry run make.bat html"
+  - "poetry build"
 
 for:
 -
@@ -65,9 +67,9 @@ for:
       - master
 
   build_script:
-    - python -m pip install -r requirements-test.txt
-    - python -m pip install -U pip
-    - python setup.py -q sdist bdist
+    - python -m pip install wheel poetry
+    - poetry install
+    - poetry build
 
   build: on
 

@@ -1,10 +1,20 @@
 [tool.poetry]
-name = "pymem"
+name = "Pymem"
 version = "1.9.0"
 description = "python memory access made easy"
 authors = ["Fabien Reboia <srounet@gmail.com>"]
 license = "MIT"
 readme = "PYPI-README.md"
+classifiers=[
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0.0"

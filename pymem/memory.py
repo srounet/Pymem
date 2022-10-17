@@ -33,7 +33,7 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
         allocation_type = pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT.value
     if not protection_type:
         protection_type = pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE.value
-    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.SetLastError(0)
     address = pymem.ressources.kernel32.VirtualAllocEx(handle, None, size, allocation_type, protection_type)
     return address
 
@@ -61,7 +61,7 @@ def free_memory(handle, address, free_type=None):
     """
     if not free_type:
         free_type = pymem.ressources.structure.MEMORY_STATE.MEM_RELEASE
-    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.SetLastError(0)
     ret = pymem.ressources.kernel32.VirtualFreeEx(handle, address, 0, free_type)
     return ret
 
@@ -98,7 +98,7 @@ def read_bytes(handle, address, byte):
         raise TypeError('Address must be int: {}'.format(address))
     buff = ctypes.create_string_buffer(byte)
     bytes_read = ctypes.c_size_t()
-    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.SetLastError(0)
     pymem.ressources.kernel32.ReadProcessMemory(
         handle,
         ctypes.c_void_p(address),
@@ -108,7 +108,7 @@ def read_bytes(handle, address, byte):
     )
     error_code = ctypes.windll.kernel32.GetLastError()
     if error_code:
-        ctypes.windll.kernel32.SetLastError(0)
+        pymem.ressources.kernel32.SetLastError(0)
         raise pymem.exception.WinAPIError(error_code)
     raw = buff.raw
     return raw
@@ -618,14 +618,14 @@ def write_bytes(handle, address, data, length):
     bool
         A boolean indicating a successful write.
     """
-    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.SetLastError(0)
     if not isinstance(address, int):
         raise TypeError('Address must be int: {}'.format(address))
     dst = ctypes.cast(address, ctypes.c_char_p)
     res = ctypes.windll.kernel32.WriteProcessMemory(handle, dst, data, length, 0x0)
     error_code = ctypes.windll.kernel32.GetLastError()
     if error_code:
-        ctypes.windll.kernel32.SetLastError(0)
+        pymem.ressources.kernel32.SetLastError(0)
         raise pymem.exception.WinAPIError(error_code)
     return res
 
@@ -1129,10 +1129,10 @@ def virtual_query(handle, address):
         A memory basic information object
     """
     mbi = pymem.ressources.structure.MEMORY_BASIC_INFORMATION()
-    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.SetLastError(0)
     pymem.ressources.kernel32.VirtualQueryEx(handle, address, ctypes.byref(mbi), ctypes.sizeof(mbi))
     error_code = ctypes.windll.kernel32.GetLastError()
     if error_code:
-        ctypes.windll.kernel32.SetLastError(0)
+        pymem.ressources.kernel32.SetLastError(0)
         raise pymem.exception.WinAPIError(error_code)
     return mbi

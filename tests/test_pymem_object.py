@@ -19,3 +19,8 @@ def test_init_process_by_id():
 def test_error_init_non_str_int():
     with pytest.raises(TypeError):
         pymem.Pymem(1.0)
+
+
+def test_init_none():
+    process = pymem.Pymem()
+    assert process.process_id is None

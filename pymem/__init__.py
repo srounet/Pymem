@@ -40,15 +40,14 @@ class Pymem(object):
         self.py_run_simple_string = None
         self._python_injected = None
 
-        if process_name is not None:
-            if isinstance(process_name, str):
-                self.open_process_from_name(process_name)
-            elif isinstance(process_name, int):
-                self.open_process_from_id(process_name)
-            else:
-                raise TypeError(
-                    f"process_name must be of type int or string not {type(process_name).__name__}"
-                )
+        if isinstance(process_name, str):
+            self.open_process_from_name(process_name)
+        elif isinstance(process_name, int):
+            self.open_process_from_id(process_name)
+        else:
+            raise TypeError(
+                f"process_name must be of type int or string not {type(process_name).__name__}"
+            )
 
         self.check_wow64()
 

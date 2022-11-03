@@ -13,7 +13,7 @@ except ImportError:
 
 # TODO: warn that pattern is a regex and may need to be escaped
 # TODO: 2.0 rename to pattern_scan_page
-def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
+def scan_pattern_page(handle, address, pattern, *, return_multiple=False, scan_hex=False):
     """Search a byte pattern given a memory location.
     Will query memory location information and search over until it reaches the
     length of the memory page. If nothing is found the function returns the
@@ -29,6 +29,8 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
         A regex byte pattern to search for
     return_multiple: bool
         If multiple results should be returned instead of stopping on the first
+    scan_hex: bool
+        Whether to scan the raw hexidecimal or not
 
     Returns
     -------
@@ -64,18 +66,23 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
 
     page_bytes = pymem.memory.read_bytes(handle, address, mbi.RegionSize)
 
+    if scan_hex:
+        page_bytes = page_bytes.hex().encode()
+        pattern = pattern.lower()
+
     if not return_multiple:
         found = None
         match = re.search(pattern, page_bytes, re.DOTALL)
 
         if match:
-            found = address + match.span()[0]
+            match_span = int(match.span()[0] / 2) if scan_hex else match.span()[0]
+            found = address + match_span
 
     else:
         found = []
-
-        for match in re.finditer(pattern, page_bytes, re.DOTALL):
-            found_address = address + match.span()[0]
+        for match in re.finditer(pattern, page_bytes, flags = re.DOTALL):
+            match_span = int(match.span()[0] / 2) if scan_hex else match.span()[0]
+            found_address = address + match_span
             found.append(found_address)
 
     return next_region, found
@@ -135,7 +142,7 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
     return found
 
 
-def pattern_scan_all(handle, pattern, *, return_multiple=False):
+def pattern_scan_all(handle, pattern, *, return_multiple=False, scan_hex=False):
     """Scan the entire address space for a given regex pattern
 
     Parameters
@@ -146,6 +153,8 @@ def pattern_scan_all(handle, pattern, *, return_multiple=False):
         A regex bytes pattern to search for
     return_multiple: bool
         If multiple results should be returned
+    scan_hex: bool
+        Whether to scan the raw hexidecimal or not
 
     Returns
     -------
@@ -162,7 +171,8 @@ def pattern_scan_all(handle, pattern, *, return_multiple=False):
             handle,
             next_region,
             pattern,
-            return_multiple=return_multiple
+            return_multiple=return_multiple,
+            scan_hex=scan_hex
         )
 
         if not return_multiple and page_found:

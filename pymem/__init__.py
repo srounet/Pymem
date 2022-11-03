@@ -308,7 +308,7 @@ class Pymem(object):
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         return pymem.memory.free_memory(self.process_handle, address)
 
-    def pattern_scan_all(self, pattern, *, return_multiple=False):
+    def pattern_scan_all(self, pattern, *, return_multiple=False, scan_hex=False):
         """Scan the entire address space of this process for a regex pattern
 
         Parameters
@@ -317,6 +317,8 @@ class Pymem(object):
             The regex pattern to search for
         return_multiple: bool
             If multiple results should be returned
+        scan_hex: bool
+            Whether to scan the raw hexidecimal or not
 
         Returns
         -------
@@ -324,7 +326,8 @@ class Pymem(object):
             Memory address of given pattern, or None if one was not found
             or a list of found addresses in return_multiple is True
         """
-        return pymem.pattern.pattern_scan_all(self.process_handle, pattern, return_multiple=return_multiple)
+        return pymem.pattern.pattern_scan_all(self.process_handle, pattern, 
+            return_multiple=return_multiple, scan_hex=scan_hex)
 
     def pattern_scan_module(self, pattern, module, *, return_multiple=False):
         """Scan a module for a regex pattern

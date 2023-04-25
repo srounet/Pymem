@@ -114,61 +114,11 @@ def read_bytes(handle, address, byte):
     return raw
 
 
-def read_ctype(handle, address, ctype, *, get_py_value=True):
-    """
-    Read a ctype basic type or structure from <address>
-
-    Parameters
-    ----------
-    handle: int
-        The handle to a process. The function allocates memory within the virtual address space of this process.
-        The handle must have the PROCESS_VM_OPERATION access right.
-    address: int
-        An address of the region of memory to be read.
-    ctype:
-        A simple ctypes type or structure
-    get_py_value: bool
-        If the corrosponding python type should be used instead of returning the ctype
-
-    Raises
-    ------
-    WinAPIError
-        If ReadProcessMemory failed
-
-    Returns
-    -------
-    Any
-        Return will be either the ctype with the read value if get_py_value is false or 
-        the corropsonding python type
-    """
-    ctype_size = ctypes.sizeof(ctype)
-
-    buffer = ctypes.create_string_buffer(ctype_size)
-    pymem.ressources.kernel32.SetLastError(0)
-
-    result = pymem.ressources.kernel32.ReadProcessMemory(
-        handle,
-        ctypes.c_void_p(address),
-        ctypes.byref(buffer),
-        ctype_size,
-        None,
-    )
-
-    if result == 0:
-        error_code = ctypes.windll.kernel32.GetLastError()
-        raise pymem.exception.WinAPIError(error_code)
-
-    ctypes.memmove(ctypes.byref(ctype), ctypes.byref(buffer), ctype_size)
-
-    if get_py_value:
-        return ctype.value
-    
-    return ctype
-
-
 def read_bool(handle, address):
     """Reads 1 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
+
+    Unpack the value using struct.unpack('?')
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
@@ -190,14 +140,18 @@ def read_bool(handle, address):
     Returns
     -------
     bool
-        The raw value read as a bool
+        The raw value read as a string
     """
-    return read_ctype(handle, address, ctypes.c_bool())
+    data = read_bytes(handle, address, struct.calcsize('?'))
+    data = struct.unpack('?', data)[0]
+    return data
 
 
 def read_char(handle, address):
     """Reads 1 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
+
+    Unpack the value using struct.unpack('<b')
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
@@ -221,14 +175,18 @@ def read_char(handle, address):
     str
         The raw value read as a string
     """
-    # TODO: test if this returns a str or int
-    return read_ctype(handle, address, ctypes.c_char())
+    data = read_bytes(handle, address, struct.calcsize('c'))
+    data = struct.unpack('<c', data)[0]
+    data = data.decode()
+    return data
 
 
 def read_uchar(handle, address):
     """Reads 1 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
+    Unpack the value using struct.unpack('<B')
+
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -251,13 +209,17 @@ def read_uchar(handle, address):
     int
         The raw value read as an int
     """
-    return read_ctype(handle, address, ctypes.c_ubyte())
+    data = read_bytes(handle, address, struct.calcsize('B'))
+    data = struct.unpack('<B', data)[0]
+    return data
 
 
 def read_short(handle, address):
     """Reads 2 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
+    Unpack the value using struct.unpack('<h')
+
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -280,13 +242,17 @@ def read_short(handle, address):
     int
         The raw value read as an int
     """
-    return read_ctype(handle, address, ctypes.c_short())
+    data = read_bytes(handle, address, struct.calcsize('h'))
+    data = struct.unpack('<h', data)[0]
+    return data
 
 
 def read_ushort(handle, address):
     """Reads 2 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
+    Unpack the value using struct.unpack('<H')
+
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -309,13 +275,17 @@ def read_ushort(handle, address):
     int
         The raw value read as an int
     """
-    return read_ctype(handle, address, ctypes.c_ushort())
+    data = read_bytes(handle, address, struct.calcsize('H'))
+    data = struct.unpack('<H', data)[0]
+    return data
 
 
 def read_int(handle, address):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
+    Unpack the value using struct.unpack('<i')
+
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -338,12 +308,16 @@ def read_int(handle, address):
     int
         The raw value read as an int
     """
-    return read_ctype(handle, address, ctypes.c_int())
+    data = read_bytes(handle, address, struct.calcsize('i'))
+    data = struct.unpack('<i', data)[0]
+    return data
 
 
 def read_uint(handle, address, is_64=False):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
+
+    Unpack the value using struct.unpack('<I')
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
@@ -369,7 +343,6 @@ def read_uint(handle, address, is_64=False):
     int
         The raw value read as an int
     """
-    # TODO: why does this do this bid-endian thing
     raw = read_bytes(handle, address, struct.calcsize('I'))
     if not is_64:
         raw = struct.unpack('<I', raw)[0]
@@ -383,6 +356,8 @@ def read_float(handle, address):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
+    Unpack the value using struct.unpack('<f')
+
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -405,13 +380,17 @@ def read_float(handle, address):
     float
         The raw value read as a float
     """
-    return read_ctype(handle, address, ctypes.c_float())
+    data = read_bytes(handle, address, struct.calcsize('f'))
+    data = struct.unpack('<f', data)[0]
+    return data
 
 
 def read_long(handle, address):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
+    Unpack the value using struct.unpack('<l')
+
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -434,13 +413,17 @@ def read_long(handle, address):
     int
         The raw value read as an int
     """
-    return read_ctype(handle, address, ctypes.c_long())
+    data = read_bytes(handle, address, struct.calcsize('l'))
+    data = struct.unpack('<l', data)[0]
+    return data
 
 
 def read_ulong(handle, address):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
+    Unpack the value using struct.unpack('<L')
+
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -463,13 +446,17 @@ def read_ulong(handle, address):
     int
         The raw value read as an int
     """
-    return read_ctype(handle, address, ctypes.c_ulong())
+    data = read_bytes(handle, address, struct.calcsize('L'))
+    data = struct.unpack('<L', data)[0]
+    return data
 
 
 def read_longlong(handle, address):
     """Reads 8 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
+    Unpack the value using struct.unpack('<q')
+
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -492,13 +479,17 @@ def read_longlong(handle, address):
     int
         The raw value read as an int
     """
-    return read_ctype(handle, address, ctypes.c_longlong())
+    data = read_bytes(handle, address, struct.calcsize('q'))
+    data = struct.unpack('<q', data)[0]
+    return data
 
 
 def read_ulonglong(handle, address):
     """Reads 8 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
+    Unpack the value using struct.unpack('<Q')
+
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -521,12 +512,16 @@ def read_ulonglong(handle, address):
     int
         The raw value read as an int
     """
-    return read_ctype(handle, address, ctypes.c_ulonglong())
+    data = read_bytes(handle, address, struct.calcsize('Q'))
+    data = struct.unpack('<Q', data)[0]
+    return data
 
 
 def read_double(handle, address):
     """Reads 8 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
+
+    Unpack the value using struct.unpack('<d')
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
@@ -550,7 +545,9 @@ def read_double(handle, address):
     float
         The raw value read as a float
     """
-    return read_ctype(handle, address, ctypes.c_double())
+    data = read_bytes(handle, address, struct.calcsize('d'))
+    data = struct.unpack('<d', data)[0]
+    return data
 
 
 def read_string(handle, address, byte=50):

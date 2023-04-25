@@ -12,9 +12,6 @@ __pycache__/
 *.idea
 .pytest_cache
 
-# vscode
-.vscode
-
 # Distribution / packaging
 .Python
 env/

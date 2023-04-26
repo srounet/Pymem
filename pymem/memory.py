@@ -199,8 +199,7 @@ def read_char(handle, address):
     str
         The raw value read as a string
     """
-    # TODO: test if this returns a str or int
-    return read_ctype(handle, address, ctypes.c_char())
+    return read_ctype(handle, address, ctypes.c_char()).decode()
 
 
 def read_uchar(handle, address):

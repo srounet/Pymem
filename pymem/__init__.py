@@ -471,6 +471,41 @@ class Pymem(object):
             raise pymem.exception.MemoryReadError(address, length, e.error_code)
         return value
 
+    def read_ctype(self, address, ctype, *, get_py_value=True, raw_bytes=False):
+        """
+        Read a ctype basic type or structure from <address>
+
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+        ctype:
+            A simple ctypes type or structure
+        get_py_value: bool
+            If the corrosponding python type should be used instead of returning the ctype
+            This is automatically set to False for ctypes.Structure or ctypes.Array instances
+        raw_bytes: bool
+            If we should return the raw ctype bytes
+
+        Raises
+        ------
+        WinAPIError
+            If ReadProcessMemory failed
+
+        Returns
+        -------
+        Any
+            Return will be either the ctype with the read value if get_py_value is false or 
+            the corropsonding python type
+        """
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        try:
+            value = pymem.memory.read_ctype(self.process_handle, address, ctype, get_py_value=get_py_value, raw_bytes=raw_bytes)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, ctypes.sizeof(ctype), e.error_code)
+        return value 
+
     def read_bool(self, address):
         """Reads 1 byte from an area of memory in a specified process.
 
@@ -925,6 +960,34 @@ class Pymem(object):
             pymem.memory.write_bytes(self.process_handle, address, value, length)
         except pymem.exception.WinAPIError as e:
             raise pymem.exception.MemoryWriteError(address, value, e.error_code)
+
+    def write_ctype(self, address, ctype):
+        """
+        Write a ctype basic type or structure to <address>
+
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        ctype:
+            A simple ctypes type or structure
+
+        Raises
+        ------
+        WinAPIError
+            If WriteProcessMemory failed
+
+        Returns
+        -------
+        bool
+            A boolean indicating a successful write.
+        """
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        try:
+            pymem.memory.write_ctype(self.process_handle, address, ctype)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, ctype, e.error_code)
 
     def write_bool(self, address, value):
         """Write `value` to the given `address` into the current opened process.

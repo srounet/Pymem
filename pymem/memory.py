@@ -94,10 +94,10 @@ def read_bytes(handle, address, byte):
     bytes
         The raw value read as bytes
     """
-    return bytes(read_ctype(handle, address, (byte * ctypes.c_char)()))
+    return read_ctype(handle, address, (byte * ctypes.c_char)(), get_py_value=False).raw
 
 
-def read_ctype(handle, address, ctype, *, get_py_value=True):
+def read_ctype(handle, address, ctype, *, get_py_value=True, raw_bytes=False):
     """
     Read a ctype basic type or structure from <address>
 
@@ -112,6 +112,9 @@ def read_ctype(handle, address, ctype, *, get_py_value=True):
         A simple ctypes type or structure
     get_py_value: bool
         If the corrosponding python type should be used instead of returning the ctype
+        This is automatically set to False for ctypes.Structure or ctypes.Array instances
+    raw_bytes: bool
+        If we should return the raw ctype bytes
 
     Raises
     ------
@@ -124,6 +127,12 @@ def read_ctype(handle, address, ctype, *, get_py_value=True):
         Return will be either the ctype with the read value if get_py_value is false or 
         the corropsonding python type
     """
+    if raw_bytes:
+        return read_bytes(handle, address, ctypes.sizeof(ctype))
+
+    if isinstance(ctype, (ctypes.Structure, ctypes.Array)):
+        get_py_value = False
+
     pymem.ressources.kernel32.SetLastError(0)
 
     result = pymem.ressources.kernel32.ReadProcessMemory(

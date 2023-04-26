@@ -364,3 +364,28 @@ def test_write_uchar():
     with pytest.raises(pymem.exception.ProcessError):
         pm.write_uchar(0x111111, 114)
 
+
+def test_read_ctype_structure():
+    process = pymem.Pymem("python.exe")
+    address = process.allocate(10)
+
+    import ctypes
+
+    class TestStruct(ctypes.Structure):
+        _fields_ = [
+            ("x", ctypes.c_int),
+            ("y", ctypes.c_int),
+        ]
+
+    pymem.memory.write_ctype(process.process_handle, address, TestStruct(123, 456))
+
+    test = pymem.memory.read_ctype(process.process_handle, address, TestStruct())
+
+    assert test.x == 123
+    assert test.y == 456
+
+    raw = pymem.memory.read_ctype(process.process_handle, address, TestStruct(), raw_bytes=True)
+
+    # this is 123 456 packed as bytes
+    assert raw == b"\x7B\x00\x00\x00\xC8\x01\x00\x00"
+

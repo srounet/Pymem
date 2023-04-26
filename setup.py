@@ -19,7 +19,7 @@ with open(ROOT + '/PYPI-README.md', encoding="utf-8") as fp:
 
 setuptools.setup(
     name='Pymem',
-    version='1.10.0',
+    version='1.11.0',
     long_description=long_description,
     long_description_content_type="text/markdown",
     description='pymem: python memory access made easy',

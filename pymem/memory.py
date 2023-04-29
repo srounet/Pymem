@@ -124,7 +124,7 @@ def read_ctype(handle, address, ctype, *, get_py_value=True, raw_bytes=False):
     Returns
     -------
     Any
-        Return will be either the ctype with the read value if get_py_value is false or 
+        Return will be either the ctype with the read value if get_py_value is false or
         the corropsonding python type
     """
     if raw_bytes:
@@ -605,7 +605,7 @@ def write_bytes(handle, address, data, length):
     bool
         A boolean indicating a successful write.
     """
-    buffer = ((length + 1) * ctypes.c_char)()
+    buffer = (length * ctypes.c_char)()
     buffer.value = data
     return write_ctype(handle, address, buffer)
 

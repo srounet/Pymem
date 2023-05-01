@@ -5,6 +5,7 @@ import logging
 import platform
 import struct
 import sys
+import typing
 
 import pymem.exception
 import pymem.memory
@@ -38,7 +39,7 @@ class Pymem(object):
 
     def __init__(
             self,
-            process_name: str | int = None,
+            process_name: typing.Union[str, int] = None,
             process_search_exact_name_match: bool = False,
             process_search_ignore_case: bool = True,
         ):

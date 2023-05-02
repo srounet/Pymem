@@ -5,6 +5,7 @@ import logging
 import platform
 import struct
 import sys
+import typing
 
 import pymem.exception
 import pymem.memory
@@ -28,11 +29,20 @@ class Pymem(object):
 
     Parameters
     ----------
-    process_name: str | int
+    process_name:
         The name or process id of the process to be opened
+    exact_match:
+        Defaults to False, is the full name match or just part of it expected?
+    ignore_case:
+        Default to True, should ignore process name case?
     """
 
-    def __init__(self, process_name=None):
+    def __init__(
+        self,
+        process_name: typing.Union[str, int] = None,
+        exact_match: bool = False,
+        ignore_case: bool = True,
+    ):
         self.process_id = None
         self.process_handle = None
         self.thread_handle = None
@@ -42,7 +52,7 @@ class Pymem(object):
 
         if process_name is not None:
             if isinstance(process_name, str):
-                self.open_process_from_name(process_name)
+                self.open_process_from_name(process_name, exact_match, ignore_case)
             elif isinstance(process_name, int):
                 self.open_process_from_id(process_name)
             else:
@@ -191,26 +201,48 @@ class Pymem(object):
         pymem.logger.debug('New thread_id: 0x%08x' % thread_h)
         return thread_h
 
-    def open_process_from_name(self, process_name):
+    def open_process_from_name(
+        self,
+        process_name: str,
+        exact_match: bool = False,
+        ignore_case: bool = True,
+    ):
         """Open process given its name and stores the handle into process_handle
 
         Parameters
         ----------
-        process_name: str
+        process_name:
             The name of the process to be opened
+        exact_match:
+            Defaults to False, is the full name match or just part of it expected?
+        ignore_case:
+            Default to True, should ignore process name case?
 
         Raises
         ------
         TypeError
-            If process name is not valid
+            If process name is not valid or search parameters are of the wrong type
         ProcessNotFound
             If process name is not found
         CouldNotOpenProcess
             If process cannot be opened
         """
+
         if not process_name or not isinstance(process_name, str):
             raise TypeError('Invalid argument: {}'.format(process_name))
-        process32 = pymem.process.process_from_name(process_name)
+
+        if not isinstance(exact_match, bool):
+            raise TypeError('Invalid argument: {}'.format(exact_match))
+
+        if not isinstance(ignore_case, bool):
+            raise TypeError('Invalid argument: {}'.format(ignore_case))
+
+        process32 = pymem.process.process_from_name(
+            process_name,
+            exact_match,
+            ignore_case,
+        )
+
         if not process32:
             raise pymem.exception.ProcessNotFound(process_name)
         self.process_id = process32.th32ProcessID
@@ -495,7 +527,7 @@ class Pymem(object):
         Returns
         -------
         Any
-            Return will be either the ctype with the read value if get_py_value is false or 
+            Return will be either the ctype with the read value if get_py_value is false or
             the corropsonding python type
         """
         if not self.process_handle:
@@ -504,7 +536,7 @@ class Pymem(object):
             value = pymem.memory.read_ctype(self.process_handle, address, ctype, get_py_value=get_py_value, raw_bytes=raw_bytes)
         except pymem.exception.WinAPIError as e:
             raise pymem.exception.MemoryReadError(address, ctypes.sizeof(ctype), e.error_code)
-        return value 
+        return value
 
     def read_bool(self, address):
         """Reads 1 byte from an area of memory in a specified process.

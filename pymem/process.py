@@ -282,24 +282,44 @@ def list_processes():
     pymem.ressources.kernel32.CloseHandle(hSnap)
 
 
-def process_from_name(name):
+def process_from_name(
+    name: str,
+    exact_match: bool = False,
+    ignore_case: bool = True,
+):
     """Open a process given its name.
 
     Parameters
     ----------
-    name: str
+    name:
         The name of the process to be opened
+    exact_match:
+        Defaults to False, is the full name match or just part of it expected?
+    ignore_case:
+        Default to True, should ignore process name case?
 
     Returns
     -------
     ProcessEntry32
         The process entry of the opened process
     """
-    name = name.lower()
+
+    if ignore_case:
+        name = name.lower()
+
     processes = list_processes()
     for process in processes:
-        if name in process.szExeFile.decode(locale.getpreferredencoding()).lower():
-            return process
+        process_name = process.szExeFile.decode(locale.getpreferredencoding())
+
+        if ignore_case:
+            process_name = process_name.lower()
+
+        if exact_match:
+            if process_name == name:
+                return process
+        else:
+            if name in process_name:
+                return process
 
 
 def process_from_id(process_id):

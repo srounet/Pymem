@@ -19,7 +19,7 @@ with open(ROOT + '/PYPI-README.md', encoding="utf-8") as fp:
 
 setuptools.setup(
     name='Pymem',
-    version='1.11.1',
+    version='1.12.0',
     long_description=long_description,
     long_description_content_type="text/markdown",
     description='pymem: python memory access made easy',
@@ -38,6 +38,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Environment :: Win32 (MS Windows)',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',

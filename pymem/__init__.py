@@ -29,20 +29,20 @@ class Pymem(object):
 
     Parameters
     ----------
-    process_name: str | int
+    process_name:
         The name or process id of the process to be opened
-    process_search_exact_name_match: bool = False
-        Is the full name match or just part of it expected?
-    process_search_ignore_case: bool = True
-        Should ignore process name case?
+    exact_match:
+        Defaults to False, is the full name match or just part of it expected?
+    ignore_case:
+        Default to True, should ignore process name case?
     """
 
     def __init__(
-            self,
-            process_name: typing.Union[str, int] = None,
-            process_search_exact_name_match: bool = False,
-            process_search_ignore_case: bool = True,
-        ):
+        self,
+        process_name: typing.Union[str, int] = None,
+        exact_match: bool = False,
+        ignore_case: bool = True,
+    ):
         self.process_id = None
         self.process_handle = None
         self.thread_handle = None
@@ -52,7 +52,7 @@ class Pymem(object):
 
         if process_name is not None:
             if isinstance(process_name, str):
-                self.open_process_from_name(process_name, process_search_exact_name_match, process_search_ignore_case)
+                self.open_process_from_name(process_name, exact_match, ignore_case)
             elif isinstance(process_name, int):
                 self.open_process_from_id(process_name)
             else:
@@ -202,21 +202,21 @@ class Pymem(object):
         return thread_h
 
     def open_process_from_name(
-            self,
-            process_name: str,
-            process_search_exact_name_match: bool = False,
-            process_search_ignore_case: bool = True,
-        ):
+        self,
+        process_name: str,
+        exact_match: bool = False,
+        ignore_case: bool = True,
+    ):
         """Open process given its name and stores the handle into process_handle
 
         Parameters
         ----------
-        process_name: str
+        process_name:
             The name of the process to be opened
-        process_search_exact_name_match: bool = False
-            Is the full name match or just part of it expected?
-        process_search_ignore_case: bool = True
-            Should ignore process name case?
+        exact_match:
+            Defaults to False, is the full name match or just part of it expected?
+        ignore_case:
+            Default to True, should ignore process name case?
 
         Raises
         ------
@@ -227,19 +227,20 @@ class Pymem(object):
         CouldNotOpenProcess
             If process cannot be opened
         """
+
         if not process_name or not isinstance(process_name, str):
             raise TypeError('Invalid argument: {}'.format(process_name))
 
-        if not isinstance(process_search_exact_name_match, bool):
-            raise TypeError('Invalid argument: {}'.format(process_search_exact_name_match))
+        if not isinstance(exact_match, bool):
+            raise TypeError('Invalid argument: {}'.format(exact_match))
 
-        if not isinstance(process_search_ignore_case, bool):
-            raise TypeError('Invalid argument: {}'.format(process_search_ignore_case))
+        if not isinstance(ignore_case, bool):
+            raise TypeError('Invalid argument: {}'.format(ignore_case))
 
         process32 = pymem.process.process_from_name(
             process_name,
-            process_search_exact_name_match,
-            process_search_ignore_case,
+            exact_match,
+            ignore_case,
         )
 
         if not process32:

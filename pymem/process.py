@@ -283,20 +283,20 @@ def list_processes():
 
 
 def process_from_name(
-        name: str,
-        process_search_exact_name_match: bool = False,
-        process_search_ignore_case: bool = True,
-    ):
+    name: str,
+    exact_match: bool = False,
+    ignore_case: bool = True,
+):
     """Open a process given its name.
 
     Parameters
     ----------
-    name: str
+    name:
         The name of the process to be opened
-    process_search_exact_name_match: bool = False
-        Is the full name match or just part of it expected?
-    process_search_ignore_case: bool = True
-        Should ignore process name case?
+    exact_match:
+        Defaults to False, is the full name match or just part of it expected?
+    ignore_case:
+        Default to True, should ignore process name case?
 
     Returns
     -------
@@ -304,17 +304,17 @@ def process_from_name(
         The process entry of the opened process
     """
 
-    if process_search_ignore_case:
+    if ignore_case:
         name = name.lower()
 
     processes = list_processes()
     for process in processes:
         process_name = process.szExeFile.decode(locale.getpreferredencoding())
 
-        if process_search_ignore_case:
+        if ignore_case:
             process_name = process_name.lower()
 
-        if process_search_exact_name_match:
+        if exact_match:
             if process_name == name:
                 return process
         else:

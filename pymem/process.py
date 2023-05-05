@@ -2,6 +2,7 @@ import ctypes
 import locale
 import logging
 import os
+import typing
 
 import pymem.ressources.advapi32
 import pymem.ressources.kernel32
@@ -395,7 +396,7 @@ def enum_process_thread(process_id):
     pymem.ressources.kernel32.CloseHandle(hSnap)
 
 
-def enum_process_module(handle):
+def enum_process_module(handle) -> typing.Generator['pymem.ressources.structure.MODULEINFO', None, None]:
     """List and retrieves the base names of the specified loaded module within a process
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms682633(v=vs.85).aspx
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms683196(v=vs.85).aspx

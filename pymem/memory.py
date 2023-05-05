@@ -38,7 +38,7 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
     return address
 
 
-def free_memory(handle, address, free_type=None):
+def free_memory(handle, address, free_type=None) -> bool:
     """Releases, decommits, or releases and decommits a region of memory within the virtual address space of a specified
     process.
 

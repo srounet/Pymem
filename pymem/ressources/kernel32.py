@@ -271,7 +271,7 @@ GetExitCodeThread.argtypes = [
 ]
 
 VirtualFreeEx = dll.VirtualFreeEx
-VirtualFreeEx.restype = ctypes.c_long
+VirtualFreeEx.restype = ctypes.c_bool
 VirtualFreeEx.argtypes = [
     ctypes.c_void_p,
     ctypes.c_void_p,

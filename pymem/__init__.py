@@ -78,6 +78,25 @@ class Pymem(object):
         modules = pymem.process.enum_process_module(self.process_handle)
         return modules
 
+    def resolve_offsets(self, base_offset, offsets, *, is_64_bit = True):
+        """Resolves a list of pointers; commonly one from cheat engine
+
+        Args:
+            base_offset (int): The base address offset
+            offsets (list[int]): List of offsets
+            is_64_bit (bool, optional): If the process is 64_bit or not. Defaults to True.
+        """
+        if is_64_bit:
+            read_method = self.read_longlong
+        else:
+            read_method = self.read_int
+
+        addr = read_method(self.base_address + base_offset)
+        for offset in offsets[:-1]:
+            addr = read_method(addr + offset)
+
+        return addr + offsets[-1]
+
     def inject_python_interpreter(self, initsigs=1):
         """Inject python interpreter into target process and call Py_InitializeEx.
         """

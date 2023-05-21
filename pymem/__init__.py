@@ -87,9 +87,9 @@ class Pymem(object):
             is_64_bit (bool, optional): If the process is 64_bit or not. Defaults to True.
         """
         if is_64_bit:
-            read_method = self.read_longlong
+            read_method = self.read_ulonglong
         else:
-            read_method = self.read_int
+            read_method = self.read_uint
 
         addr = read_method(self.base_address + base_offset)
         for offset in offsets[:-1]:

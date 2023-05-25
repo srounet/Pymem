@@ -54,6 +54,7 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
     mbi = pymem.memory.virtual_query(handle, address)
     next_region = mbi.BaseAddress + mbi.RegionSize
     allowed_protections = [
+        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE,
         pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READ,
         pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE,
         pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READWRITE,

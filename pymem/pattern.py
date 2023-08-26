@@ -82,7 +82,7 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
     return next_region, found
 
 
-def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
+def pattern_scan_module(handle, module, pattern, return_multiple=False):
     """Given a handle over an opened process and a module will scan memory after
     a byte pattern and return its corresponding memory address.
 

@@ -78,15 +78,14 @@ class Pymem(object):
         modules = pymem.process.enum_process_module(self.process_handle)
         return modules
 
-    def resolve_offsets(self, base_offset, offsets, *, is_64_bit = True):
+    def resolve_offsets(self, base_offset, offsets):
         """Resolves a list of pointers; commonly one from cheat engine
 
         Args:
             base_offset (int): The base address offset
             offsets (list[int]): List of offsets
-            is_64_bit (bool, optional): If the process is 64_bit or not. Defaults to True.
         """
-        if is_64_bit:
+        if self.is_WoW64:
             read_method = self.read_ulonglong
         else:
             read_method = self.read_uint

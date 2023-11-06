@@ -62,10 +62,18 @@ class Pymem(object):
 
         self.check_wow64()
 
+    # TODO: 2.0 turn this into a cached property (see is_64_bit)
     def check_wow64(self):
         """Check if a process is running under WoW64.
         """
-        self.is_WoW64 = pymem.process.is_64_bit(self.process_handle)
+        self.is_WoW64 = pymem.process.is_wow64(self.process_handle)
+
+    @functools.cached_property
+    def is_64_bit(self) -> bool:
+        """
+        If the process is 64 bit
+        """
+        return pymem.process.is_64_bit(self.process_handle)
 
     def list_modules(self):
         """List a process loaded modules.
@@ -85,7 +93,7 @@ class Pymem(object):
             base_offset (int): The base address offset
             offsets (list[int]): List of offsets
         """
-        if self.is_WoW64:
+        if self.is_64_bit:
             read_method = self.read_ulonglong
         else:
             read_method = self.read_uint

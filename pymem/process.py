@@ -2,6 +2,7 @@ import ctypes
 import locale
 import logging
 import os
+import sys
 
 import pymem.ressources.advapi32
 import pymem.ressources.kernel32
@@ -431,8 +432,7 @@ def enum_process_module(handle):
             yield module_info
 
 
-# TODO: should this be named is_wow64?
-def is_64_bit(handle):
+def is_wow64(handle):
     """Determines whether the specified process is running under WOW64 (emulation).
 
     Parameters
@@ -448,3 +448,20 @@ def is_64_bit(handle):
     Wow64Process = ctypes.c_long()
     pymem.ressources.kernel32.IsWow64Process(handle, ctypes.byref(Wow64Process))
     return bool(Wow64Process.value)
+
+
+def is_64_bit(handle) -> bool:
+    """Determines whether the specified process is 64 bit
+
+    Parameters
+    ----------
+    handle: int
+        Handle of the process to check 64 bit status of
+
+    Returns
+    -------
+    bool
+        If the process is 64 bit
+    """
+    system_64_bit = sys.maxsize > 2**32
+    return system_64_bit and not is_wow64(handle)

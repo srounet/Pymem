@@ -7,21 +7,53 @@ environment:
     # isn't covered by this document) at the time of writing.
 
     - TOXENV: py38
-      PYTHON: "C:/Python38"
+      TOXPYTHON: C:\Python38\python.exe
+      PYTHON_HOME: C:\Python38
+      PYTHON_ARCH: "32"
+      PYTHON_VERSION: '3.8'
+      ARCH: "32"
     - TOXENV: py38
-      PYTHON: "C:/Python38-x64"
+      TOXPYTHON: C:\Python38-x64\python.exe
+      PYTHON_HOME: C:\Python38-x64
+      PYTHON_ARCH: "64"
+      PYTHON_VERSION: '3.8'
+      ARCH: "64"
     - TOXENV: py39
-      PYTHON: "C:/Python39"
+      TOXPYTHON: C:\Python39\python.exe
+      PYTHON_HOME: C:\Python39
+      PYTHON_ARCH: "32"
+      PYTHON_VERSION: '3.9'
+      ARCH: "32"
     - TOXENV: py39
-      PYTHON: "C:/Python39-x64"
+      TOXPYTHON: C:\Python39-x64\python.exe
+      PYTHON_HOME: C:\Python39-x64
+      PYTHON_ARCH: "64"
+      PYTHON_VERSION: '3.9'
+      ARCH: "64"
     - TOXENV: py310
-      PYTHON: "C:/Python310"
+      TOXPYTHON: C:\Python310\python.exe
+      PYTHON_HOME: C:\Python310
+      PYTHON_VERSION: '3.10'
+      PYTHON_ARCH: "32"
+      ARCH: "32"
     - TOXENV: py310
-      PYTHON: "C:/Python310-x64"
+      TOXPYTHON: C:\Python310-x64\python.exe
+      PYTHON_HOME: C:\Python310-x64
+      PYTHON_ARCH: "64"
+      PYTHON_VERSION: '3.10'
+      ARCH: "64"
     - TOXENV: py311
-      PYTHON: "C:/Python311"
+      TOXPYTHON: C:\Python311\python.exe
+      PYTHON_HOME: C:\Python311
+      PYTHON_ARCH: "32"
+      PYTHON_VERSION: '3.11'
+      ARCH: "32"
     - TOXENV: py311
-      PYTHON: "C:/Python311-x64"
+      TOXPYTHON: C:\Python311-x64\python.exe
+      PYTHON_HOME: C:\Python311-x64
+      PYTHON_ARCH: "64"
+      PYTHON_VERSION: '3.11'
+      ARCH: "64"
 
   global:
     TWINE_USERNAME: __token__
@@ -35,11 +67,10 @@ install:
   # Prepend newly installed Python to the PATH of this build (this cannot be
   # done from inside the powershell script as it would require to restart
   # the parent CMD process).
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "SET PATH=%PYTHON_HOME%;%PYTHON_HOME%\\Scripts;%PATH%"
 
   # Check that we have the expected version and architecture for Python
   - "py --version"
-  - "IF %PYTHON:~-4% == -x64 (SET ARCH=x64) ELSE (SET ARCH=i386)"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   # Upgrade to the latest version of pip to avoid it displaying warnings
@@ -56,7 +87,7 @@ build: off
 
 test_script:
   - "py --version"
-  - "tox"
+  - '%PYTHON_HOME%\Scripts\tox -e %TOXENV%'
 
 after_test:
   - "py --version"

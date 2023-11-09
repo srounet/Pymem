@@ -19,38 +19,38 @@ environment:
 #      PYTHON_VERSION: '3.8'
 #      ARCH: "64"
     - TOXENV: py39
-      TOXPYTHON: C:\Python39\python.exe
-      PYTHON_HOME: C:\Python39
+      TOXPYTHON: "C:\\Python39\\python.exe"
+      PYTHON_HOME: "C:\\Python39"
       PYTHON_ARCH: "32"
       PYTHON_VERSION: '3.9'
       ARCH: "32"
     - TOXENV: py39
-      TOXPYTHON: C:\Python39-x64\python.exe
-      PYTHON_HOME: C:\Python39-x64
+      TOXPYTHON: "C\:\Python39-x64\\python.exe"
+      PYTHON_HOME: "C:\\Python39-x64"
       PYTHON_ARCH: "64"
       PYTHON_VERSION: '3.9'
       ARCH: "64"
     - TOXENV: py310
-      TOXPYTHON: C:\Python310\python.exe
-      PYTHON_HOME: C:\Python310
+      TOXPYTHON: "C:\\Python310\python.exe"
+      PYTHON_HOME: "C:\\Python310"
       PYTHON_VERSION: '3.10'
       PYTHON_ARCH: "32"
       ARCH: "32"
     - TOXENV: py310
-      TOXPYTHON: C:\Python310-x64\python.exe
-      PYTHON_HOME: C:\Python310-x64
+      TOXPYTHON: "C:\\Python310-x64\\python.exe"
+      PYTHON_HOME: "C:\\Python310-x64"
       PYTHON_ARCH: "64"
       PYTHON_VERSION: '3.10'
       ARCH: "64"
     - TOXENV: py311
-      TOXPYTHON: C:\Python311\python.exe
-      PYTHON_HOME: C:\Python311
+      TOXPYTHON: "C:\\Python311\\python.exe"
+      PYTHON_HOME: "C:\\Python311"
       PYTHON_ARCH: "32"
       PYTHON_VERSION: '3.11'
       ARCH: "32"
     - TOXENV: py311
-      TOXPYTHON: C:\Python311-x64\python.exe
-      PYTHON_HOME: C:\Python311-x64
+      TOXPYTHON: "C:\\Python311-x64\\python.exe"
+      PYTHON_HOME: "C:\\Python311-x64"
       PYTHON_ARCH: "64"
       PYTHON_VERSION: '3.11'
       ARCH: "64"

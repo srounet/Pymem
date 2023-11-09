@@ -25,7 +25,7 @@ environment:
       PYTHON_VERSION: '3.9'
       ARCH: "32"
     - TOXENV: py39
-      TOXPYTHON: "C\:\Python39-x64\\python.exe"
+      TOXPYTHON: "C:\\Python39-x64\\python.exe"
       PYTHON_HOME: "C:\\Python39-x64"
       PYTHON_ARCH: "64"
       PYTHON_VERSION: '3.9'

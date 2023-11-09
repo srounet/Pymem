@@ -55,9 +55,11 @@ install:
 build: off
 
 test_script:
+  - "py --version"
   - "tox"
 
 after_test:
+  - "py --version"
   - "codecov -t %COV_TOKEN%"
   - "python -m pip install -r requirements-doc.txt"
   - "sphinx-apidoc -f -o docs/source pymem"

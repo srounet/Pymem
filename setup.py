@@ -8,17 +8,17 @@ extras = {
     'speed': ['regex']
 }
 
-if os.path.isfile(f'{ROOT}/requirements-doc.txt'):
-    with open(f'{ROOT}/requirements-doc.txt', encoding='utf-8', mode='r+') as fp:
+if os.path.isfile(ROOT + '/requirements-doc.txt'):
+    with open(ROOT + '/requirements-doc.txt', encoding='utf-8', mode='r+') as fp:
         extras['doc'] = fp.read().splitlines()
 
-if os.path.isfile(f'{ROOT}/requirements-test.txt'):
-    with open(f'{ROOT}/requirements-test.txt', encoding='utf-8', mode='r+') as fp:
+if os.path.isfile(ROOT + '/requirements-test.txt'):
+    with open(ROOT + '/requirements-test.txt', encoding='utf-8', mode='r+') as fp:
         extras['test'] = fp.read().splitlines()
 
 long_description = ''
-if os.path.isfile(f'{ROOT}/PYPI-README.md'):
-    with open(f'{ROOT}/PYPI-README.md', encoding="utf-8", mode='r+') as fp:
+if os.path.isfile(ROOT + '/PYPI-README.md'):
+    with open(ROOT + '/PYPI-README.md', encoding="utf-8", mode='r+') as fp:
         long_description = fp.read()
 
 

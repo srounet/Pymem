@@ -6,22 +6,22 @@ environment:
     # The list here is complete (excluding Python 2.6, which
     # isn't covered by this document) at the time of writing.
 
-    - PYTHON: "C:\\Python38"
-      PYTHON_ARCH: "32"
-    - PYTHON: "C:\\Python39"
-      PYTHON_ARCH: "32"
-    - PYTHON: "C:\\Python310"
-      PYTHON_ARCH: "32"
-    - PYTHON: "C:\\Python311"
-      PYTHON_ARCH: "32"
-    - PYTHON: "C:\\Python38-x64"
-      PYTHON_ARCH: "64"
-    - PYTHON: "C:\\Python39-x64"
-      PYTHON_ARCH: "64"
-    - PYTHON: "C:\\Python310-x64"
-      PYTHON_ARCH: "64"
-    - PYTHON: "C:\\Python311-x64"
-      PYTHON_ARCH: "64"
+    - TOXENV: py38
+      PYTHON: "C:/Python38"
+    - TOXENV: py38
+      PYTHON: "C:/Python38-x64"
+    - TOXENV: py39
+      PYTHON: "C:/Python39"
+    - TOXENV: py39
+      PYTHON: "C:/Python39-x64"
+    - TOXENV: py310
+      PYTHON: "C:/Python310"
+    - TOXENV: py310
+      PYTHON: "C:/Python310-x64"
+    - TOXENV: py311
+      PYTHON: "C:/Python311"
+    - TOXENV: py311
+      PYTHON: "C:/Python311-x64"
 
   global:
     TWINE_USERNAME: __token__
@@ -39,6 +39,7 @@ install:
 
   # Check that we have the expected version and architecture for Python
   - "python --version"
+  - "IF %PYTHON:~-4% == -x64 (SET ARCH=x64) ELSE (SET ARCH=i386)"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   # Upgrade to the latest version of pip to avoid it displaying warnings
@@ -54,15 +55,15 @@ install:
 build: off
 
 test_script:
-  - "python -m pytest --cov=pymem"
+  - "tox"
 
 after_test:
   - "codecov -t %COV_TOKEN%"
-  - "python -m pip install -r requirements-doc.txt"
+  - "py -m pip install -r requirements-doc.txt"
   - "sphinx-apidoc -f -o docs/source pymem"
   - "cd docs/source && make.bat html"
-  - "python -m pip install wheel"
-  - "python setup.py sdist bdist_wheel"
+  - "py -m pip install wheel"
+  - "py setup.py sdist bdist_wheel"
 
 for:
 -
@@ -71,9 +72,9 @@ for:
       - master
 
   build_script:
-    - python -m pip install -r requirements-test.txt
-    - python -m pip install -U pip
-    - python setup.py -q sdist bdist
+    - py -m pip install -r requirements-test.txt
+    - py -m pip install -U pip
+    - py setup.py -q sdist bdist
 
   build: on
 

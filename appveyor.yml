@@ -105,9 +105,9 @@ for:
       - master
 
   build_script:
-    - %TOXPYTHON% -m pip install -r requirements-test.txt
-    - %TOXPYTHON% -m pip install -U pip
-    - %TOXPYTHON% setup.py -q sdist bdist
+    - python -m pip install -r requirements-test.txt
+    - python -m pip install -U pip
+    - python setup.py -q sdist bdist
 
   build: on
 

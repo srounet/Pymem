@@ -7,13 +7,13 @@ extras = {
         'speed': ['regex']
 }
 
-with open(ROOT + '/requirements-doc.txt', encoding='utf-8') as fp:
+with open(ROOT + '/requirements-doc.txt', encoding='utf-8', mode='r+') as fp:
     extras['doc'] = fp.read().splitlines()
 
-with open(ROOT + '/requirements-test.txt', encoding='utf-8') as fp:
+with open(ROOT + '/requirements-test.txt', encoding='utf-8', mode='r+') as fp:
     extras['test'] = fp.read().splitlines()
 
-with open(ROOT + '/PYPI-README.md', encoding="utf-8") as fp:
+with open(ROOT + '/PYPI-README.md', encoding="utf-8", mode='r+') as fp:
     long_description = fp.read()
 
 

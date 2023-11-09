@@ -33,12 +33,11 @@ setuptools.setup(
     platforms=["windows"],
     keywords='memory win32 windows process',
     classifiers=[
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Environment :: Win32 (MS Windows)',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',

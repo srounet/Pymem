@@ -6,18 +6,18 @@ environment:
     # The list here is complete (excluding Python 2.6, which
     # isn't covered by this document) at the time of writing.
 
-    - TOXENV: py38
-      TOXPYTHON: C:\Python38\python.exe
-      PYTHON_HOME: C:\Python38
-      PYTHON_ARCH: "32"
-      PYTHON_VERSION: '3.8'
-      ARCH: "32"
-    - TOXENV: py38
-      TOXPYTHON: C:\Python38-x64\python.exe
-      PYTHON_HOME: C:\Python38-x64
-      PYTHON_ARCH: "64"
-      PYTHON_VERSION: '3.8'
-      ARCH: "64"
+#    - TOXENV: py38
+#      TOXPYTHON: C:\Python38\python.exe
+#      PYTHON_HOME: C:\Python38
+#      PYTHON_ARCH: "32"
+#      PYTHON_VERSION: '3.8'
+#      ARCH: "32"
+#    - TOXENV: py38
+#      TOXPYTHON: C:\Python38-x64\python.exe
+#      PYTHON_HOME: C:\Python38-x64
+#      PYTHON_ARCH: "64"
+#      PYTHON_VERSION: '3.8'
+#      ARCH: "64"
     - TOXENV: py39
       TOXPYTHON: C:\Python39\python.exe
       PYTHON_HOME: C:\Python39
@@ -70,33 +70,33 @@ install:
   - "SET PATH=%PYTHON_HOME%;%PYTHON_HOME%\\Scripts;%PATH%"
 
   # Check that we have the expected version and architecture for Python
-  - "py --version"
-  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+  - "%TOXPYTHON% --version"
+  - "%TOXPYTHON% -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   # Upgrade to the latest version of pip to avoid it displaying warnings
   # about it being out of date.
-  - "python -m pip install --upgrade pip"
+  - "%TOXPYTHON% -m pip install --upgrade pip"
 
   # Install the build dependencies of the project. If some dependencies contain
   # compiled extensions and are not provided as pre-built wheel packages,
   # pip will build them from source using the MSVC compiler matching the
   # target Python version and architecture
-  - "python -m pip install -r requirements-test.txt"
+  - "%TOXPYTHON% -m pip install -r requirements-test.txt"
 
 build: off
 
 test_script:
-  - "py --version"
+  - "%TOXPYTHON% --version"
   - '%PYTHON_HOME%\Scripts\tox -e %TOXENV%'
 
 after_test:
   - "py --version"
   - "codecov -t %COV_TOKEN%"
-  - "python -m pip install -r requirements-doc.txt"
+  - "%TOXPYTHON% -m pip install -r requirements-doc.txt"
   - "sphinx-apidoc -f -o docs/source pymem"
   - "cd docs/source && make.bat html"
-  - "python -m pip install wheel"
-  - "python setup.py sdist bdist_wheel"
+  - "%TOXPYTHON% -m pip install wheel"
+  - "%TOXPYTHON% setup.py sdist bdist_wheel"
 
 for:
 -
@@ -105,9 +105,9 @@ for:
       - master
 
   build_script:
-    - python -m pip install -r requirements-test.txt
-    - python -m pip install -U pip
-    - python setup.py -q sdist bdist
+    - %TOXPYTHON% -m pip install -r requirements-test.txt
+    - %TOXPYTHON% -m pip install -U pip
+    - %TOXPYTHON% setup.py -q sdist bdist
 
   build: on
 

@@ -1,20 +1,24 @@
+import os
 import pathlib
 import setuptools
 
 ROOT = str(pathlib.Path(__file__).parent)
 
 extras = {
-        'speed': ['regex']
+    'speed': ['regex']
 }
 
-with open(ROOT + '/requirements-doc.txt', encoding='utf-8', mode='r+') as fp:
-    extras['doc'] = fp.read().splitlines()
+if os.path.isfile(f'{ROOT}/requirements-doc.txt'):
+    with open(f'{ROOT}/requirements-doc.txt', encoding='utf-8', mode='r+') as fp:
+        extras['doc'] = fp.read().splitlines()
 
-with open(ROOT + '/requirements-test.txt', encoding='utf-8', mode='r+') as fp:
-    extras['test'] = fp.read().splitlines()
+if os.path.isfile(f'{ROOT}/requirements-test.txt'):
+    with open(f'{ROOT}/requirements-test.txt', encoding='utf-8', mode='r+') as fp:
+        extras['test'] = fp.read().splitlines()
 
-with open(ROOT + '/PYPI-README.md', encoding="utf-8", mode='r+') as fp:
-    long_description = fp.read()
+if os.path.isfile(f'{ROOT}/PYPI-README.md'):
+    with open(f'{ROOT}/PYPI-README.md', encoding="utf-8", mode='r+') as fp:
+        long_description = fp.read()
 
 
 setuptools.setup(

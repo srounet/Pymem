@@ -38,7 +38,7 @@ install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
   # Check that we have the expected version and architecture for Python
-  - "python --version"
+  - "py --version"
   - "IF %PYTHON:~-4% == -x64 (SET ARCH=x64) ELSE (SET ARCH=i386)"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
@@ -59,11 +59,11 @@ test_script:
 
 after_test:
   - "codecov -t %COV_TOKEN%"
-  - "py -m pip install -r requirements-doc.txt"
+  - "python -m pip install -r requirements-doc.txt"
   - "sphinx-apidoc -f -o docs/source pymem"
   - "cd docs/source && make.bat html"
-  - "py -m pip install wheel"
-  - "py setup.py sdist bdist_wheel"
+  - "python -m pip install wheel"
+  - "python setup.py sdist bdist_wheel"
 
 for:
 -
@@ -72,9 +72,9 @@ for:
       - master
 
   build_script:
-    - py -m pip install -r requirements-test.txt
-    - py -m pip install -U pip
-    - py setup.py -q sdist bdist
+    - python -m pip install -r requirements-test.txt
+    - python -m pip install -U pip
+    - python setup.py -q sdist bdist
 
   build: on
 

@@ -31,7 +31,7 @@ environment:
       PYTHON_VERSION: '3.9'
       ARCH: "64"
     - TOXENV: py310
-      TOXPYTHON: "C:\\Python310\python.exe"
+      TOXPYTHON: "C:\\Python310\\python.exe"
       PYTHON_HOME: "C:\\Python310"
       PYTHON_VERSION: '3.10'
       PYTHON_ARCH: "32"

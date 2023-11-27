@@ -6,17 +6,18 @@ authors = ["Fabien Reboia <srounet@gmail.com>"]
 license = "MIT"
 readme = "PYPI-README.md"
 classifiers=[
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Environment :: Win32 (MS Windows)",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<4.0.0"
+python = ">=3.8,<4.0.0"
 regex = {version = "^2022.9.13", optional = true}
 
 [tool.poetry.extras]
@@ -26,7 +27,6 @@ speed = ["regex"]
 sphinx = "4.4.0"
 recommonmark = "0.7.1"
 sphinx-rtd-theme = "1.0.0"
-
 
 [tool.poetry.group.test.dependencies]
 codecov = "^2.1.12"

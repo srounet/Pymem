@@ -10,10 +10,6 @@ environment:
       PYTHON_ARCH: "32"
     - PYTHON: "C:\\Python38-x64"
       PYTHON_ARCH: "64"
-    - PYTHON: "C:\\Python39-x64"
-      PYTHON_ARCH: "64"
-    - PYTHON: "C:\\Python310-x64"
-      PYTHON_ARCH: "64"
 
   global:
     TWINE_USERNAME: __token__

@@ -5,6 +5,7 @@ import logging
 import platform
 import struct
 import sys
+import typing
 
 import pymem.exception
 import pymem.memory
@@ -28,11 +29,20 @@ class Pymem(object):
 
     Parameters
     ----------
-    process_name: str
-        The name of the process to be opened
+    process_name:
+        The name or process id of the process to be opened
+    exact_match:
+        Defaults to False, is the full name match or just part of it expected?
+    ignore_case:
+        Default to True, should ignore process name case?
     """
 
-    def __init__(self, process_name=None):
+    def __init__(
+        self,
+        process_name: typing.Union[str, int] = None,
+        exact_match: bool = False,
+        ignore_case: bool = True,
+    ):
         self.process_id = None
         self.process_handle = None
         self.thread_handle = None
@@ -40,14 +50,30 @@ class Pymem(object):
         self.py_run_simple_string = None
         self._python_injected = None
 
-        if process_name:
-            self.open_process_from_name(process_name)
+        if process_name is not None:
+            if isinstance(process_name, str):
+                self.open_process_from_name(process_name, exact_match, ignore_case)
+            elif isinstance(process_name, int):
+                self.open_process_from_id(process_name)
+            else:
+                raise TypeError(
+                    f"process_name must be of type int or string not {type(process_name).__name__}"
+                )
+
         self.check_wow64()
 
+    # TODO: 2.0 turn this into a cached property (see is_64_bit)
     def check_wow64(self):
         """Check if a process is running under WoW64.
         """
-        self.is_WoW64 = pymem.process.is_64_bit(self.process_handle)
+        self.is_WoW64 = pymem.process.is_wow64(self.process_handle)
+
+    @functools.cached_property
+    def is_64_bit(self) -> bool:
+        """
+        If the process is 64 bit
+        """
+        return pymem.process.is_64_bit(self.process_handle)
 
     def list_modules(self):
         """List a process loaded modules.
@@ -59,6 +85,24 @@ class Pymem(object):
         """
         modules = pymem.process.enum_process_module(self.process_handle)
         return modules
+
+    def resolve_offsets(self, base_offset, offsets):
+        """Resolves a list of pointers; commonly one from cheat engine
+
+        Args:
+            base_offset (int): The base address offset
+            offsets (list[int]): List of offsets
+        """
+        if self.is_64_bit:
+            read_method = self.read_ulonglong
+        else:
+            read_method = self.read_uint
+
+        addr = read_method(self.base_address + base_offset)
+        for offset in offsets[:-1]:
+            addr = read_method(addr + offset)
+
+        return addr + offsets[-1]
 
     def inject_python_interpreter(self, initsigs=1):
         """Inject python interpreter into target process and call Py_InitializeEx.
@@ -183,26 +227,48 @@ class Pymem(object):
         pymem.logger.debug('New thread_id: 0x%08x' % thread_h)
         return thread_h
 
-    def open_process_from_name(self, process_name):
+    def open_process_from_name(
+        self,
+        process_name: str,
+        exact_match: bool = False,
+        ignore_case: bool = True,
+    ):
         """Open process given its name and stores the handle into process_handle
 
         Parameters
         ----------
-        process_name: str
+        process_name:
             The name of the process to be opened
+        exact_match:
+            Defaults to False, is the full name match or just part of it expected?
+        ignore_case:
+            Default to True, should ignore process name case?
 
         Raises
         ------
         TypeError
-            If process name is not valid
+            If process name is not valid or search parameters are of the wrong type
         ProcessNotFound
             If process name is not found
         CouldNotOpenProcess
             If process cannot be opened
         """
+
         if not process_name or not isinstance(process_name, str):
             raise TypeError('Invalid argument: {}'.format(process_name))
-        process32 = pymem.process.process_from_name(process_name)
+
+        if not isinstance(exact_match, bool):
+            raise TypeError('Invalid argument: {}'.format(exact_match))
+
+        if not isinstance(ignore_case, bool):
+            raise TypeError('Invalid argument: {}'.format(ignore_case))
+
+        process32 = pymem.process.process_from_name(
+            process_name,
+            exact_match,
+            ignore_case,
+        )
+
         if not process32:
             raise pymem.exception.ProcessNotFound(process_name)
         self.process_id = process32.th32ProcessID
@@ -461,6 +527,41 @@ class Pymem(object):
             value = pymem.memory.read_bytes(self.process_handle, address, length)
         except pymem.exception.WinAPIError as e:
             raise pymem.exception.MemoryReadError(address, length, e.error_code)
+        return value
+
+    def read_ctype(self, address, ctype, *, get_py_value=True, raw_bytes=False):
+        """
+        Read a ctype basic type or structure from <address>
+
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be read.
+        ctype:
+            A simple ctypes type or structure
+        get_py_value: bool
+            If the corrosponding python type should be used instead of returning the ctype
+            This is automatically set to False for ctypes.Structure or ctypes.Array instances
+        raw_bytes: bool
+            If we should return the raw ctype bytes
+
+        Raises
+        ------
+        WinAPIError
+            If ReadProcessMemory failed
+
+        Returns
+        -------
+        Any
+            Return will be either the ctype with the read value if get_py_value is false or
+            the corropsonding python type
+        """
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        try:
+            value = pymem.memory.read_ctype(self.process_handle, address, ctype, get_py_value=get_py_value, raw_bytes=raw_bytes)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryReadError(address, ctypes.sizeof(ctype), e.error_code)
         return value
 
     def read_bool(self, address):
@@ -917,6 +1018,34 @@ class Pymem(object):
             pymem.memory.write_bytes(self.process_handle, address, value, length)
         except pymem.exception.WinAPIError as e:
             raise pymem.exception.MemoryWriteError(address, value, e.error_code)
+
+    def write_ctype(self, address, ctype):
+        """
+        Write a ctype basic type or structure to <address>
+
+        Parameters
+        ----------
+        address: int
+            An address of the region of memory to be written.
+        ctype:
+            A simple ctypes type or structure
+
+        Raises
+        ------
+        WinAPIError
+            If WriteProcessMemory failed
+
+        Returns
+        -------
+        bool
+            A boolean indicating a successful write.
+        """
+        if not self.process_handle:
+            raise pymem.exception.ProcessError('You must open a process before calling this method')
+        try:
+            pymem.memory.write_ctype(self.process_handle, address, ctype)
+        except pymem.exception.WinAPIError as e:
+            raise pymem.exception.MemoryWriteError(address, ctype, e.error_code)
 
     def write_bool(self, address, value):
         """Write `value` to the given `address` into the current opened process.

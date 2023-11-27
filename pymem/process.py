@@ -2,6 +2,7 @@ import ctypes
 import locale
 import logging
 import os
+import sys
 
 import pymem.ressources.advapi32
 import pymem.ressources.kernel32
@@ -282,24 +283,44 @@ def list_processes():
     pymem.ressources.kernel32.CloseHandle(hSnap)
 
 
-def process_from_name(name):
+def process_from_name(
+    name: str,
+    exact_match: bool = False,
+    ignore_case: bool = True,
+):
     """Open a process given its name.
 
     Parameters
     ----------
-    name: str
+    name:
         The name of the process to be opened
+    exact_match:
+        Defaults to False, is the full name match or just part of it expected?
+    ignore_case:
+        Default to True, should ignore process name case?
 
     Returns
     -------
     ProcessEntry32
         The process entry of the opened process
     """
-    name = name.lower()
+
+    if ignore_case:
+        name = name.lower()
+
     processes = list_processes()
     for process in processes:
-        if name in process.szExeFile.decode(locale.getpreferredencoding()).lower():
-            return process
+        process_name = process.szExeFile.decode(locale.getpreferredencoding())
+
+        if ignore_case:
+            process_name = process_name.lower()
+
+        if exact_match:
+            if process_name == name:
+                return process
+        else:
+            if name in process_name:
+                return process
 
 
 def process_from_id(process_id):
@@ -411,8 +432,7 @@ def enum_process_module(handle):
             yield module_info
 
 
-# TODO: should this be named is_wow64?
-def is_64_bit(handle):
+def is_wow64(handle):
     """Determines whether the specified process is running under WOW64 (emulation).
 
     Parameters
@@ -428,3 +448,20 @@ def is_64_bit(handle):
     Wow64Process = ctypes.c_long()
     pymem.ressources.kernel32.IsWow64Process(handle, ctypes.byref(Wow64Process))
     return bool(Wow64Process.value)
+
+
+def is_64_bit(handle) -> bool:
+    """Determines whether the specified process is 64 bit
+
+    Parameters
+    ----------
+    handle: int
+        Handle of the process to check 64 bit status of
+
+    Returns
+    -------
+    bool
+        If the process is 64 bit
+    """
+    system_64_bit = sys.maxsize > 2**32
+    return system_64_bit and not is_wow64(handle)

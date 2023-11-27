@@ -33,7 +33,7 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
         allocation_type = pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT.value
     if not protection_type:
         protection_type = pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE.value
-    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.SetLastError(0)
     address = pymem.ressources.kernel32.VirtualAllocEx(handle, None, size, allocation_type, protection_type)
     return address
 
@@ -61,7 +61,7 @@ def free_memory(handle, address, free_type=None):
     """
     if not free_type:
         free_type = pymem.ressources.structure.MEMORY_STATE.MEM_RELEASE
-    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.SetLastError(0)
     ret = pymem.ressources.kernel32.VirtualFreeEx(handle, address, 0, free_type)
     return ret
 
@@ -94,31 +94,68 @@ def read_bytes(handle, address, byte):
     bytes
         The raw value read as bytes
     """
-    if not isinstance(address, int):
-        raise TypeError('Address must be int: {}'.format(address))
-    buff = ctypes.create_string_buffer(byte)
-    bytes_read = ctypes.c_size_t()
-    ctypes.windll.kernel32.SetLastError(0)
-    pymem.ressources.kernel32.ReadProcessMemory(
+    return read_ctype(handle, address, (byte * ctypes.c_char)(), get_py_value=False).raw
+
+
+def read_ctype(handle, address, ctype, *, get_py_value=True, raw_bytes=False):
+    """
+    Read a ctype basic type or structure from <address>
+
+    Parameters
+    ----------
+    handle: int
+        The handle to a process. The function allocates memory within the virtual address space of this process.
+        The handle must have the PROCESS_VM_OPERATION access right.
+    address: int
+        An address of the region of memory to be read.
+    ctype:
+        A simple ctypes type or structure
+    get_py_value: bool
+        If the corrosponding python type should be used instead of returning the ctype
+        This is automatically set to False for ctypes.Structure or ctypes.Array instances
+    raw_bytes: bool
+        If we should return the raw ctype bytes
+
+    Raises
+    ------
+    WinAPIError
+        If ReadProcessMemory failed
+
+    Returns
+    -------
+    Any
+        Return will be either the ctype with the read value if get_py_value is false or
+        the corropsonding python type
+    """
+    if raw_bytes:
+        return read_bytes(handle, address, ctypes.sizeof(ctype))
+
+    if isinstance(ctype, (ctypes.Structure, ctypes.Array)):
+        get_py_value = False
+
+    pymem.ressources.kernel32.SetLastError(0)
+
+    result = pymem.ressources.kernel32.ReadProcessMemory(
         handle,
         ctypes.c_void_p(address),
-        ctypes.byref(buff),
-        byte,
-        ctypes.byref(bytes_read)
+        ctypes.byref(ctype),
+        ctypes.sizeof(ctype),
+        None,
     )
-    error_code = ctypes.windll.kernel32.GetLastError()
-    if error_code:
-        ctypes.windll.kernel32.SetLastError(0)
+
+    if result == 0:
+        error_code = ctypes.windll.kernel32.GetLastError()
         raise pymem.exception.WinAPIError(error_code)
-    raw = buff.raw
-    return raw
+
+    if get_py_value:
+        return ctype.value
+
+    return ctype
 
 
 def read_bool(handle, address):
     """Reads 1 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
-
-    Unpack the value using struct.unpack('?')
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
@@ -140,18 +177,14 @@ def read_bool(handle, address):
     Returns
     -------
     bool
-        The raw value read as a string
+        The raw value read as a bool
     """
-    data = read_bytes(handle, address, struct.calcsize('?'))
-    data = struct.unpack('?', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_bool())
 
 
 def read_char(handle, address):
     """Reads 1 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
-
-    Unpack the value using struct.unpack('<b')
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
@@ -175,18 +208,13 @@ def read_char(handle, address):
     str
         The raw value read as a string
     """
-    data = read_bytes(handle, address, struct.calcsize('c'))
-    data = struct.unpack('<c', data)[0]
-    data = data.decode()
-    return data
+    return read_ctype(handle, address, ctypes.c_char()).decode()
 
 
 def read_uchar(handle, address):
     """Reads 1 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
-    Unpack the value using struct.unpack('<B')
-
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -209,17 +237,13 @@ def read_uchar(handle, address):
     int
         The raw value read as an int
     """
-    data = read_bytes(handle, address, struct.calcsize('B'))
-    data = struct.unpack('<B', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_ubyte())
 
 
 def read_short(handle, address):
     """Reads 2 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
-    Unpack the value using struct.unpack('<h')
-
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -242,17 +266,13 @@ def read_short(handle, address):
     int
         The raw value read as an int
     """
-    data = read_bytes(handle, address, struct.calcsize('h'))
-    data = struct.unpack('<h', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_short())
 
 
 def read_ushort(handle, address):
     """Reads 2 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
-    Unpack the value using struct.unpack('<H')
-
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -275,17 +295,13 @@ def read_ushort(handle, address):
     int
         The raw value read as an int
     """
-    data = read_bytes(handle, address, struct.calcsize('H'))
-    data = struct.unpack('<H', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_ushort())
 
 
 def read_int(handle, address):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
-    Unpack the value using struct.unpack('<i')
-
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -308,16 +324,12 @@ def read_int(handle, address):
     int
         The raw value read as an int
     """
-    data = read_bytes(handle, address, struct.calcsize('i'))
-    data = struct.unpack('<i', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_int())
 
 
 def read_uint(handle, address, is_64=False):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
-
-    Unpack the value using struct.unpack('<I')
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
@@ -343,21 +355,18 @@ def read_uint(handle, address, is_64=False):
     int
         The raw value read as an int
     """
-    raw = read_bytes(handle, address, struct.calcsize('I'))
     if not is_64:
-        raw = struct.unpack('<I', raw)[0]
-    else:
-        # todo: is it necessary ?
-        raw = struct.unpack('>I', raw)[0]
-    return raw
+        return read_ctype(handle, address, ctypes.c_uint())
+
+    # should this just be c_uint64? the doc string says to read as big-endian
+    raw = read_bytes(handle, address, struct.calcsize('I'))
+    return struct.unpack('>I', raw)[0]
 
 
 def read_float(handle, address):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
-    Unpack the value using struct.unpack('<f')
-
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -380,17 +389,13 @@ def read_float(handle, address):
     float
         The raw value read as a float
     """
-    data = read_bytes(handle, address, struct.calcsize('f'))
-    data = struct.unpack('<f', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_float())
 
 
 def read_long(handle, address):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
-    Unpack the value using struct.unpack('<l')
-
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -413,17 +418,13 @@ def read_long(handle, address):
     int
         The raw value read as an int
     """
-    data = read_bytes(handle, address, struct.calcsize('l'))
-    data = struct.unpack('<l', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_long())
 
 
 def read_ulong(handle, address):
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
-    Unpack the value using struct.unpack('<L')
-
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -446,17 +447,13 @@ def read_ulong(handle, address):
     int
         The raw value read as an int
     """
-    data = read_bytes(handle, address, struct.calcsize('L'))
-    data = struct.unpack('<L', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_ulong())
 
 
 def read_longlong(handle, address):
     """Reads 8 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
-    Unpack the value using struct.unpack('<q')
-
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -479,17 +476,13 @@ def read_longlong(handle, address):
     int
         The raw value read as an int
     """
-    data = read_bytes(handle, address, struct.calcsize('q'))
-    data = struct.unpack('<q', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_longlong())
 
 
 def read_ulonglong(handle, address):
     """Reads 8 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
-    Unpack the value using struct.unpack('<Q')
-
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
     Parameters
@@ -512,16 +505,12 @@ def read_ulonglong(handle, address):
     int
         The raw value read as an int
     """
-    data = read_bytes(handle, address, struct.calcsize('Q'))
-    data = struct.unpack('<Q', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_ulonglong())
 
 
 def read_double(handle, address):
     """Reads 8 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
-
-    Unpack the value using struct.unpack('<d')
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms680553%28v=vs.85%29.aspx
 
@@ -545,9 +534,7 @@ def read_double(handle, address):
     float
         The raw value read as a float
     """
-    data = read_bytes(handle, address, struct.calcsize('d'))
-    data = struct.unpack('<d', data)[0]
-    return data
+    return read_ctype(handle, address, ctypes.c_double())
 
 
 def read_string(handle, address, byte=50):
@@ -618,16 +605,52 @@ def write_bytes(handle, address, data, length):
     bool
         A boolean indicating a successful write.
     """
-    ctypes.windll.kernel32.SetLastError(0)
-    if not isinstance(address, int):
-        raise TypeError('Address must be int: {}'.format(address))
-    dst = ctypes.cast(address, ctypes.c_char_p)
-    res = ctypes.windll.kernel32.WriteProcessMemory(handle, dst, data, length, 0x0)
-    error_code = ctypes.windll.kernel32.GetLastError()
-    if error_code:
-        ctypes.windll.kernel32.SetLastError(0)
+    buffer = (length * ctypes.c_char)()
+    buffer.value = data
+    return write_ctype(handle, address, buffer)
+
+
+def write_ctype(handle, address, ctype):
+    """
+    Write a ctype basic type or structure to <address>
+
+    Parameters
+    ----------
+    handle: int
+        The handle to a process. The function allocates memory within the virtual address space of this process.
+        The handle must have the PROCESS_VM_OPERATION access right.
+    address: int
+        An address of the region of memory to be written.
+    ctype:
+        A simple ctypes type or structure
+
+    Raises
+    ------
+    WinAPIError
+        If WriteProcessMemory failed
+
+    Returns
+    -------
+    bool
+        A boolean indicating a successful write.
+    """
+    pymem.ressources.kernel32.SetLastError(0)
+
+    result = pymem.ressources.kernel32.WriteProcessMemory(
+        handle,
+        ctypes.cast(address, ctypes.c_void_p),
+        ctypes.cast(ctypes.byref(ctype), ctypes.c_void_p),
+        ctypes.sizeof(ctype),
+        None
+    )
+
+    if result == 0:
+        error_code = ctypes.windll.kernel32.GetLastError()
         raise pymem.exception.WinAPIError(error_code)
-    return res
+
+    # TODO: remove in next breaking change
+    # there isn't much point in returning this as it will always be true/1 (error raised otherwise)
+    return result
 
 
 def write_bool(handle, address, value):
@@ -658,10 +681,7 @@ def write_bool(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('?', value)
-    length = struct.calcsize('?')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_bool(value))
 
 
 def write_char(handle, address, value):
@@ -692,10 +712,7 @@ def write_char(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('c', value)
-    length = struct.calcsize('c')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_char(value))
 
 
 def write_uchar(handle, address, value):
@@ -726,10 +743,7 @@ def write_uchar(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('B', value)
-    length = struct.calcsize('B')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_ubyte(value))
 
 
 def write_short(handle, address, value):
@@ -760,10 +774,7 @@ def write_short(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('h', value)
-    length = struct.calcsize('h')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_short(value))
 
 
 def write_ushort(handle, address, value):
@@ -794,10 +805,7 @@ def write_ushort(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('H', value)
-    length = struct.calcsize('H')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_ushort(value))
 
 
 def write_int(handle, address, value):
@@ -828,10 +836,7 @@ def write_int(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('i', value)
-    length = struct.calcsize('i')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_int(value))
 
 
 def write_uint(handle, address, value):
@@ -862,10 +867,7 @@ def write_uint(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('I', value)
-    length = struct.calcsize('I')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_uint(value))
 
 
 def write_float(handle, address, value):
@@ -896,10 +898,7 @@ def write_float(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('f', value)
-    length = struct.calcsize('f')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_float(value))
 
 
 def write_long(handle, address, value):
@@ -930,10 +929,7 @@ def write_long(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('l', value)
-    length = struct.calcsize('l')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_long(value))
 
 
 def write_ulong(handle, address, value):
@@ -964,10 +960,7 @@ def write_ulong(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('L', value)
-    length = struct.calcsize('L')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_ulong(value))
 
 
 def write_longlong(handle, address, value):
@@ -998,10 +991,7 @@ def write_longlong(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('q', value)
-    length = struct.calcsize('q')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_longlong(value))
 
 
 def write_ulonglong(handle, address, value):
@@ -1032,10 +1022,7 @@ def write_ulonglong(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('Q', value)
-    length = struct.calcsize('Q')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_ulonglong(value))
 
 
 def write_double(handle, address, value):
@@ -1066,10 +1053,7 @@ def write_double(handle, address, value):
     bool
         A boolean indicating a successful write.
     """
-    value = struct.pack('d', value)
-    length = struct.calcsize('d')
-    res = write_bytes(handle, address, value, length)
-    return res
+    return write_ctype(handle, address, ctypes.c_double(value))
 
 
 def write_string(handle, address, bytecode):
@@ -1102,10 +1086,8 @@ def write_string(handle, address, bytecode):
     """
     if isinstance(bytecode, str):
         bytecode = bytecode.encode()
-    src = ctypes.c_char_p(bytecode)
-    length = len(bytecode)
-    res = write_bytes(handle, address, src, length)
-    return res
+
+    return write_bytes(handle, address, bytecode, len(bytecode))
 
 
 def virtual_query(handle, address):
@@ -1129,10 +1111,10 @@ def virtual_query(handle, address):
         A memory basic information object
     """
     mbi = pymem.ressources.structure.MEMORY_BASIC_INFORMATION()
-    ctypes.windll.kernel32.SetLastError(0)
+    pymem.ressources.kernel32.SetLastError(0)
     pymem.ressources.kernel32.VirtualQueryEx(handle, address, ctypes.byref(mbi), ctypes.sizeof(mbi))
     error_code = ctypes.windll.kernel32.GetLastError()
     if error_code:
-        ctypes.windll.kernel32.SetLastError(0)
+        pymem.ressources.kernel32.SetLastError(0)
         raise pymem.exception.WinAPIError(error_code)
     return mbi

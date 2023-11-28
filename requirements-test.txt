@@ -1,4 +1,0 @@
-codecov
-pytest
-pytest-cov
-twine

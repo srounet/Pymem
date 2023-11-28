@@ -552,8 +552,9 @@ def read_string(handle, address, byte=50, encoding='UTF-8'):
         An address of the region of memory to be read.
     byte: int, default=50
         max number of bytes to check for null terminator, defaults to 50
-    encoding:string, default='UTF-8'
-    
+    encoding: str, default='UTF-8'
+        encoding to use when decoding bytes
+
     Raises
     ------
     TypeError

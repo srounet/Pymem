@@ -954,7 +954,7 @@ class Pymem(object):
             raise pymem.exception.MemoryReadError(address, struct.calcsize('d'), e.error_code)
         return value
 
-    def read_string(self, address, byte=50):
+    def read_string(self, address, byte=50, encoding="UTF-8"):
         """Reads n `byte` from an area of memory in a specified process.
 
         Parameters
@@ -963,6 +963,8 @@ class Pymem(object):
             An address of the region of memory to be read.
         byte: int
             Amount of bytes to be read
+        encoding: str
+            Encoding to use when decoding
 
         Raises
         ------
@@ -983,7 +985,7 @@ class Pymem(object):
         if not byte or not isinstance(byte, int):
             raise TypeError('Invalid argument: {}'.format(byte))
         try:
-            value = pymem.memory.read_string(self.process_handle, address, byte)
+            value = pymem.memory.read_string(self.process_handle, address, byte, encoding=encoding)
         except pymem.exception.WinAPIError as e:
             raise pymem.exception.MemoryReadError(address, byte, e.error_code)
         return value

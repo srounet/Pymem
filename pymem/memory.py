@@ -537,7 +537,7 @@ def read_double(handle, address):
     return read_ctype(handle, address, ctypes.c_double())
 
 
-def read_string(handle, address, byte=50):
+def read_string(handle, address, byte=50, encoding='UTF-8'):
     """Reads n `byte` from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -552,6 +552,8 @@ def read_string(handle, address, byte=50):
         An address of the region of memory to be read.
     byte: int, default=50
         max number of bytes to check for null terminator, defaults to 50
+    encoding: str, default='UTF-8'
+        encoding to use when decoding bytes
 
     Raises
     ------
@@ -569,7 +571,7 @@ def read_string(handle, address, byte=50):
     i = buff.find(b'\x00')
     if i != -1:
         buff = buff[:i]
-    buff = buff.decode()
+    buff = buff.decode(encoding)
     return buff
 
 

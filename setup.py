@@ -24,7 +24,7 @@ if os.path.isfile(ROOT + '/PYPI-README.md'):
 
 setuptools.setup(
     name='Pymem',
-    version='1.13.0',
+    version='1.13.1',
     long_description=long_description,
     long_description_content_type="text/markdown",
     description='pymem: python memory access made easy',

@@ -1,0 +1,31 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
+        architecture: [ "x86", "x64" ]
+
+    runs-on: windows-latest
+    name: ${{ matrix.python-version }} ${{ matrix.architecture }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        architecture: ${{ matrix.architecture }}
+    - name: Set up Poetry
+      uses: abatilo/actions-poetry@v2
+    - name: Install dependencies
+      run: poetry install
+    - name: Run tests
+      run: poetry run pytest

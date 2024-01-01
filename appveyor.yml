@@ -70,7 +70,7 @@ for:
   deploy: on
 
   deploy_script:
-    - cmd: twine upload --verbose --skip-existing dist/* || exit 0
+    - cmd: poetry run twine upload --verbose --skip-existing dist/* || exit 0
 
 artifacts:
   - path: 'docs/source/_build/html'

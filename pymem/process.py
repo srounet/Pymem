@@ -324,7 +324,7 @@ def process_from_name(
 
 
 def process_from_id(process_id):
-    """Open a process given its name.
+    """Open a process given its id.
 
     Parameters
     ----------

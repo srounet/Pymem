@@ -69,7 +69,7 @@ for:
   deploy: on
 
   deploy_script:
-    - cmd: poetry publish --build --verbose --skip-existing || exit 0
+    - cmd: poetry publish --verbose --skip-existing --no-interaction || exit 0
 
 artifacts:
   - path: 'docs/source/_build/html'

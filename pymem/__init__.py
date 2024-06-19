@@ -139,7 +139,7 @@ class Pymem(object):
         if python_module:
             python_lib_h = find_existing_interpreter(python_version)
         else:
-            python_lib_h = pymem.process.inject_dll_from_path(self.process_handle, bytes(python_lib, 'ascii'))
+            python_lib_h = pymem.process.inject_dll_from_path(self.process_handle, python_lib)
             if not python_lib_h:
                 raise pymem.exception.PymemError('Inject dll failed')
 

@@ -15,7 +15,7 @@ import pymem.ressources.structure
 import pymem.ressources.psapi
 import pymem.thread
 import pymem.pattern
-
+import warnings
 
 # Configure pymem's handler to the lowest level possible so everything is cached and could be later displayed
 logger = logging.getLogger(__name__)
@@ -23,6 +23,10 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.NullHandler())
 
 
+def disable_deprecated_warnings():
+    warnings.simplefilter("ignore", DeprecationWarning)
+
+    
 class Pymem(object):
     """Initialize the Pymem class.
     If process_name is given, will open the process and retrieve a handle over it.
@@ -135,7 +139,7 @@ class Pymem(object):
         if python_module:
             python_lib_h = find_existing_interpreter(python_version)
         else:
-            python_lib_h = pymem.process.inject_dll(self.process_handle, bytes(python_lib, 'ascii'))
+            python_lib_h = pymem.process.inject_dll_from_path(self.process_handle, python_lib)
             if not python_lib_h:
                 raise pymem.exception.PymemError('Inject dll failed')
 

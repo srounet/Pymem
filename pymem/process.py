@@ -8,7 +8,7 @@ import pymem.ressources.advapi32
 import pymem.ressources.kernel32
 import pymem.ressources.psapi
 import pymem.ressources.structure
-
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +33,11 @@ def get_python_dll(version):
             return module.filename
 
 
-def inject_dll(handle, filepath):
-    """Inject a dll into opened process.
+def inject_dll_from_ansi(handle:int, filepath:bytes):
+    """
+    (Deprecated) This function is deprecated. Use `inject_dll_from_path` instead.
+
+    Inject a dll into opened process. Use `ANSI` version of LoadLibrary (LoadLibraryA)
 
     Parameters
     ----------
@@ -48,6 +51,15 @@ def inject_dll(handle, filepath):
     DWORD
         The address of injected dll
     """
+    warnings.warn(
+        (
+            "This function is deprecated, "
+            "please use pymem.process.inject_dll_from_path to support paths containing non-ASCII characters. "
+            "Or, use pymem.disable_deprecated_warnings to disable this warning."
+        ),
+        DeprecationWarning,
+        stacklevel=2,
+    )
     filepath_address = pymem.ressources.kernel32.VirtualAllocEx(
         handle,
         0,
@@ -70,6 +82,45 @@ def inject_dll(handle, filepath):
     module_address = pymem.ressources.kernel32.GetModuleHandleW(dll_name)
     return module_address
 
+def inject_dll_from_path(handle:int, filepath:str):
+    """Inject a dll into opened process. Use `Unicode` version of LoadLibrary (LoadLibraryW)
+
+    Parameters
+    ----------
+    handle: int
+        Handle to an open object
+    filepath: str
+        Dll to be injected filepath
+
+    Returns
+    -------
+    DWORD
+        The address of injected dll
+    """
+    filepath_bytes = filepath.encode('utf-16le')
+    filepath_address = pymem.ressources.kernel32.VirtualAllocEx(
+        handle,
+        0,
+        len(filepath_bytes),
+        pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT.value | pymem.ressources.structure.MEMORY_STATE.MEM_RESERVE.value,
+        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE.value
+    )
+    pymem.ressources.kernel32.WriteProcessMemory(handle, filepath_address, filepath_bytes, len(filepath_bytes), None)
+    kernel32_handle = pymem.ressources.kernel32.GetModuleHandleW("kernel32.dll")
+    load_library_a_address = pymem.ressources.kernel32.GetProcAddress(kernel32_handle, b"LoadLibraryW")
+    thread_h = pymem.ressources.kernel32.CreateRemoteThread(
+        handle, None, 0, load_library_a_address, filepath_address, 0, None
+    )
+    pymem.ressources.kernel32.WaitForSingleObject(thread_h, -1)
+    pymem.ressources.kernel32.VirtualFreeEx(
+        handle, filepath_address, len(filepath_bytes), pymem.ressources.structure.MEMORY_STATE.MEM_RELEASE.value
+    )
+    dll_name = os.path.basename(filepath)
+    module_address = pymem.ressources.kernel32.GetModuleHandleW(dll_name)
+    return module_address
+
+# To maintain compatibility with the previous version of the library
+inject_dll=inject_dll_from_ansi
 
 def get_luid(name):
     """Get the LUID for the SeCreateSymbolicLinkPrivilege

@@ -296,7 +296,7 @@ class Pymem(object):
         if not process_id or not isinstance(process_id, int):
             raise TypeError('Invalid argument: {}'.format(process_id))
         self.process_id = process_id
-        self.process_handle = pymem.process.open(self.process_id)
+        self.process_handle = pymem.process.open_process(self.process_id)
         if not self.process_handle:
             raise pymem.exception.CouldNotOpenProcess(self.process_id)
         pymem.logger.debug('Process {} is being debugged'.format(

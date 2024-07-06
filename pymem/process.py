@@ -27,7 +27,7 @@ def get_python_dll(version):
         The full path of dll
     """
     current_process_id = os.getpid()
-    current_process_handle = pymem.process.open(current_process_id)
+    current_process_handle = pymem.process.open_process(current_process_id)
     for module in pymem.process.enum_process_module(current_process_handle):
         if module.name == version:
             return module.filename
@@ -215,7 +215,7 @@ def base_module(handle):
     return module_info
 
 
-def open(process_id, debug=True, process_access=None):
+def open_process(process_id, debug=True, process_access=None):
     """Open a process given its process_id.
     By default, the process is opened with full access and in debug mode.
 

@@ -20,7 +20,7 @@ documentation = "https://pymem.readthedocs.io/en/latest/"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0.0"
-regex = {version = "^2022.9.13", optional = true}
+regex = {version = "2024.9.11", optional = true}
 
 [tool.poetry.extras]
 speed = ["regex"]

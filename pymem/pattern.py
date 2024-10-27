@@ -13,7 +13,7 @@ except ImportError:
 
 # TODO: warn that pattern is a regex and may need to be escaped
 # TODO: 2.0 rename to pattern_scan_page
-def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
+def scan_pattern_page(handle, address, pattern, *, return_multiple=False, check_memory_protection=True):
     """Search a byte pattern given a memory location.
     Will query memory location information and search over until it reaches the
     length of the memory page. If nothing is found the function returns the
@@ -29,6 +29,8 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
         A regex byte pattern to search for
     return_multiple: bool
         If multiple results should be returned instead of stopping on the first
+    check_memory_protection: bool
+        Don't scan region if it's protection disallows this.
 
     Returns
     -------
@@ -53,14 +55,21 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
     """
     mbi = pymem.memory.virtual_query(handle, address)
     next_region = mbi.BaseAddress + mbi.RegionSize
-    allowed_protections = [
-        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE,
-        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READ,
-        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE,
-        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READWRITE,
-        pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READONLY,
-    ]
-    if mbi.state != pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT or mbi.protect not in allowed_protections:
+
+    if check_memory_protection:
+        allowed_protections = [
+            pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE,
+            pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READ,
+            pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE,
+            pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READWRITE,
+            pymem.ressources.structure.MEMORY_PROTECTION.PAGE_READONLY,
+        ]
+
+        have_permission_to_scan_memory_page = mbi.protect in allowed_protections
+    else:
+        have_permission_to_scan_memory_page = True
+
+    if mbi.state != pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT or not have_permission_to_scan_memory_page:
         return next_region, None
 
     page_bytes = pymem.memory.read_bytes(handle, address, mbi.RegionSize - (address - mbi.BaseAddress))
@@ -82,7 +91,7 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False):
     return next_region, found
 
 
-def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
+def pattern_scan_module(handle, module, pattern, *, return_multiple=False, check_memory_protection=True):
     """Given a handle over an opened process and a module will scan memory after
     a byte pattern and return its corresponding memory address.
 
@@ -96,6 +105,8 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
         A regex byte pattern to search for
     return_multiple: bool
         If multiple results should be returned instead of stopping on the first
+    check_memory_protection: bool
+        Don't scan region if it's protection disallows this.
 
     Returns
     -------
@@ -120,7 +131,12 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
     if not return_multiple:
         found = None
         while page_address < max_address:
-            page_address, found = scan_pattern_page(handle, page_address, pattern)
+            page_address, found = scan_pattern_page(
+                handle,
+                page_address,
+                pattern,
+                check_memory_protection=check_memory_protection,
+            )
 
             if found:
                 break
@@ -128,7 +144,13 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
     else:
         found = []
         while page_address < max_address:
-            page_address, new_found = scan_pattern_page(handle, page_address, pattern, return_multiple=True)
+            page_address, new_found = scan_pattern_page(
+                handle,
+                page_address,
+                pattern,
+                return_multiple=True,
+                check_memory_protection=check_memory_protection,
+            )
 
             if new_found:
                 found += new_found
@@ -136,7 +158,7 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False):
     return found
 
 
-def pattern_scan_all(handle, pattern, *, return_multiple=False):
+def pattern_scan_all(handle, pattern, *, return_multiple=False, check_memory_protection=True):
     """Scan the entire address space for a given regex pattern
 
     Parameters
@@ -147,6 +169,8 @@ def pattern_scan_all(handle, pattern, *, return_multiple=False):
         A regex bytes pattern to search for
     return_multiple: bool
         If multiple results should be returned
+    check_memory_protection: bool
+        Don't scan region if it's protection disallows this.
 
     Returns
     -------
@@ -163,7 +187,8 @@ def pattern_scan_all(handle, pattern, *, return_multiple=False):
             handle,
             next_region,
             pattern,
-            return_multiple=return_multiple
+            return_multiple=return_multiple,
+            check_memory_protection=check_memory_protection,
         )
 
         if not return_multiple and page_found:

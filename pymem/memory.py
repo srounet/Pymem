@@ -590,7 +590,7 @@ def write_bytes(handle, address, data, length):
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
         An address of the region of memory to be written.
-    data: bytes
+    data: void
         A buffer that contains data to be written
     length: int
         Number of bytes to be written.

@@ -30,7 +30,7 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False, check_
     return_multiple: bool
         If multiple results should be returned instead of stopping on the first
     check_memory_protection: bool
-        Don't scan region if it's protection disallows this.
+        Don't scan a region if its protection prohibits it.
 
     Returns
     -------
@@ -106,7 +106,7 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False, check
     return_multiple: bool
         If multiple results should be returned instead of stopping on the first
     check_memory_protection: bool
-        Don't scan region if it's protection disallows this.
+        Don't scan a region if its protection prohibits it.
 
     Returns
     -------
@@ -170,7 +170,7 @@ def pattern_scan_all(handle, pattern, *, return_multiple=False, check_memory_pro
     return_multiple: bool
         If multiple results should be returned
     check_memory_protection: bool
-        Don't scan region if it's protection disallows this.
+        Don't scan a region if its protection prohibits it.
 
     Returns
     -------

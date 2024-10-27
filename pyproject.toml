@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Pymem"
-version = "1.13.3"
+version = "1.14.0"
 description = "python memory access made easy"
 authors = ["Fabien Reboia <srounet@gmail.com>"]
 license = "MIT"

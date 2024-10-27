@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Pymem"
-version = "1.13.3"
+version = "1.13.4"
 description = "python memory access made easy"
 authors = ["Fabien Reboia <srounet@gmail.com>"]
 license = "MIT"
@@ -11,6 +11,7 @@ classifiers=[
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Environment :: Win32 (MS Windows)",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",

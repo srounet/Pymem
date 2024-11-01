@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 
+import pymem.process
 import pymem.ressources.advapi32
 import pymem.ressources.kernel32
 import pymem.ressources.psapi
@@ -79,8 +80,9 @@ def inject_dll_from_ansi(handle:int, filepath:bytes):
     )
     dll_name = os.path.basename(filepath)
     dll_name = dll_name.decode('ascii')
-    module_address = pymem.ressources.kernel32.GetModuleHandleW(dll_name)
-    return module_address
+    module_handle = pymem.process.module_from_name(handle, dll_name)
+    if module_handle is not None:
+        return module_handle.lpBaseOfDll
 
 def inject_dll_from_path(handle:int, filepath:str):
     """Inject a dll into opened process. Use `Unicode` version of LoadLibrary (LoadLibraryW)
@@ -116,8 +118,9 @@ def inject_dll_from_path(handle:int, filepath:str):
         handle, filepath_address, len(filepath_bytes), pymem.ressources.structure.MEMORY_STATE.MEM_RELEASE.value
     )
     dll_name = os.path.basename(filepath)
-    module_address = pymem.ressources.kernel32.GetModuleHandleW(dll_name)
-    return module_address
+    module_handle = pymem.process.module_from_name(handle, dll_name)
+    if module_handle is not None:
+        return module_handle.lpBaseOfDll
 
 # To maintain compatibility with the previous version of the library
 inject_dll=inject_dll_from_ansi

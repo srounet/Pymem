@@ -175,6 +175,8 @@ class Pymem(object):
         shellcode: str
             A string with python instructions.
         """
+        if self._python_injected is not True:
+            raise RuntimeError('Python interpreter must be injected before injecting shellcode')
         shellcode = shellcode.encode('ascii')
         shellcode_addr = pymem.ressources.kernel32.VirtualAllocEx(
             self.process_handle,

@@ -1,16 +1,18 @@
 import ctypes
+import sys
 
 import pymem.ressources.structure
 
-try:
+
+if sys.platform == "win32":
     dll = ctypes.WinDLL('kernel32.dll')
-except AttributeError:
+else:
     class MockObject:
         def __getattr__(self, item):
             return self
 
-
     dll = MockObject()
+
 
 #: Opens an existing local process object.
 #:
@@ -264,14 +266,14 @@ WaitForSingleObject.argtypes = [
 ]
 
 GetExitCodeThread = dll.GetExitCodeThread
-GetExitCodeThread.restype = ctypes.c_long
+GetExitCodeThread.restype = ctypes.c_bool
 GetExitCodeThread.argtypes = [
     ctypes.c_void_p,
     ctypes.POINTER(ctypes.c_ulong)
 ]
 
 VirtualFreeEx = dll.VirtualFreeEx
-VirtualFreeEx.restype = ctypes.c_long
+VirtualFreeEx.restype = ctypes.c_bool
 VirtualFreeEx.argtypes = [
     ctypes.c_void_p,
     ctypes.c_void_p,
@@ -280,8 +282,8 @@ VirtualFreeEx.argtypes = [
 ]
 
 GetThreadTimes = dll.GetThreadTimes
-GetThreadTimes.restype = ctypes.c_long
-GetThreadTimes.artypes = [
+GetThreadTimes.restype = ctypes.c_bool
+GetThreadTimes.argtypes = [
     ctypes.c_void_p,
     ctypes.POINTER(pymem.ressources.structure.FILETIME),
     ctypes.POINTER(pymem.ressources.structure.FILETIME),

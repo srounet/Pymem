@@ -5,6 +5,7 @@ import os
 import sys
 
 import pymem.process
+import pymem.exception
 import pymem.ressources.advapi32
 import pymem.ressources.kernel32
 import pymem.ressources.psapi

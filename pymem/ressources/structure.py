@@ -7,6 +7,7 @@ import ctypes.wintypes
 
 import pymem.ressources.psapi
 import pymem.ressources.ntdll
+import pymem.ressources.kernel32
 
 
 class LUID(ctypes.Structure):
@@ -39,7 +40,7 @@ class LUID_AND_ATTRIBUTES(ctypes.Structure):
         return buf[:size.value]
 
     def __str__(self):
-        res = self.get_name()
+        res = str(self.get_name())
         if self.is_enabled():
             res += ' (enabled)'
         return res
@@ -412,6 +413,10 @@ class MODULEINFO(ctypes.Structure):
 
     https://msdn.microsoft.com/en-us/library/windows/desktop/ms684229(v=vs.85).aspx
     """
+
+    lpBaseOfDll: int
+    SizeOfImage: int
+    EntryPoint: int
 
     _fields_ = [
         ("lpBaseOfDll", ctypes.c_void_p),  # remote pointer

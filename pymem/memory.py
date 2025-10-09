@@ -1,12 +1,13 @@
 import ctypes
 import struct
+from typing import Any
 
 import pymem.exception
 import pymem.ressources.kernel32
 import pymem.ressources.structure
 
 
-def allocate_memory(handle, size, allocation_type=None, protection_type=None):
+def allocate_memory(handle: int, size: int, allocation_type: pymem.ressources.structure.MEMORY_STATE | None = None, protection_type: pymem.ressources.structure.MEMORY_PROTECTION | None = None) -> int:
     """Reserves or commits a region of memory within the virtual address space of a specified process.
     The function initializes the memory it allocates to zero, unless MEM_RESET is used.
 
@@ -30,15 +31,15 @@ def allocate_memory(handle, size, allocation_type=None, protection_type=None):
         The address of the allocated region of pages.
     """
     if not allocation_type:
-        allocation_type = pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT.value
+        allocation_type = pymem.ressources.structure.MEMORY_STATE.MEM_COMMIT
     if not protection_type:
-        protection_type = pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE.value
+        protection_type = pymem.ressources.structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE
     pymem.ressources.kernel32.SetLastError(0)
-    address = pymem.ressources.kernel32.VirtualAllocEx(handle, None, size, allocation_type, protection_type)
+    address = pymem.ressources.kernel32.VirtualAllocEx(handle, None, size, allocation_type.value, protection_type.value)
     return address
 
 
-def free_memory(handle, address, free_type=None):
+def free_memory(handle: int, address: int, free_type: pymem.ressources.structure.MEMORY_STATE | None = None) -> int:
     """Releases, decommits, or releases and decommits a region of memory within the virtual address space of a specified
     process.
 
@@ -66,7 +67,7 @@ def free_memory(handle, address, free_type=None):
     return ret
 
 
-def read_bytes(handle, address, byte):
+def read_bytes(handle: int, address: int, byte: int) -> bytes:
     """Reads data from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -97,7 +98,7 @@ def read_bytes(handle, address, byte):
     return read_ctype(handle, address, (byte * ctypes.c_char)(), get_py_value=False).raw
 
 
-def read_ctype(handle, address, ctype, *, get_py_value=True, raw_bytes=False):
+def read_ctype(handle: int, address: int, ctype: ctypes.Structure | ctypes.Array | ctypes._SimpleCData, *, get_py_value: bool = True, raw_bytes: bool = False) -> Any:
     """
     Read a ctype basic type or structure from <address>
 
@@ -153,7 +154,7 @@ def read_ctype(handle, address, ctype, *, get_py_value=True, raw_bytes=False):
     return ctype
 
 
-def read_bool(handle, address):
+def read_bool(handle: int, address: int) -> bool:
     """Reads 1 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -182,7 +183,7 @@ def read_bool(handle, address):
     return read_ctype(handle, address, ctypes.c_bool())
 
 
-def read_char(handle, address):
+def read_char(handle: int, address: int) -> str:
     """Reads 1 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -211,7 +212,7 @@ def read_char(handle, address):
     return read_ctype(handle, address, ctypes.c_char()).decode()
 
 
-def read_uchar(handle, address):
+def read_uchar(handle: int, address: int) -> int:
     """Reads 1 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -240,7 +241,7 @@ def read_uchar(handle, address):
     return read_ctype(handle, address, ctypes.c_ubyte())
 
 
-def read_short(handle, address):
+def read_short(handle: int, address: int) -> int:
     """Reads 2 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -269,7 +270,7 @@ def read_short(handle, address):
     return read_ctype(handle, address, ctypes.c_short())
 
 
-def read_ushort(handle, address):
+def read_ushort(handle: int, address: int) -> int:
     """Reads 2 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -298,7 +299,7 @@ def read_ushort(handle, address):
     return read_ctype(handle, address, ctypes.c_ushort())
 
 
-def read_int(handle, address):
+def read_int(handle: int, address: int) -> int:
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -327,7 +328,7 @@ def read_int(handle, address):
     return read_ctype(handle, address, ctypes.c_int())
 
 
-def read_uint(handle, address, is_64=False):
+def read_uint(handle: int, address: int, is_64: bool = False) -> int:
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -363,7 +364,7 @@ def read_uint(handle, address, is_64=False):
     return struct.unpack('>I', raw)[0]
 
 
-def read_float(handle, address):
+def read_float(handle: int, address: int) -> float:
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -392,7 +393,7 @@ def read_float(handle, address):
     return read_ctype(handle, address, ctypes.c_float())
 
 
-def read_long(handle, address):
+def read_long(handle: int, address: int) -> int:
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -421,7 +422,7 @@ def read_long(handle, address):
     return read_ctype(handle, address, ctypes.c_long())
 
 
-def read_ulong(handle, address):
+def read_ulong(handle: int, address: int) -> int:
     """Reads 4 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -450,7 +451,7 @@ def read_ulong(handle, address):
     return read_ctype(handle, address, ctypes.c_ulong())
 
 
-def read_longlong(handle, address):
+def read_longlong(handle: int, address: int) -> int:
     """Reads 8 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -479,7 +480,7 @@ def read_longlong(handle, address):
     return read_ctype(handle, address, ctypes.c_longlong())
 
 
-def read_ulonglong(handle, address):
+def read_ulonglong(handle: int, address: int) -> int:
     """Reads 8 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -508,7 +509,7 @@ def read_ulonglong(handle, address):
     return read_ctype(handle, address, ctypes.c_ulonglong())
 
 
-def read_double(handle, address):
+def read_double(handle: int, address: int) -> float:
     """Reads 8 byte from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -537,7 +538,7 @@ def read_double(handle, address):
     return read_ctype(handle, address, ctypes.c_double())
 
 
-def read_string(handle, address, byte=50, encoding='UTF-8'):
+def read_string(handle: int, address: int, byte: int = 50, encoding: str = 'UTF-8') -> str:
     """Reads n `byte` from an area of memory in a specified process.
     The entire area to be read must be accessible or the operation fails.
 
@@ -575,7 +576,7 @@ def read_string(handle, address, byte=50, encoding='UTF-8'):
     return buff
 
 
-def write_bytes(handle, address, data, length):
+def write_bytes(handle: int, address: int, data: bytes, length: int) -> bool:
     """Writes data to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -612,7 +613,7 @@ def write_bytes(handle, address, data, length):
     return write_ctype(handle, address, buffer)
 
 
-def write_ctype(handle, address, ctype):
+def write_ctype(handle: int, address: int, ctype: ctypes.Structure | ctypes.Array | ctypes._SimpleCData) -> bool:
     """
     Write a ctype basic type or structure to <address>
 
@@ -652,10 +653,10 @@ def write_ctype(handle, address, ctype):
 
     # TODO: remove in next breaking change
     # there isn't much point in returning this as it will always be true/1 (error raised otherwise)
-    return result
+    return bool(result)
 
 
-def write_bool(handle, address, value):
+def write_bool(handle: int, address: int, value: bool) -> bool:
     """Writes 1 byte to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -686,7 +687,7 @@ def write_bool(handle, address, value):
     return write_ctype(handle, address, ctypes.c_bool(value))
 
 
-def write_char(handle, address, value):
+def write_char(handle: int, address: int, value: bytes) -> bool:
     """Writes 1 byte to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -699,7 +700,7 @@ def write_char(handle, address, value):
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
         An address of the region of memory to be written.
-    value: str
+    value: bytes
         A buffer that contains data to be written
 
     Raises
@@ -717,7 +718,7 @@ def write_char(handle, address, value):
     return write_ctype(handle, address, ctypes.c_char(value))
 
 
-def write_uchar(handle, address, value):
+def write_uchar(handle: int, address: int, value: int) -> bool:
     """Writes 1 byte to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -730,7 +731,7 @@ def write_uchar(handle, address, value):
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
         An address of the region of memory to be written.
-    value: str
+    value: int
         A buffer that contains data to be written
 
     Raises
@@ -748,7 +749,7 @@ def write_uchar(handle, address, value):
     return write_ctype(handle, address, ctypes.c_ubyte(value))
 
 
-def write_short(handle, address, value):
+def write_short(handle: int, address: int, value: int) -> bool:
     """Writes 2 bytes to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -779,7 +780,7 @@ def write_short(handle, address, value):
     return write_ctype(handle, address, ctypes.c_short(value))
 
 
-def write_ushort(handle, address, value):
+def write_ushort(handle: int, address: int, value: int) -> bool:
     """Writes 2 bytes to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -810,7 +811,7 @@ def write_ushort(handle, address, value):
     return write_ctype(handle, address, ctypes.c_ushort(value))
 
 
-def write_int(handle, address, value):
+def write_int(handle: int, address: int, value: int) -> bool:
     """Writes 4 bytes to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -841,7 +842,7 @@ def write_int(handle, address, value):
     return write_ctype(handle, address, ctypes.c_int(value))
 
 
-def write_uint(handle, address, value):
+def write_uint(handle: int, address: int, value: int) -> bool:
     """Writes 4 bytes to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -872,7 +873,7 @@ def write_uint(handle, address, value):
     return write_ctype(handle, address, ctypes.c_uint(value))
 
 
-def write_float(handle, address, value):
+def write_float(handle: int, address: int, value: float) -> bool:
     """Writes 4 bytes to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -903,7 +904,7 @@ def write_float(handle, address, value):
     return write_ctype(handle, address, ctypes.c_float(value))
 
 
-def write_long(handle, address, value):
+def write_long(handle: int, address: int, value: int) -> bool:
     """Writes 4 bytes to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -934,7 +935,7 @@ def write_long(handle, address, value):
     return write_ctype(handle, address, ctypes.c_long(value))
 
 
-def write_ulong(handle, address, value):
+def write_ulong(handle: int, address: int, value: int) -> bool:
     """Writes 4 bytes to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -965,7 +966,7 @@ def write_ulong(handle, address, value):
     return write_ctype(handle, address, ctypes.c_ulong(value))
 
 
-def write_longlong(handle, address, value):
+def write_longlong(handle: int, address: int, value: int) -> bool:
     """Writes 8 bytes to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -996,7 +997,7 @@ def write_longlong(handle, address, value):
     return write_ctype(handle, address, ctypes.c_longlong(value))
 
 
-def write_ulonglong(handle, address, value):
+def write_ulonglong(handle: int, address: int, value: int) -> bool:
     """Writes 8 bytes to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -1027,7 +1028,7 @@ def write_ulonglong(handle, address, value):
     return write_ctype(handle, address, ctypes.c_ulonglong(value))
 
 
-def write_double(handle, address, value):
+def write_double(handle: int, address: int, value: float) -> bool:
     """Writes 8 bytes to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -1058,7 +1059,7 @@ def write_double(handle, address, value):
     return write_ctype(handle, address, ctypes.c_double(value))
 
 
-def write_string(handle, address, bytecode):
+def write_string(handle: int, address: int, bytecode: str | bytes):
     """Writes n `bytes` of len(`bytecode`) to an area of memory in a specified process.
     The entire area to be written to must be accessible or the operation fails.
 
@@ -1071,7 +1072,7 @@ def write_string(handle, address, bytecode):
         The handle must have the PROCESS_VM_OPERATION access right.
     address: int
         An address of the region of memory to be written.
-    bytecode: str, bytes
+    bytecode: str | bytes
         A buffer that contains data to be written
 
     Raises
@@ -1092,7 +1093,7 @@ def write_string(handle, address, bytecode):
     return write_bytes(handle, address, bytecode, len(bytecode))
 
 
-def virtual_query(handle, address):
+def virtual_query(handle: int, address: int) -> pymem.ressources.structure.MEMORY_BASIC_INFORMATION32:
     """Retrieves information about a range of pages within the virtual address space
     of a specified process.
 

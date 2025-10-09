@@ -1,14 +1,17 @@
 import ctypes
 import ctypes.wintypes
+import sys
 
-try:
+
+if sys.platform == "win32":
     dll = ctypes.WinDLL('psapi.dll')
-except AttributeError:
+else:
     class MockObject:
         def __getattr__(self, item):
             return self
 
     dll = MockObject()
+
 
 #: Retrieves a handle for each module in the specified process that meets the specified filter criteria.
 #:

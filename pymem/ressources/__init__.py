@@ -26,4 +26,4 @@ except AttributeError:
         def __getattr__(self, item):
             return self
 
-    ctypes.Windll = MockObject()
+    ctypes.Windll = MockObject()  # type: ignore

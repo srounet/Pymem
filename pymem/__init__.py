@@ -1,11 +1,11 @@
 import ctypes
-import ctypes.util
 import functools
 import logging
 import platform
 import struct
 import sys
 import typing
+from collections.abc import Generator
 
 import pymem.exception
 import pymem.memory
@@ -15,7 +15,7 @@ import pymem.ressources.structure
 import pymem.ressources.psapi
 import pymem.thread
 import pymem.pattern
-import warnings
+
 
 # Configure pymem's handler to the lowest level possible so everything is cached and could be later displayed
 logger = logging.getLogger(__name__)
@@ -23,11 +23,7 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.NullHandler())
 
 
-def disable_deprecated_warnings():
-    warnings.simplefilter("ignore", DeprecationWarning)
-
-    
-class Pymem(object):
+class Pymem:
     """Initialize the Pymem class.
     If process_name is given, will open the process and retrieve a handle over it.
 
@@ -43,7 +39,7 @@ class Pymem(object):
 
     def __init__(
         self,
-        process_name: typing.Union[str, int] = None,
+        process_name: typing.Union[str, int, None] = None,
         exact_match: bool = False,
         ignore_case: bool = True,
     ):
@@ -79,7 +75,7 @@ class Pymem(object):
         """
         return pymem.process.is_64_bit(self.process_handle)
 
-    def list_modules(self):
+    def list_modules(self) -> Generator[pymem.ressources.structure.MODULEINFO]:
         """List a process loaded modules.
 
         Returns
@@ -90,7 +86,7 @@ class Pymem(object):
         modules = pymem.process.enum_process_module(self.process_handle)
         return modules
 
-    def resolve_offsets(self, base_offset, offsets):
+    def resolve_offsets(self, base_offset: int, offsets: list[int]) -> int:
         """Resolves a list of pointers; commonly one from cheat engine
 
         Args:
@@ -108,13 +104,16 @@ class Pymem(object):
 
         return addr + offsets[-1]
 
-    def inject_python_interpreter(self, initsigs=1):
+    def inject_python_interpreter(self, initsigs: int = 1):
         """Inject python interpreter into target process and call Py_InitializeEx.
         """
 
         def find_existing_interpreter(_python_version):
             _local_handle = pymem.ressources.kernel32.GetModuleHandleW(_python_version)
             module = pymem.process.module_from_name(self.process_handle, _python_version)
+
+            if module is None:
+                raise pymem.exception.PymemError("Inject dll failed")
 
             self.py_run_simple_string = (
                 module.lpBaseOfDll + (
@@ -139,6 +138,10 @@ class Pymem(object):
         if python_module:
             python_lib_h = find_existing_interpreter(python_version)
         else:
+            # we shouldn't be able to get here without a handle in theory
+            if self.process_handle is None:
+                raise ValueError("Process must be opened before calling inject_python_interpreter")
+
             python_lib_h = pymem.process.inject_dll_from_path(self.process_handle, python_lib)
             if not python_lib_h:
                 raise pymem.exception.PymemError('Inject dll failed')
@@ -167,17 +170,20 @@ class Pymem(object):
         pymem.logger.debug('Py_InitializeEx loc: 0x%08x' % py_initialize_ex)
         pymem.logger.debug('PyRun_SimpleString loc: 0x%08x' % self.py_run_simple_string)
 
-    def inject_python_shellcode(self, shellcode):
+    def inject_python_shellcode(self, shellcode: str | bytes):
         """Inject a python shellcode into memory and execute it.
 
         Parameters
         ----------
-        shellcode: str
+        shellcode: str | bytes
             A string with python instructions.
         """
-        if self._python_injected is not True:
+        if self._python_injected is not True or self.py_run_simple_string is None:
             raise RuntimeError('Python interpreter must be injected before injecting shellcode')
-        shellcode = shellcode.encode('ascii')
+
+        if isinstance(shellcode, str):
+            shellcode = shellcode.encode('ascii')
+
         shellcode_addr = pymem.ressources.kernel32.VirtualAllocEx(
             self.process_handle,
             None,
@@ -199,14 +205,14 @@ class Pymem(object):
         # check written
         self.start_thread(self.py_run_simple_string, shellcode_addr)
 
-    def start_thread(self, address, params=None):
+    def start_thread(self, address: int, params: int | None = None) -> int:
         """Create a new thread within the current debugged process.
 
         Parameters
         ----------
         address: int
             An address from where the thread starts
-        params: int
+        params: int | None
             An optional address with thread parameters
 
         Returns
@@ -217,7 +223,7 @@ class Pymem(object):
 
         params = params or 0
         NULL_SECURITY_ATTRIBUTES = ctypes.cast(0, pymem.ressources.structure.LPSECURITY_ATTRIBUTES)
-        thread_h = pymem.ressources.kernel32.CreateRemoteThread(
+        thread_h: int = pymem.ressources.kernel32.CreateRemoteThread(
             self.process_handle,
             NULL_SECURITY_ATTRIBUTES,
             0,
@@ -280,7 +286,7 @@ class Pymem(object):
         self.process_id = process32.th32ProcessID
         self.open_process_from_id(self.process_id)
 
-    def open_process_from_id(self, process_id):
+    def open_process_from_id(self, process_id: int):
         """Open process given its name and stores the handle into `self.process_handle`.
 
         Parameters
@@ -324,7 +330,7 @@ class Pymem(object):
         if self.thread_handle:
             pymem.process.close_handle(self.thread_handle)
 
-    def allocate(self, size):
+    def allocate(self, size: int) -> int:
         """Allocate memory into the current opened process.
 
         Parameters
@@ -351,7 +357,7 @@ class Pymem(object):
         address = pymem.memory.allocate_memory(self.process_handle, size)
         return address
 
-    def free(self, address):
+    def free(self, address: int):
         """Free memory from the current opened process given an address.
 
         Parameters
@@ -372,7 +378,16 @@ class Pymem(object):
             raise pymem.exception.ProcessError('You must open a process before calling this method')
         return pymem.memory.free_memory(self.process_handle, address)
 
-    def pattern_scan_all(self, pattern, *, return_multiple=False):
+    @typing.overload
+    def pattern_scan_all(self, pattern: pymem.pattern.PatternLike, *, return_multiple: typing.Literal[True]) -> list[int]: ...
+
+    @typing.overload
+    def pattern_scan_all(self, pattern: pymem.pattern.PatternLike, *, return_multiple: typing.Literal[False]) -> int | None: ...
+
+    @typing.overload
+    def pattern_scan_all(self, pattern: pymem.pattern.PatternLike, *, return_multiple: bool = False) -> list[int] | int | None: ...
+
+    def pattern_scan_all(self, pattern: pymem.pattern.PatternLike, *, return_multiple: bool = False):
         """Scan the entire address space of this process for a regex pattern
 
         Parameters
@@ -388,9 +403,12 @@ class Pymem(object):
             Memory address of given pattern, or None if one was not found
             or a list of found addresses in return_multiple is True
         """
+        if self.process_handle is None:
+            raise ValueError("Process must be opened before calling pattern_scan_all")
+
         return pymem.pattern.pattern_scan_all(self.process_handle, pattern, return_multiple=return_multiple)
 
-    def pattern_scan_module(self, pattern, module, *, return_multiple=False):
+    def pattern_scan_module(self, pattern, module: str | pymem.ressources.structure.MODULEINFO, *, return_multiple=False):
         """Scan a module for a regex pattern
 
         Parameters
@@ -408,18 +426,27 @@ class Pymem(object):
             Memory address of given pattern, or None if one was not found
             or a list of found addresses in return_multiple is True
         """
+        if self.process_handle is None:
+            raise ValueError("Process must be opened before calling pattern_scan_module")
+
         if isinstance(module, str):
-            module = pymem.process.module_from_name(self.process_handle, module)
+            scan_module = pymem.process.module_from_name(self.process_handle, module)
+
+            if scan_module is None:
+                raise ValueError(f"No module found named {module}")
+
+        else:
+            scan_module = module
 
         return pymem.pattern.pattern_scan_module(
             self.process_handle,
-            module,
+            scan_module,
             pattern,
             return_multiple=return_multiple
         )
 
     @property
-    def process_base(self):
+    def process_base(self) -> pymem.ressources.structure.MODULEINFO:
         """Lookup process base Module.
 
         Raises
@@ -442,7 +469,7 @@ class Pymem(object):
         return base_module
 
     @property
-    def base_address(self):
+    def base_address(self) -> int:
         """Gets the memory address where the main module was loaded (ie address of exe file in memory)
 
         Raises
@@ -461,7 +488,7 @@ class Pymem(object):
 
     @property
     @functools.lru_cache(maxsize=1)
-    def main_thread(self):
+    def main_thread(self) -> pymem.thread.Thread:
         """Retrieve ThreadEntry32 of main thread given its creation time.
 
         Raises

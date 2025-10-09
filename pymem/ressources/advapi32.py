@@ -1,15 +1,18 @@
 import ctypes
+import sys
 
 import pymem.ressources.structure
 
-try:
+
+if sys.platform == "win32":
     dll = ctypes.WinDLL('advapi32.dll')
-except AttributeError:
+else:
     class MockObject:
         def __getattr__(self, item):
             return self
 
     dll = MockObject()
+
 
 #: The LookupPrivilegeValue function retrieves the locally unique identifier (LUID) used on a specified system to
 #: locally represent the specified privilege name.

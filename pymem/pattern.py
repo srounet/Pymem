@@ -1,7 +1,7 @@
 import sys
+import typing
 
 import pymem.memory
-import pymem.ressources.kernel32
 import pymem.ressources.structure
 
 try:
@@ -11,9 +11,22 @@ except ImportError:
     import re
 
 
+PatternLike: typing.TypeAlias = bytes | re.Pattern[bytes]
+
+
+@typing.overload
+def scan_pattern_page(handle, address, pattern: PatternLike, *, return_multiple: typing.Literal[True], check_memory_protection=True) -> tuple[int, list[int]]: ...
+
+@typing.overload
+def scan_pattern_page(handle, address, pattern: PatternLike, *, return_multiple: typing.Literal[False], check_memory_protection=True) -> tuple[int, int | None]: ...
+
+@typing.overload
+def scan_pattern_page(handle, address, pattern: PatternLike, *, return_multiple: bool = False, check_memory_protection=True) -> tuple[int, list[int] | int | None]: ...
+
+
 # TODO: warn that pattern is a regex and may need to be escaped
 # TODO: 2.0 rename to pattern_scan_page
-def scan_pattern_page(handle, address, pattern, *, return_multiple=False, check_memory_protection=True):
+def scan_pattern_page(handle: int, address: int, pattern: PatternLike, *, return_multiple: bool = False, check_memory_protection: bool = True):
     """Search a byte pattern given a memory location.
     Will query memory location information and search over until it reaches the
     length of the memory page. If nothing is found the function returns the
@@ -74,9 +87,11 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False, check_
 
     page_bytes = pymem.memory.read_bytes(handle, address, mbi.RegionSize - (address - mbi.BaseAddress))
 
+    found: int | None | list[int]
+
     if not return_multiple:
         found = None
-        match = re.search(pattern, page_bytes, re.DOTALL)
+        match = re.search(pattern, page_bytes, re.DOTALL)  # type: ignore
 
         if match:
             found = address + match.span()[0]
@@ -84,14 +99,24 @@ def scan_pattern_page(handle, address, pattern, *, return_multiple=False, check_
     else:
         found = []
 
-        for match in re.finditer(pattern, page_bytes, re.DOTALL):
+        for match in re.finditer(pattern, page_bytes, re.DOTALL):  # type: ignore
             found_address = address + match.span()[0]
             found.append(found_address)
 
     return next_region, found
 
 
-def pattern_scan_module(handle, module, pattern, *, return_multiple=False, check_memory_protection=True):
+@typing.overload
+def pattern_scan_module(handle: int, module: pymem.ressources.structure.MODULEINFO, pattern: PatternLike, *, return_multiple: typing.Literal[True], check_memory_protection: bool = True) -> list[int]: ...
+
+@typing.overload
+def pattern_scan_module(handle: int, module: pymem.ressources.structure.MODULEINFO, pattern: PatternLike, *, return_multiple: typing.Literal[False], check_memory_protection: bool = True) -> int | None: ...
+
+@typing.overload
+def pattern_scan_module(handle: int, module: pymem.ressources.structure.MODULEINFO, pattern: PatternLike, *, return_multiple: bool = False, check_memory_protection: bool = True) -> int | None | list[int]: ...
+
+
+def pattern_scan_module(handle: int, module: pymem.ressources.structure.MODULEINFO, pattern: PatternLike, *, return_multiple: bool = False, check_memory_protection: bool = True):
     """Given a handle over an opened process and a module will scan memory after
     a byte pattern and return its corresponding memory address.
 
@@ -110,7 +135,7 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False, check
 
     Returns
     -------
-    int, list, optional
+    int | list[int] | None
         Memory address of given pattern, or None if one was not found
         or a list of found addresses in return_multiple is True
 
@@ -158,7 +183,17 @@ def pattern_scan_module(handle, module, pattern, *, return_multiple=False, check
     return found
 
 
-def pattern_scan_all(handle, pattern, *, return_multiple=False, check_memory_protection=True):
+@typing.overload
+def pattern_scan_all(handle: int, pattern: PatternLike, *, return_multiple: typing.Literal[True], check_memory_protection: bool = True) -> list[int]: ...
+
+@typing.overload
+def pattern_scan_all(handle: int, pattern: PatternLike, *, return_multiple: typing.Literal[False], check_memory_protection: bool = True) -> int | None: ...
+
+@typing.overload
+def pattern_scan_all(handle: int, pattern: PatternLike, *, return_multiple: bool = False, check_memory_protection: bool = True) -> int | None | list[int]: ...
+
+
+def pattern_scan_all(handle: int, pattern: PatternLike, *, return_multiple: bool = False, check_memory_protection: bool = True):
     """Scan the entire address space for a given regex pattern
 
     Parameters
@@ -180,7 +215,7 @@ def pattern_scan_all(handle, pattern, *, return_multiple=False, check_memory_pro
     """
     next_region = 0
 
-    found = []
+    found: list[int] = []
     user_space_limit = 0x7FFFFFFF0000 if sys.maxsize > 2**32 else 0x7fff0000
     while next_region < user_space_limit:
         next_region, page_found = scan_pattern_page(
@@ -195,7 +230,8 @@ def pattern_scan_all(handle, pattern, *, return_multiple=False, check_memory_pro
             return page_found
 
         if page_found:
-            found += page_found
+            # we can ignore type here because we know page_found must be list[int] since return_multiple is checked to be True above
+            found += page_found  # type: ignore
 
     if not return_multiple:
         return None

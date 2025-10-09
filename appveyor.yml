@@ -25,18 +25,18 @@ install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
   # Check that we have the expected version and architecture for Python
-  - "python --version"
-  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+  - "python3 --version"
+  - "python3 -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   # Upgrade to the latest version of pip to avoid it displaying warnings
   # about it being out of date.
-  - "python -m pip install --upgrade pip"
+  - "python3 -m pip install --upgrade pip"
 
   # Install wheel for faster installs
-  - "python -m pip install --upgrade wheel"
+  - "python3 -m pip install --upgrade wheel"
 
   # Install poetry
-  - "python -m pip install poetry"
+  - "python3 -m pip install poetry"
 
   # Install test dependencies
   - "poetry install --only=test"
@@ -60,7 +60,7 @@ for:
       - master
 
   build_script:
-    - python -m pip install wheel poetry
+    - python3 -m pip install wheel poetry
     - poetry install
     - poetry build
 

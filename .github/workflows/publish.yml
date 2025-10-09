@@ -1,0 +1,31 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  run:
+    runs-on: windows-latest
+    environment:
+        name: pypi
+    permissions:
+        id-token: write
+        contents: read
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+    - name: Set up Poetry
+      uses: abatilo/actions-poetry@v2
+    - name: Install dependencies
+      run: poetry install
+    - name: Build
+      run: poetry build
+    - name: Publish
+      uses: pypa/gh-action-pypi-publish@release/v1

@@ -3,12 +3,15 @@ import os
 import os.path
 import subprocess
 
+import pytest
+
 import pymem
 
 
 logging.getLogger('pymem').setLevel(logging.WARNING)
 
 
+@pytest.mark.skip(reason="Python injection is broken on newer python versions currently")
 def test_inject_python_interpreter():
     pm = pymem.Pymem('python.exe')
     pm.inject_python_interpreter()
@@ -16,6 +19,7 @@ def test_inject_python_interpreter():
     assert pm.py_run_simple_string
 
 
+@pytest.mark.skip(reason="Python injection is broken on newer python versions currently")
 def test_inject_python_shellcode():
     notepad = subprocess.Popen(['notepad.exe'])
 

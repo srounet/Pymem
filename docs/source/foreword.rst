@@ -39,7 +39,7 @@ It now includes testing, and the documentation as been totally rewritten with tu
 Why and when using Pymem
 ------------------------
 
-Pymem has been built to reverse games such as Worlf of Warcraft, so if you plan to
+Pymem has been built to reverse games such as World of Warcraft, so if you plan to
 write a bot for this kind of game, you’re in the right place. You can also use
 pymem to do injections, assembly, memory pattern search and a lot more.
 

@@ -1,3 +1,4 @@
+import copy
 import ctypes
 import ctypes.util
 import functools
@@ -476,7 +477,7 @@ class Pymem(object):
         """
         if not self.process_id:
             raise pymem.exception.ProcessError('You must open a process before calling this method')
-        threads = pymem.process.enum_process_thread(self.process_id)
+        threads = [copy.deepcopy(t) for t in pymem.process.enum_process_thread(self.process_id)]
         threads = sorted(threads, key=lambda k: k.creation_time)
 
         if not threads:
